@@ -1,9 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:crypt/crypt.dart';
-import 'package:crypto/crypto.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -242,7 +238,7 @@ class Member {
   deletefile() async{
     File file = await _localFile();
 
-    FileSystemEntity fileSystemEntity = await file.delete();
+    await file.delete();
   }
 
   Future<bool> readFileLogIn()async {
@@ -280,7 +276,6 @@ class Member {
       default:
         {
           return false;
-          break;
         }
     }
   }
