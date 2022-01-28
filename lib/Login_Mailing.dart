@@ -42,7 +42,6 @@ class LoginPage extends StatefulWidget {
 enum SingingCharacter { lafayette, jefferson }
 
 class Login_state extends State<LoginPage> {
-  AccessToken? _accessToken;
   double WidthDevice = 0, HieghDevice = 0;
 
 
@@ -388,7 +387,6 @@ class Login_state extends State<LoginPage> {
       final LoginResult result = await FacebookAuth.i.login();
 
       if (result.status == LoginStatus.success) {
-        _accessToken = result.accessToken;
 
         final data = await FacebookAuth.i.getUserData();
         member = Member.fromJson(data);
@@ -774,9 +772,9 @@ void showtoast(String ms){
   Fluttertoast.showToast(
       msg: ms,
       toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.CENTER,
-      backgroundColor: Colors.red,
-      textColor: Colors.cyanAccent,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.black54,
+      textColor: Colors.white70,
       fontSize: 16.0
   );
 }

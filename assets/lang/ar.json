@@ -40,5 +40,7 @@
   "Sell_Message_Count": "عدد المشتريات من الرسائل :",
   "Mute_Notification": "كتم الأشعارات",
   "Darck_Mode": "الوضع اليلي",
-  "Log_Out": "تسجيل خروج"
+  "Log_Out": "تسجيل خروج",
+  "Field_Empty": "هناك حقل فارغ",
+  "No_Insert": "لم يتم الأرسال بسبب خطأ"
 }

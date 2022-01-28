@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mailing/Class/Get_Photo.dart';
+import 'package:mailing/Login_Mailing.dart';
 import 'package:mailing/Pages_File/Notif_Page.dart';
 import 'package:mailing/Pages_File/Program_Page.dart';
 import 'package:mailing/Validate.dart';
@@ -9,7 +10,6 @@ import 'package:mailing/main.dart';
 import 'Class/Class_database.dart';
 import 'Home_Page.dart';
 import 'l10n/applocal.dart';
-
 
 late bool checkadmin, checkubdate = true;
 BoxShadow? boxShadowOnClick =
@@ -21,14 +21,17 @@ BoxShadow? boxShadowOnClick =
         BoxShadow(color: Color.fromARGB(500, 12, 0, 74), blurRadius: 10);
 
 class message_page extends StatefulWidget {
-  message_page(String type_page) {
+  message_page(String type_page,var messaging) {
     this.type_page = type_page;
+    this.messaging = messaging;
   }
 
   @override
   message_page_state createState() => message_page_state();
 
   late final String? type_page;
+  late var messaging;
+
 }
 
 class message_page_state extends State<message_page> {
@@ -40,9 +43,9 @@ class message_page_state extends State<message_page> {
     // TODO: implement initState
     super.initState();
 
-    if (widget.type_page == "S"||widget.type_page == "SI") {
+    if (widget.type_page == "S" || widget.type_page == "SI") {
       this.body_message_contain =
-          body_message(message: messaging!, type: widget.type_page!);
+          body_message(message: widget.messaging, type: widget.type_page!);
 
       boxShadowS = boxShadowOnClick;
       boxShadowPu = boxShadowUpClick;
@@ -54,8 +57,9 @@ class message_page_state extends State<message_page> {
       boxShadowPr = boxShadowOnClick;
       boxShadowPu = boxShadowUpClick;
       boxShadowS = boxShadowUpClick;
-    } else if (widget.type_page == "N"||widget.type_page == "NI") {
-      this.body_message_contain = body_message_pu(messaging_pu: messaging_pu, typepage: widget.type_page!);
+    } else if (widget.type_page == "N" || widget.type_page == "NI") {
+      this.body_message_contain = body_message_pu(
+          messaging_pu: messaging_pu, typepage: widget.type_page!);
 
       boxShadowPu = boxShadowOnClick;
       boxShadowPr = boxShadowUpClick;
@@ -142,7 +146,9 @@ class message_page_state extends State<message_page> {
                             boxShadowPu = boxShadowOnClick;
                             boxShadowPr = boxShadowUpClick;
 
-                            this.body_message_contain = body_message_pu(messaging_pu: messaging_pu!,typepage: widget.type_page!);
+                            this.body_message_contain = body_message_pu(
+                                messaging_pu: messaging_pu!,
+                                typepage: widget.type_page!);
                           });
                         },
                         child: Container(
@@ -171,7 +177,7 @@ class message_page_state extends State<message_page> {
                             boxShadowPu = boxShadowUpClick;
                             boxShadowPr = boxShadowUpClick;
                             this.body_message_contain = body_message(
-                                message: messaging!, type: widget.type_page!);
+                                message: widget.messaging, type: widget.type_page!);
                           });
                         },
                         child: Container(
@@ -244,14 +250,12 @@ class message_page_state extends State<message_page> {
                             right: 10,
                             bottom: 30),
                         child: IconButton(
-                          onPressed: ()  {
+                          onPressed: () {
                             setState(() {
                               List<String> info_mess = [];
                               info_mess.add(numberdropdownValue!);
                               info_mess.add("0");
                               info_mess.add(Message_Sympole_Price.text);
-
-                              print(Message_Sympole_Price.text);
                             });
                           },
                           icon: Icon(
@@ -282,7 +286,7 @@ class message_page_state extends State<message_page> {
                           right: 10,
                           bottom: 30),
                       child: IconButton(
-                          onPressed: () => {},
+                          onPressed: _hundSendMessage,
                           icon: Icon(
                             Icons.send_rounded,
                             color: Colors.white70,
@@ -293,6 +297,54 @@ class message_page_state extends State<message_page> {
         ),
       ),
     );
+  }
+  Future<void> _hundSendMessage() async{
+    if (Validation.isValidnull(
+        Message_Sympole_Price.text) &&
+        Validation.isValidnull(
+            Message_Sympole_MEP.text) &&
+        Validation.isValidnull(
+            Message_Sympole_OSL.text) &&
+        Validation.isValidnull(
+            Message_Sympole_Target2.text) &&
+        Validation.isValidnull(
+            Message_Sympole_Target1.text) &&
+        Validation.isValidnull(
+            Message_Sympole_Content.text) &&
+        Validation.isValidnull(
+            Message_Sympole.text) &&
+        Validation.isValidnull(
+            path)) {
+      List<String> list = [];
+      list.add(numberdropdownValue!);
+      list.add("0");
+      list.add(Message_Sympole_Price.text);
+      list.add(Message_Sympole.text);
+      list.add(path);
+      list.add(Message_Sympole_Target1.text);
+      list.add(Message_Sympole_Target2.text);
+      list.add(Message_Sympole_OSL.text);
+      list.add(Message_Sympole_Content.text);
+      list.add(Message_Sympole_MEP.text);
+      Messsage_DataBase message_database =
+      Messsage_DataBase();
+
+      if (await message_database.Insert(list)) {
+    Message_Sympole_Price.clear();
+    Message_Sympole_MEP.clear();
+    Message_Sympole_OSL.clear();
+    Message_Sympole_Target2.clear();
+    Message_Sympole_Target1.clear();
+    Message_Sympole_Content.clear();
+    Message_Sympole.clear();
+    path =
+    "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
+    }else{
+    showtoast('${getLang(context, "No_Insert")}');
+    }
+    } else {
+    showtoast('${getLang(context, "Field_Empty")}');
+    }
   }
 }
 
@@ -316,7 +368,6 @@ late TextEditingController Message_Sympole,
 late String? numberdropdownValue = "0";
 
 class body_message_state extends State<body_message> {
-
   double WidthDevice = 0, HieghDevice = 0;
 
   late String? dropdownValue = "Buy";
@@ -363,340 +414,376 @@ class body_message_state extends State<body_message> {
 
     return Form(
         autovalidateMode: AutovalidateMode.always,
-       child:Stack(
-      alignment: AlignmentDirectional.topCenter,
-      children: [
-        Container(
-          width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 560, left: 20, right: 20),
-          child: Row(
-            children: [
-              Text(
-                "${getLang(context, "Price")} :",
-                style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Container(
-                  width: WidthDevice / 2.5,
-                  child: TextFormField(
-                    controller: Message_Sympole_Price,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.cyan),
-                      labelText: "${getLang(context, "Enter_Price")}",
-                      enabledBorder: UnderlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) => Validation.isValidnull(value!) ? null:'${getLang(context, "ValidContent")}',
-                    onSaved: (val) => messaging!.setMessagePrice = val! as double,
-                  ))
-            ],
-          ),
-        ),
-        Container(
-          width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 500, left: 20, right: 20),
-          child: Row(
-            children: [
-              Text(
-                '${getLang(context, "Order_Type")}',
-                style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Container(
-                  width: WidthDevice / 2.5,
-                  child: DropdownButton<String>(
-                    dropdownColor: Colors.white,
-                    value: dropdownValue,
-                    icon: const Icon(Icons.filter_list_rounded),
-                    elevation: 16,
+        child: Stack(
+          alignment: AlignmentDirectional.topCenter,
+          children: [
+            Container(
+              width: WidthDevice / 1.15,
+              margin: EdgeInsets.only(top: 590, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Text(
+                    "${getLang(context, "Price")} :",
                     style: TextStyle(
-                        color: colortype ? Colors.blue : Colors.redAccent),
-                    underline: Container(
-                      height: 2,
-                    ),
-                    onChanged: (String? newValue) {
+                        color: Colors.black54, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                      width: WidthDevice / 2.5,
+                      child: TextFormField(
+                        controller: Message_Sympole_Price,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: Colors.black87),
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(color: Colors.cyan),
+                          labelText: "${getLang(context, "Enter_Price")}",
+                          enabledBorder: UnderlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide:
+                                BorderSide(color: Colors.black54, width: 5),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) => Validation.isValidnull(value!)
+                            ? null
+                            : '${getLang(context, "ValidContent")}',
+                        onSaved: (val) =>
+                            widget.message.setMessagePrice = val! as double,
+                      ))
+                ],
+              ),
+            ),
+            Container(
+              width: WidthDevice / 1.15,
+              margin: EdgeInsets.only(top: 120, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Text(
+                    '${getLang(context, "Order_Type")}',
+                    style: TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                      width: WidthDevice / 2.5,
+                      child: DropdownButton<String>(
+                        dropdownColor: Colors.white,
+                        value: dropdownValue,
+                        icon: const Icon(Icons.filter_list_rounded),
+                        elevation: 16,
+                        style: TextStyle(
+                            color: colortype ? Colors.blue : Colors.redAccent),
+                        underline: Container(
+                          height: 2,
+                        ),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            dropdownValue = newValue!;
+                          });
+                        },
+                        items: <String>['0', '1', '2', '3', '4', '5']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          numberdropdownValue = value;
+                          colortype = (int.parse(numberdropdownValue!) < 3)
+                              ? true
+                              : false;
+                          return DropdownMenuItem<String>(
+                            value:
+                                Message_type.values.elementAt(int.parse(value)),
+                            child: Text(
+                              Message_type.values.elementAt(int.parse(value)),
+                              style: TextStyle(
+                                  color: colortype
+                                      ? Colors.blue
+                                      : Colors.redAccent),
+                            ),
+                          );
+                        }).toList(),
+                      ))
+                ],
+              ),
+            ),
+            Container(
+              width: WidthDevice / 1.15,
+              margin: EdgeInsets.only(top: 520, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Text(
+                    '${getLang(context, "Entry_Point")}',
+                    style: TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                      width: WidthDevice / 2.5,
+                      child: TextFormField(
+                        controller: Message_Sympole_MEP,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: Colors.black87),
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(color: Colors.cyan),
+                          labelText: '${getLang(context, "Enter_Entry_Point")}',
+                          enabledBorder: UnderlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide:
+                                BorderSide(color: Colors.black54, width: 5),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) => Validation.isValidnull(value!)
+                            ? null
+                            : '${getLang(context, "ValidContent")}',
+                        onSaved: (val) =>
+                            widget.message.MessageEntryPoint = val! as double,
+                      ))
+                ],
+              ),
+            ),
+            Container(
+              width: WidthDevice / 1.15,
+              margin: EdgeInsets.only(top: 440, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Text(
+                    '${getLang(context, "Stop_Loss")}',
+                    style: TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                      width: WidthDevice / 2.5,
+                      child: TextFormField(
+                        controller: Message_Sympole_OSL,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: Colors.black87),
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(color: Colors.cyan),
+                          labelText: '${getLang(context, "Enter_Stop_Loss")}',
+                          enabledBorder: UnderlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide:
+                                BorderSide(color: Colors.black54, width: 5),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) => Validation.isValidnull(value!)
+                            ? null
+                            : '${getLang(context, "ValidContent")}',
+                        onSaved: (val) => widget.message.OrderStopLoss = val!,
+                      ))
+                ],
+              ),
+            ),
+            Container(
+              width: WidthDevice / 1.15,
+              margin: EdgeInsets.only(top: 370, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Text(
+                    '${getLang(context, "Target2")}',
+                    style: TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                      width: WidthDevice / 2.5,
+                      child: TextFormField(
+                        controller: Message_Sympole_Target2,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: Colors.black87),
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(color: Colors.cyan),
+                          labelText: '${getLang(context, "Enter_Target2")}',
+                          enabledBorder: UnderlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide:
+                                BorderSide(color: Colors.black54, width: 5),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) => Validation.isValidnull(value!)
+                            ? null
+                            : '${getLang(context, "ValidContent")}',
+                        onSaved: (val) => widget.message.Target2 = val!,
+                      ))
+                ],
+              ),
+            ),
+            Container(
+              width: WidthDevice / 1.15,
+              margin: EdgeInsets.only(top: 300, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Text(
+                    '${getLang(context, "Target1")}',
+                    style: TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                      width: WidthDevice / 2.5,
+                      child: TextFormField(
+                        controller: Message_Sympole_Target1,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: Colors.black87),
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(color: Colors.cyan),
+                          labelText: '${getLang(context, "Enter_Target1")}',
+                          enabledBorder: UnderlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide:
+                                BorderSide(color: Colors.black54, width: 5),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) => Validation.isValidnull(value!)
+                            ? null
+                            : '${getLang(context, "ValidContent")}',
+                        onSaved: (val) => widget.message.Target1 = val!,
+                      ))
+                ],
+              ),
+            ),
+            Container(
+              width: WidthDevice / 1.15,
+              margin: EdgeInsets.only(top: 230, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Text(
+                    '${getLang(context, "Order_Content")}',
+                    style: TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                      width: WidthDevice / 2.5,
+                      child: TextFormField(
+                        controller: Message_Sympole_Content,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: Colors.black87),
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(color: Colors.cyan),
+                          labelText: '${getLang(context, "Enter_Content")}',
+                          enabledBorder: UnderlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide:
+                                BorderSide(color: Colors.black54, width: 5),
+                          ),
+                        ),
+                        keyboardType: TextInputType.text,
+                        validator: (value) => Validation.isValidnull(value!)
+                            ? null
+                            : '${getLang(context, "ValidContent")}',
+                        onSaved: (val) => widget.message.MessageContent = val!,
+                      ))
+                ],
+              ),
+            ),
+            Container(
+              width: WidthDevice / 1.15,
+              margin: EdgeInsets.only(top: 160, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Text(
+                    '${getLang(context, "Sympole_Name")}',
+                    style: TextStyle(
+                        color: Colors.black54, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Container(
+                      width: WidthDevice / 2.5,
+                      child: TextFormField(
+                        controller: Message_Sympole,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: Colors.black87),
+                        decoration: InputDecoration(
+                          labelStyle: TextStyle(color: Colors.cyan),
+                          labelText: '${getLang(context, "Enter_Sympole")}',
+                          enabledBorder: UnderlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide:
+                                BorderSide(color: Colors.black54, width: 5),
+                          ),
+                        ),
+                        keyboardType: TextInputType.text,
+                        validator: (value) => Validation.isValidnull(value!)
+                            ? null
+                            : '${getLang(context, "ValidContent")}',
+                        onSaved: (val) => widget.message.MessageSymbol = val!,
+                      ))
+                ],
+              ),
+            ),
+            Container(
+              height: 100,
+              width: 100,
+              child: Stack(children: [
+                GestureDetector(
+                    onTap: () {
                       setState(() {
-                        dropdownValue = newValue!;
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => show_photo(
+                                      path: widget.message.MessageLink,
+                                    )));
                       });
                     },
-                    items: <String>['0', '1', '2', '3', '4', '5']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      numberdropdownValue = value;
-                      colortype = (int.parse(numberdropdownValue!) < 3) ? true : false;
-                      return DropdownMenuItem<String>(
-                        value: Message_type.values.elementAt(int.parse(value)),
-                        child: Text(
-                            Message_type.values.elementAt(int.parse(value)),style: TextStyle(color: colortype ? Colors.blue : Colors.redAccent),),
-                      );
-                    }).toList(),
-                  ))
-            ],
-          ),
-        ),
-        Container(
-          width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 420, left: 20, right: 20),
-          child: Row(
-            children: [
-              Text(
-                '${getLang(context, "Entry_Point")}',
-                style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Container(
-                  width: WidthDevice / 2.5,
-                  child: TextFormField(
-                    controller: Message_Sympole_MEP,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.cyan),
-                      labelText: '${getLang(context, "Enter_Entry_Point")}',
-                      enabledBorder: UnderlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) => Validation.isValidnull(value!) ? null:'${getLang(context, "ValidContent")}',
-                    onSaved: (val) => messaging!.MessageEntryPoint = val! as double,
-                  ))
-            ],
-          ),
-        ),
-        Container(
-          width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 360, left: 20, right: 20),
-          child: Row(
-            children: [
-              Text(
-                '${getLang(context, "Stop_Loss")}',
-                style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Container(
-                  width: WidthDevice / 2.5,
-                  child: TextFormField(
-                    controller: Message_Sympole_OSL,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.cyan),
-                      labelText: '${getLang(context, "Enter_Stop_Loss")}',
-                      enabledBorder: UnderlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) => Validation.isValidnull(value!) ? null:'${getLang(context, "ValidContent")}',
-                    onSaved: (val) => messaging!.OrderStopLoss = val!,
-                  ))
-            ],
-          ),
-        ),
-        Container(
-          width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 300, left: 20, right: 20),
-          child: Row(
-            children: [
-              Text(
-                '${getLang(context, "Target2")}',
-                style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Container(
-                  width: WidthDevice / 2.5,
-                  child: TextFormField(
-                    controller: Message_Sympole_Target2,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.cyan),
-                      labelText: '${getLang(context, "Enter_Target2")}',
-                      enabledBorder: UnderlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) => Validation.isValidnull(value!) ? null:'${getLang(context, "ValidContent")}',
-                    onSaved: (val) => messaging!.Target2 = val!,
-                  ))
-            ],
-          ),
-        ),
-        Container(
-          width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 240, left: 20, right: 20),
-          child: Row(
-            children: [
-              Text(
-                '${getLang(context, "Target1")}',
-                style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Container(
-                  width: WidthDevice / 2.5,
-                  child: TextFormField(
-                    controller: Message_Sympole_Target1,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.cyan),
-                      labelText: '${getLang(context, "Enter_Target1")}',
-                      enabledBorder: UnderlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) => Validation.isValidnull(value!) ? null:'${getLang(context, "ValidContent")}',
-                    onSaved: (val) => messaging!.Target1 = val!,
-                  ))
-            ],
-          ),
-        ),
-        Container(
-          width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 180, left: 20, right: 20),
-          child: Row(
-            children: [
-              Text(
-                '${getLang(context, "Order_Content")}',
-                style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Container(
-                  width: WidthDevice / 2.5,
-                  child: TextFormField(
-                    controller: Message_Sympole_Content,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.cyan),
-                      labelText: '${getLang(context, "Enter_Content")}',
-                      enabledBorder: UnderlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) => Validation.isValidnull(value!) ? null:'${getLang(context, "ValidContent")}',
-                    onSaved: (val) => messaging!.MessageContent = val!,
-                  ))
-            ],
-          ),
-        ),
-        Container(
-          width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 120, left: 20, right: 20),
-          child: Row(
-            children: [
-              Text(
-                '${getLang(context, "Sympole_Name")}',
-                style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Container(
-                  width: WidthDevice / 2.5,
-                  child: TextFormField(
-                    controller: Message_Sympole,
-                    textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelStyle: TextStyle(color: Colors.cyan),
-                      labelText: '${getLang(context, "Enter_Sympole")}',
-                      enabledBorder: UnderlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) => Validation.isValidnull(value!) ? null:'${getLang(context, "ValidContent")}',
-                    onSaved: (val) => messaging!.MessageSymbol = val!,
-                  ))
-            ],
-          ),
-        ),
-        Container(
-          height: 100,
-          width: 100,
-          child: Stack(
-              children: [
-                GestureDetector(
-                    onTap: (){setState(() {
-                      Navigator.push(context,  MaterialPageRoute(builder: (context) => show_photo(path: widget.message.MessageLink,)));
-                    });},
                     child: CachedNetworkImage(
-              imageUrl: widget.message.MessageLink,
-              imageBuilder: (context, imageProvider)  {
-               return Container(
-                decoration: BoxDecoration(
-                  boxShadow: [BoxShadow(color: Colors.black38, blurRadius: 10)],
-                  borderRadius: BorderRadius.circular(50),
-                  image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.fill,
-                  ),
-                )
-              );},
-              placeholder: (context, url) => CircularProgressIndicator(),
-              errorWidget: (context, url, error) => Icon(Icons.error),
-            )),
-            if (checkadmin)
-              Container(
-                  margin: EdgeInsets.only(top: 62, left: 62),
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        try{
-                        get_photo.showSelectionDialog(context);
-                        }catch(e){
-                          print(e.toString());
-                        }
-                          debugPrint("Hello");
-                        });
-                   },
-                    icon: Icon(
-                      Icons.camera_alt,
-                      color: Colors.green,
-                      size: 30,
-                    ),
-                  ))
-          ]),
-        ),
-      ],
-    ));
+                      imageUrl: widget.message.MessageLink,
+                      imageBuilder: (context, imageProvider) {
+                        return Container(
+                            decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(color: Colors.black38, blurRadius: 10)
+                          ],
+                          borderRadius: BorderRadius.circular(50),
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.fill,
+                          ),
+                        ));
+                      },
+                      placeholder: (context, url) =>
+                          CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => Icon(Icons.error),
+                    )),
+                if (checkadmin)
+                  Container(
+                      margin: EdgeInsets.only(top: 62, left: 62),
+                      child: IconButton(
+                        onPressed: () async {
+                          await get_photo.showSelectionDialog(context);
+                          setState(() {
+                            print("Hello");
+                          });
+                        },
+                        icon: Icon(
+                          Icons.camera_alt,
+                          color: Colors.green,
+                          size: 30,
+                        ),
+                      ))
+              ]),
+            ),
+          ],
+        ));
   }
 }
 
@@ -839,14 +926,14 @@ class body_message_pu extends StatefulWidget {
   @override
   body_message_pu_state createState() => body_message_pu_state();
 
-  body_message_pu({required this.typepage,required this.messaging_pu});
+  body_message_pu({required this.typepage, required this.messaging_pu});
 
   final String typepage;
   final Messaging_PU? messaging_pu;
 }
 
 class body_message_pu_state extends State<body_message_pu> {
-  late TextEditingController Public_Content ,Public_Title;
+  late TextEditingController Public_Content, Public_Title;
   double WidthDevice = 0, HieghDevice = 0;
 
   @override
@@ -861,7 +948,8 @@ class body_message_pu_state extends State<body_message_pu> {
     HieghDevice = MediaQuery.of(context).size.height;
 
     if (widget.messaging_pu != null && widget.typepage == "N") {
-      Public_Content = TextEditingController(text: widget.messaging_pu!.getcontent);
+      Public_Content =
+          TextEditingController(text: widget.messaging_pu!.getcontent);
       Public_Title = TextEditingController(text: widget.messaging_pu!.gettitle);
     } else {
       Public_Content = TextEditingController();

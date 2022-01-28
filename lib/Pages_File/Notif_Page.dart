@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mailing/Class/Class_database.dart';
@@ -42,7 +41,7 @@ class _List_Notif_state extends State<List_Notif> {
         onPressed: () async {
           if (checkadmin) {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return message_page("N");
+              return message_page("N",messaging_pu);
             }));
           }
         },

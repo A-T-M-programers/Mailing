@@ -11,8 +11,6 @@ import 'Message_page.dart';
 import 'l10n/applocal.dart';
 import 'main.dart';
 
-Messaging? messaging ;
-
 Map<String,String> Message_type = {'0':'Buy', '1':'Buy Limit', '2':'Buy Stop', '3':'Sell','4':'Sell Limit','5':'Sell Stop'};
 
 
@@ -22,6 +20,8 @@ var page;
 String pagecheck = "";
 List<double> he_wi = [50,50,70,50,50];
 List<double> sizeicon = [30,30,50,30,30];
+List<Messaging> messaging = [];
+Messsage_DataBase messsage_dataBase = Messsage_DataBase();
 
 class home_page extends StatefulWidget {
   const home_page({Key? key}) : super(key: key);
@@ -34,15 +34,11 @@ class home_page_state extends State<home_page> {
   String? dropdownValue = "Date";
   double WidthDevice = 0, HieghDevice = 0;
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    checkadmin = true;
-    showsendmessage = true;
-    messaging = Messaging();
-    page = List.generate(5, (index) => List_messaging(index: index + 1));
-    for(int i = 0; i<he_wi.length;i++){
+  Future<void> get_select_message()async{
+    messaging = await messsage_dataBase.Select();
+
+    page = List.generate(messaging.length, (index) => List_messaging(index: index));
+        for(int i = 0; i<he_wi.length;i++){
       if(i == 2){
         he_wi[i] = 60;
         sizeicon[i] = 40;
@@ -51,6 +47,17 @@ class home_page_state extends State<home_page> {
         sizeicon[i] = 30;
       }
     }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    get_select_message().whenComplete(() => this.setState(() {
+      print("Complate");
+    }));
+    checkadmin = true;
+    showsendmessage = true;
   }
 
   @override
@@ -155,7 +162,7 @@ class home_page_state extends State<home_page> {
             width: WidthDevice,
             child: ListView(
                 scrollDirection: Axis.vertical,
-                children: page
+                children: (page != null)? page : List.generate(0, (index) => List_messaging(index: index + 1)),
             )),
         Stack(
           textDirection: TextDirection.ltr,
@@ -300,7 +307,7 @@ class home_page_state extends State<home_page> {
                           onPressed: ()  {setState(() {
                             pagecheck = "S";
                             showsendmessage = true;
-                            page = List.generate(5, (index) => List_messaging(index: index + 1));
+                            page = List.generate(messaging.length, (index) => List_messaging(index: index ));
                             for(int i = 0; i<he_wi.length;i++){
                               if(i == 2){
                                 he_wi[i] = 60;
@@ -448,17 +455,18 @@ class home_page_state extends State<home_page> {
                   ]),
               child: IconButton(
                   onPressed: ()  {setState(() {
+                    checkubdate= false;
                     if(he_wi[2]==60){
                     Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      return message_page("SI");
+                      return message_page("SI",new Messaging());
                     }));
                     }else if(he_wi[3]==60){
                       Navigator.push(context, MaterialPageRoute(builder: (context) {
-                        return message_page("PI");
+                        return message_page("PI",new Messaging_PR());
                       }));
                     }else if(he_wi[4]==60){
                       Navigator.push(context, MaterialPageRoute(builder: (context) {
-                        return message_page("NI");
+                        return message_page("NI",new Messaging_PU());
                       }));
                     }
                   });
@@ -484,23 +492,23 @@ class List_messaging extends StatefulWidget {
 }
 
 class _List_messaging extends State<List_messaging> {
-  Messaging? messaging;
+
   double WidthDevice = 0, HieghDevice = 0;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    messaging = new Messaging();
+
   }
 
   @override
   Widget build(BuildContext context) {
-    messaging = new Messaging();
+
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
 
-    endList = (lengthList == widget.index) ? true : false;
+    endList = ((messaging.length-1) == widget.index) ? true : false;
 
     return MaterialButton(
         minWidth: WidthDevice,
@@ -508,7 +516,7 @@ class _List_messaging extends State<List_messaging> {
         onPressed: () async {
           if (checkadmin) {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return message_page("S");
+              return message_page("S",messaging.elementAt(widget.index!));
             }));
           }
         },
@@ -527,7 +535,7 @@ class _List_messaging extends State<List_messaging> {
                     margin: EdgeInsets.only(left: WidthDevice / 9, top: 5),
                     alignment: Alignment.topLeft,
                     child: Text(
-                      "01/01/2022 05:33:33",
+                      messaging.elementAt(widget.index!).MessageDate,
                       style: TextStyle(
                           color: Colors.black38,
                           fontSize: (HieghDevice / 180) * (WidthDevice / 180)),
@@ -547,7 +555,7 @@ class _List_messaging extends State<List_messaging> {
                         ),
                         child: CachedNetworkImage(
                           imageUrl:
-                              "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg",
+                              messaging.elementAt(widget.index!).MessageLink,
                           imageBuilder: (context, imageProvider) => Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
@@ -569,7 +577,7 @@ class _List_messaging extends State<List_messaging> {
                         Container(
                             margin: EdgeInsets.only(bottom: 2),
                             child: Text(
-                              Message_type.values.elementAt(int.parse(messaging!.MessageType)),
+                              Message_type.values.elementAt(int.parse(messaging.elementAt(widget.index!).MessageType)),
                               style: TextStyle(
                                   color: Colors.redAccent,
                                   fontSize: (HieghDevice / 180) *
@@ -577,7 +585,7 @@ class _List_messaging extends State<List_messaging> {
                                       5),
                             )),
                         Text(
-                          "  " + messaging!.MessageSymbol + "  ",
+                          "  " + messaging.elementAt(widget.index!).MessageSymbol + "  ",
                           style: TextStyle(
                               color: Colors.black54,
                               fontSize:
@@ -586,7 +594,7 @@ class _List_messaging extends State<List_messaging> {
                         ),
                         Container(
                             child: Text(
-                          messaging!.MessageEntryPoint.toString(),
+                          "AT: "+messaging.elementAt(widget.index!).MessageEntryPoint.toString(),
                           style: TextStyle(
                               color: Colors.amber,
                               fontSize:
@@ -608,33 +616,11 @@ class _List_messaging extends State<List_messaging> {
                         width: 7,
                       ),
                       Text(
-                        "10",
+                        messaging.elementAt(widget.index!).MessageCountView,
                         style: TextStyle(color: Colors.black54),
                       )
                     ],
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.only(left: WidthDevice - 80, top: 80),
-                  child: checkadmin
-                      ? Row(
-                    textDirection: TextDirection.ltr,
-                          children: [
-                            Text(
-                              r"$",
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 20),
-                            ),
-                            SizedBox(
-                              width: 7,
-                            ),
-                            Text(
-                              "10",
-                              style: TextStyle(color: Colors.black54),
-                            )
-                          ],
-                        )
-                      : null,
                 ),
                 Container(
                   width: 85,
@@ -643,7 +629,7 @@ class _List_messaging extends State<List_messaging> {
                   child: ElevatedButton(
                     onPressed: () => {},
                     child: Text(
-                       '${getLang(context, "Pay")}'+r" : 100$",
+                      (messaging.elementAt(widget.index!).MessagePrice > 0.0) ? '${getLang(context, "Pay")}'+" : ${messaging.elementAt(widget.index!).MessagePrice}"+r"$" : "Free",
                       style: TextStyle(color: Colors.black38),textDirection: TextDirection.ltr,
                     ),
                     style: ButtonStyle(
@@ -670,7 +656,7 @@ class _List_messaging extends State<List_messaging> {
                     height: 70,
                     width: WidthDevice/3,
                     child: Text(
-                    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                    messaging.elementAt(widget.index!).MessageContent,
                     style: TextStyle(color: Colors.black38),maxLines: 4,
                   )),
                 ),
@@ -678,7 +664,7 @@ class _List_messaging extends State<List_messaging> {
                   width: WidthDevice,
                     margin: EdgeInsets.only(left: WidthDevice / 10, top: 170),
                     child: Text(
-                      "SL : " + messaging!.OrderStopLoss.toString(),
+                      "SL : " + messaging.elementAt(widget.index!).OrderStopLoss,
                       style: TextStyle(
                           color: Color.fromARGB(500, 200, 10, 10),
                           fontSize:
@@ -692,7 +678,7 @@ class _List_messaging extends State<List_messaging> {
                       Container(
                         width: WidthDevice,
                           child: Text(
-                        "TD1 : " + messaging!.Target1.toString(),
+                        "TD1 : " + messaging.elementAt(widget.index!).Target1,
                         style: TextStyle(
                             color: Colors.green,
                             fontSize:
@@ -704,7 +690,7 @@ class _List_messaging extends State<List_messaging> {
                       Container(
                         width: WidthDevice,
                           child: Text(
-                        "TD2 : " + messaging!.Target2.toString(),
+                        "TD2 : " + messaging.elementAt(widget.index!).Target2,
                         style: TextStyle(
                             color: Colors.green,
                             fontSize:

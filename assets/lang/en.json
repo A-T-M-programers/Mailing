@@ -40,5 +40,7 @@
   "Sell_Message_Count": "Sell Message Count :",
   "Mute_Notification": "Mute Notification",
   "Darck_Mode": "Darck Mode",
-  "Log_Out": "Log Out"
+  "Log_Out": "Log Out",
+  "Field_Empty": "There Field Empty",
+  "No_Insert": "Problem to Send"
 }

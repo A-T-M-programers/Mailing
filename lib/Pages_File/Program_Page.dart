@@ -42,7 +42,7 @@ class _List_progrmam_state extends State<List_program> {
         onPressed: () async {
           if (checkadmin) {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return message_page("P");
+              return message_page("P",program);
             }));
           }
         },

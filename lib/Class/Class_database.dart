@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:crypt/crypt.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+import '../Login_Mailing.dart';
 import 'Constant.dart';
 
 class Notification_Message {
@@ -47,9 +49,8 @@ class Messaging {
       Target1,
       Target2,
       OrderStopLoss,
-      MessageContent;
+      MessageContent,MessageDate,MessageCountView;
   late double MessagePrice, MessageEntryPoint;
-  late DateTime MessageDate;
 
   void set setMessagePrice(double data){
     this.MessagePrice = data;
@@ -59,9 +60,10 @@ class Messaging {
   }
 
   Messaging() {
+    this.MessageCountView = "0";
     this.MessageID = 1;
     this.MessageType = "5";
-    this.MessageDate = DateTime.utc(2022, 1, 1, 5, 33, 33);
+    this.MessageDate = "";
     this.MessageLink =
         "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
     this.MessagePrice = 0.0;
@@ -281,3 +283,106 @@ class Member {
   }
 
 }
+abstract class DataBase_Access {
+  Future<bool> Insert(List<String> list);
+
+  Future<List<Messaging>> Select();
+
+  Future<bool> Status(int codestate);
+}
+
+class Messsage_DataBase extends DataBase_Access{
+
+  @override
+  Future<bool> Insert(List<String> list)async{
+    if(list.isEmpty){
+      return false;
+    }else {
+      var secret = Crypt.sha256("insert_message");
+      Uri url = Uri(
+          host: host, path: 'Mailing_API/Insert/Insert.php', scheme: scheme);
+      var response =
+      await http.post(url, body: {
+        'type': list.elementAt(0),
+        'state': list.elementAt(1),
+        'price': list.elementAt(2),
+        'name': list.elementAt(3),
+        'link': list.elementAt(4),
+        'target1': list.elementAt(5),
+        'target2': list.elementAt(6),
+        'stoploss': list.elementAt(7),
+        'content': list.elementAt(8),
+        'entrypoint': list.elementAt(9),
+        'secret': '$secret'
+      }
+      );
+      return Status(response.statusCode);
+    }
+  }
+  @override
+  Future<bool> Status(int codestate)async{
+    String errorMsg = '';
+    switch (codestate) {
+      case 200:
+        {
+          errorMsg = 'Successfully';
+          showtoast(errorMsg);
+          return true;
+        }
+      case 400:
+        {
+          errorMsg = 'Please check your data and try again';
+          showtoast(errorMsg);
+          return false;
+        }
+      case 500:
+        {
+          errorMsg = 'Something went wrong! please try again later';
+          showtoast(errorMsg);
+          return false;
+        }
+      default:
+        {
+          errorMsg =
+          'Please check your internet connection and try again';
+          showtoast(errorMsg);
+          return  false;
+        }
+    }
+  }
+  @override
+  Future<List<Messaging>> Select()async{
+    List<Messaging> listmessage = [];
+    var secret = Crypt.sha256("select_message");
+    Uri url = Uri(
+        host: host,
+        path: 'Mailing_API/Select/get_Message.php',
+        scheme: scheme);
+    var response = await http.post(url, body: {'secret': '$secret'
+    });
+    if(await Status(response.statusCode)){
+
+      List<dynamic> data = json.decode(response.body);
+      for(int i = 0 ;i<data.length;i++){
+        listmessage.add(Messaging());
+        listmessage[i].MessageID =int.parse(data.elementAt(i)['MessageID']);
+        listmessage[i].MessageType = data.elementAt(i)['MessageType'];
+        listmessage[i].MessageState = data.elementAt(i)['MessageState'];
+        listmessage[i].MessageState = data.elementAt(i)['MessageCountView'];
+        listmessage[i].MessagePrice =double.parse(data.elementAt(i)['MessagePrice']);
+        listmessage[i].MessageDate = data.elementAt(i)['MessageDate'];
+        listmessage[i].MessageSymbol = data.elementAt(i)['MessageSymbol'];
+        listmessage[i].MessageLink = data.elementAt(i)['MessageLink'];
+        listmessage[i].Target1 = data.elementAt(i)['Target1'];
+        listmessage[i].Target2 = data.elementAt(i)['Target2'];
+        listmessage[i].OrderStopLoss = data.elementAt(i)['OrderStopLoss'];
+        listmessage[i].MessageContent = data.elementAt(i)['MessageContent'];
+        listmessage[i].MessageEntryPoint =double.parse(data.elementAt(i)['EntryPoint']);
+      }
+      return listmessage;
+    }else{
+      return listmessage;
+    }
+  }
+}
+

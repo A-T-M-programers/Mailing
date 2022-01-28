@@ -5,7 +5,6 @@ import 'package:crypt/crypt.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:mailing/Home_Page.dart';
 import 'package:mailing/Login_Mailing.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mailing/Validate.dart';
@@ -13,10 +12,11 @@ import 'package:photo_view/photo_view.dart';
 
 import 'Constant.dart';
 
+late String path = "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
 
 class get_photo {
 
-  static Upload(File imageFile) async {
+  static Future<String> Upload(File imageFile) async {
 
     if(Validation.isValidnull(imageFile.path)){
     var secret = Crypt.sha256("put_photo");
@@ -33,26 +33,26 @@ class get_photo {
     switch (status) {
       case 200:
         {
-          messaging!.MessageLink = scheme+'://'+host+'/'+'Mailing_API/Image_File/'+imageFile.path.split("/").last;
           showtoast("Image Uploaded Successfully.");
-          break;
+          return scheme+'://'+host+'/'+'Mailing_API/Image_File/'+imageFile.path.split("/").last;
         }
       case 403:
         {
           showtoast("Image Uploaded Not Successfully.");
-          break;
+          return "";
         }case 101:
       {
         showtoast("Image Uploaded Is Exist in server");
-        break;
+        return "";
       }
       default:
         {
           showtoast(response.reasonPhrase!);
-          break;
+          return "";
         }
     }
     }
+    return "";
   }
 
   /// Get from gallery
@@ -89,15 +89,15 @@ class get_photo {
                     GestureDetector(
                       child: Icon(Icons.photo,color: Colors.lightBlueAccent,size: 70,),
                       onTap: () async{
-                        await Upload(await _getFromGallery());
-                        Navigator.pop(context, 'Ok');
+                        path = await Upload(await _getFromGallery());
+                        Navigator.maybePop(context, 'Ok');
                       },
                     ),
                     Padding(padding: EdgeInsets.all(8.0)),
                     GestureDetector(
                       child: Icon(Icons.camera_alt_rounded,color: Colors.redAccent,size: 70, ),
                       onTap: () async{
-                        await Upload(await _getFromCamera());
+                        path = await Upload(await _getFromCamera());
                         Navigator.pop(context, 'Ok');
                       },
                     )
