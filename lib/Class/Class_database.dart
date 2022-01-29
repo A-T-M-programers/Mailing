@@ -286,6 +286,8 @@ class Member {
 abstract class DataBase_Access {
   Future<bool> Insert(List<String> list);
 
+  Future<bool> Ubdate(List<String> list);
+
   Future<List<Messaging>> Select();
 
   Future<bool> Status(int codestate);
@@ -319,6 +321,35 @@ class Messsage_DataBase extends DataBase_Access{
       return Status(response.statusCode);
     }
   }
+
+  @override
+  Future<bool> Ubdate(List<String> list)async{
+    if(list.isEmpty){
+      return false;
+    }else {
+      var secret = Crypt.sha256("ubdate_message");
+      Uri url = Uri(
+          host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
+      var response =
+      await http.post(url, body: {
+        'id': list.elementAt(0),
+        'type': list.elementAt(1),
+        'state': list.elementAt(2),
+        'price': list.elementAt(3),
+        'name': list.elementAt(4),
+        'link': list.elementAt(5),
+        'target1': list.elementAt(6),
+        'target2': list.elementAt(7),
+        'stoploss': list.elementAt(8),
+        'content': list.elementAt(9),
+        'entrypoint': list.elementAt(10),
+        'secret': '$secret'
+      }
+      );
+      return Status(response.statusCode);
+    }
+  }
+
   @override
   Future<bool> Status(int codestate)async{
     String errorMsg = '';

@@ -250,14 +250,7 @@ class message_page_state extends State<message_page> {
                             right: 10,
                             bottom: 30),
                         child: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              List<String> info_mess = [];
-                              info_mess.add(numberdropdownValue!);
-                              info_mess.add("0");
-                              info_mess.add(Message_Sympole_Price.text);
-                            });
-                          },
+                          onPressed: _hundUbdateMessage,
                           icon: Icon(
                             Icons.update,
                             color: Colors.white70,
@@ -344,6 +337,55 @@ class message_page_state extends State<message_page> {
     }
     } else {
     showtoast('${getLang(context, "Field_Empty")}');
+    }
+  }
+  Future<void> _hundUbdateMessage() async{
+    if (Validation.isValidnull(
+        Message_Sympole_Price.text) &&
+        Validation.isValidnull(
+            Message_Sympole_MEP.text) &&
+        Validation.isValidnull(
+            Message_Sympole_OSL.text) &&
+        Validation.isValidnull(
+            Message_Sympole_Target2.text) &&
+        Validation.isValidnull(
+            Message_Sympole_Target1.text) &&
+        Validation.isValidnull(
+            Message_Sympole_Content.text) &&
+        Validation.isValidnull(
+            Message_Sympole.text) &&
+        Validation.isValidnull(
+            path)) {
+      List<String> list = [];
+      list.add(widget.messaging.MessageID.toString());
+      list.add(numberdropdownValue!);
+      list.add("0");
+      list.add(Message_Sympole_Price.text);
+      list.add(Message_Sympole.text);
+      list.add(path);
+      list.add(Message_Sympole_Target1.text);
+      list.add(Message_Sympole_Target2.text);
+      list.add(Message_Sympole_OSL.text);
+      list.add(Message_Sympole_Content.text);
+      list.add(Message_Sympole_MEP.text);
+      Messsage_DataBase message_database =
+      Messsage_DataBase();
+
+      if (await message_database.Ubdate(list)) {
+        Message_Sympole_Price.clear();
+        Message_Sympole_MEP.clear();
+        Message_Sympole_OSL.clear();
+        Message_Sympole_Target2.clear();
+        Message_Sympole_Target1.clear();
+        Message_Sympole_Content.clear();
+        Message_Sympole.clear();
+        path =
+        "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
+      }else{
+        showtoast('${getLang(context, "No_Ubdate")}');
+      }
+    } else {
+      showtoast('${getLang(context, "Field_Empty")}');
     }
   }
 }
@@ -483,12 +525,16 @@ class body_message_state extends State<body_message> {
                         onChanged: (String? newValue) {
                           setState(() {
                             dropdownValue = newValue!;
+                            for(int i = 0 ; i<Message_type.length;i++){
+                              if(newValue == Message_type.values.elementAt(i)){
+                                numberdropdownValue = i.toString();
+                              }
+                            }
                           });
                         },
                         items: <String>['0', '1', '2', '3', '4', '5']
                             .map<DropdownMenuItem<String>>((String value) {
-                          numberdropdownValue = value;
-                          colortype = (int.parse(numberdropdownValue!) < 3)
+                          colortype = (int.parse(value) < 3)
                               ? true
                               : false;
                           return DropdownMenuItem<String>(

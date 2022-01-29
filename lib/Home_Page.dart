@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:clippy_flutter/arc.dart';
 import 'package:flutter/material.dart';
@@ -11,15 +13,22 @@ import 'Message_page.dart';
 import 'l10n/applocal.dart';
 import 'main.dart';
 
-Map<String,String> Message_type = {'0':'Buy', '1':'Buy Limit', '2':'Buy Stop', '3':'Sell','4':'Sell Limit','5':'Sell Stop'};
+Map<String, String> Message_type = {
+  '0': 'Buy',
+  '1': 'Buy Limit',
+  '2': 'Buy Stop',
+  '3': 'Sell',
+  '4': 'Sell Limit',
+  '5': 'Sell Stop'
+};
+ScrollController _controller = ScrollController();
 
-
-late bool checkadmin, endList,showsendmessage;
-int lengthList = 5;
+late bool checkadmin, endList, showsendmessage;
+int lengthList = 4;
 var page;
 String pagecheck = "";
-List<double> he_wi = [50,50,70,50,50];
-List<double> sizeicon = [30,30,50,30,30];
+List<double> he_wi = [50, 50, 70, 50, 50];
+List<double> sizeicon = [30, 30, 50, 30, 30];
 List<Messaging> messaging = [];
 Messsage_DataBase messsage_dataBase = Messsage_DataBase();
 
@@ -34,15 +43,15 @@ class home_page_state extends State<home_page> {
   String? dropdownValue = "Date";
   double WidthDevice = 0, HieghDevice = 0;
 
-  Future<void> get_select_message()async{
+  Future<void> get_select_message() async {
     messaging = await messsage_dataBase.Select();
 
-    page = List.generate(messaging.length, (index) => List_messaging(index: index));
-        for(int i = 0; i<he_wi.length;i++){
-      if(i == 2){
+    page = List.generate(lengthList, (index) => List_messaging(index: index));
+    for (int i = 0; i < he_wi.length; i++) {
+      if (i == 2) {
         he_wi[i] = 60;
         sizeicon[i] = 40;
-      }else{
+      } else {
         he_wi[i] = 50;
         sizeicon[i] = 30;
       }
@@ -54,10 +63,19 @@ class home_page_state extends State<home_page> {
     // TODO: implement initState
     super.initState();
     get_select_message().whenComplete(() => this.setState(() {
-      print("Complate");
-    }));
+          print("Complate");
+        }));
     checkadmin = true;
     showsendmessage = true;
+    _controller.addListener(() {
+      if (_controller.offset >= _controller.position.maxScrollExtent) {
+        lengthList = lengthList + 5;
+        setState(() {
+          page = List.generate(
+              lengthList, (index) => List_messaging(index: index));
+        });
+      }
+    });
   }
 
   @override
@@ -74,54 +92,82 @@ class home_page_state extends State<home_page> {
         actions: [
           Stack(alignment: AlignmentDirectional.topCenter, children: [
             Container(
-              margin: EdgeInsets.only(top: 0,right: WidthDevice/2.5),
+              margin: EdgeInsets.only(top: 0, right: WidthDevice / 2.5),
               child: Text(
                 "${getLang(context, "Mailing")}",
                 style: TextStyle(fontSize: HieghDevice / 18),
                 textAlign: TextAlign.center,
               ),
             ),
-            if(showsendmessage) Container(
-                alignment: Alignment.center,
-                padding: EdgeInsets.only(left: 5),
-                decoration: BoxDecoration(
-                    border: Border.all(width: 0),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.white24,
-                          blurRadius: 20,
-                          spreadRadius: 10),
-                    ],
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(10)),
-                height: HieghDevice / 18,
-                width: 100,
-                margin:
-                    EdgeInsets.only(left: WidthDevice - 120, top: 4, right: 10),
-                child: DropdownButton<String>(
-                  hint: Text('${getLang(context, dropdownValue!)}'),
-                  icon: const Icon(Icons.filter_list_rounded),
-                  elevation: 16,
-                  style: const TextStyle(color: Colors.white),
-                  underline: Container(
-                    height: 0,
-                  ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      dropdownValue = newValue!;
-                    });
-                  },
-                  items: <String>["Date", "Name", "Price", "View"]
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        '${getLang(context, value)}',
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                    );
-                  }).toList(),
-                )),
+            if (showsendmessage)
+              Container(
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.only(left: 5),
+                  decoration: BoxDecoration(
+                      border: Border.all(width: 0),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.white24,
+                            blurRadius: 20,
+                            spreadRadius: 10),
+                      ],
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(10)),
+                  height: HieghDevice / 18,
+                  width: 100,
+                  margin: EdgeInsets.only(
+                      left: WidthDevice - 120, top: 4, right: 10),
+                  child: DropdownButton<String>(
+                    hint: Text('${getLang(context, dropdownValue!)}'),
+                    icon: const Icon(Icons.filter_list_rounded),
+                    elevation: 16,
+                    style: const TextStyle(color: Colors.white),
+                    underline: Container(
+                      height: 0,
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValue = newValue!;
+                        switch (newValue) {
+                          case "View":
+                            {
+                              break;
+                            }
+                          case "Name":
+                            {
+                              SortByName();
+                              page = List.generate(lengthList,
+                                  (index) => List_messaging(index: index));
+                              break;
+                            }
+                          case "Price":
+                            {
+                              SortByPrice();
+                              page = List.generate(lengthList,
+                                  (index) => List_messaging(index: index));
+                              break;
+                            }
+                          default:
+                            {
+                              SortByDate();
+                              page = List.generate(lengthList,
+                                  (index) => List_messaging(index: index));
+                              break;
+                            }
+                        }
+                      });
+                    },
+                    items: <String>["Date", "Name", "Price", "View"]
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          '${getLang(context, value)}',
+                          style: TextStyle(color: Colors.black54),
+                        ),
+                      );
+                    }).toList(),
+                  )),
           ])
         ],
       ),
@@ -160,10 +206,16 @@ class home_page_state extends State<home_page> {
             ),
             height: HieghDevice,
             width: WidthDevice,
-            child: ListView(
-                scrollDirection: Axis.vertical,
-                children: (page != null)? page : List.generate(0, (index) => List_messaging(index: index + 1)),
-            )),
+            child: RefreshIndicator(
+                onRefresh: _hundgetdate,
+                child: ListView(
+                  controller: _controller,
+                  scrollDirection: Axis.vertical,
+                  children: (page != null)
+                      ? page
+                      : List.generate(
+                          0, (index) => List_messaging(index: index + 1)),
+                ))),
         Stack(
           textDirection: TextDirection.ltr,
           children: [
@@ -195,11 +247,12 @@ class home_page_state extends State<home_page> {
                     top: ((HieghDevice - (HieghDevice / 10)) -
                             ((HieghDevice / 5.5) / 2)) -
                         he_wi[0],
-                    left: (WidthDevice / 5.2)-he_wi[0]),
+                    left: (WidthDevice / 5.2) - he_wi[0]),
                 child: Column(
                   children: [
                     Container(
-                      height: he_wi[0],width: he_wi[0],
+                        height: he_wi[0],
+                        width: he_wi[0],
                         decoration: BoxDecoration(
                             border:
                                 Border.all(color: Colors.black12, width: 0.3),
@@ -209,20 +262,23 @@ class home_page_state extends State<home_page> {
                               BoxShadow(color: Colors.white, blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: ()  {setState(() {
-                            pagecheck = "set";
-                            showsendmessage = false;
-                            page = List.generate(1, (index) => setting_page());
-                            for(int i = 0; i<he_wi.length;i++){
-                              if(i == 0){
-                                he_wi[i] = 60;
-                                sizeicon[i] = 40;
-                              }else{
-                                he_wi[i] = 50;
-                                sizeicon[i] = 30;
+                          onPressed: () {
+                            setState(() {
+                              pagecheck = "set";
+                              showsendmessage = false;
+                              page =
+                                  List.generate(1, (index) => setting_page());
+                              for (int i = 0; i < he_wi.length; i++) {
+                                if (i == 0) {
+                                  he_wi[i] = 60;
+                                  sizeicon[i] = 40;
+                                } else {
+                                  he_wi[i] = 50;
+                                  sizeicon[i] = 30;
+                                }
                               }
-                            }
-                          });},
+                            });
+                          },
                           icon: Icon(
                             Icons.settings_outlined,
                             size: sizeicon[0],
@@ -240,11 +296,11 @@ class home_page_state extends State<home_page> {
                     top: ((HieghDevice - (HieghDevice / 12)) -
                             ((HieghDevice / 5.5) / 1.16)) -
                         he_wi[1],
-                    left: (WidthDevice / 2.8)-he_wi[1]),
+                    left: (WidthDevice / 2.8) - he_wi[1]),
                 child: Column(
                   children: [
                     Container(
-                      width: he_wi[1],
+                        width: he_wi[1],
                         height: he_wi[1],
                         decoration: BoxDecoration(
                             border:
@@ -255,16 +311,19 @@ class home_page_state extends State<home_page> {
                               BoxShadow(color: Colors.white, blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: ()  {
+                          onPressed: () {
                             setState(() {
                               pagecheck = "info";
                               showsendmessage = false;
-                              page = List.generate(1, (index) => Profile(member: member, type: pagecheck));
-                              for(int i = 0; i<he_wi.length;i++){
-                                if(i == 1){
+                              page = List.generate(
+                                  1,
+                                  (index) =>
+                                      Profile(member: member, type: pagecheck));
+                              for (int i = 0; i < he_wi.length; i++) {
+                                if (i == 1) {
                                   he_wi[i] = 60;
                                   sizeicon[i] = 40;
-                                }else{
+                                } else {
                                   he_wi[i] = 50;
                                   sizeicon[i] = 30;
                                 }
@@ -289,11 +348,11 @@ class home_page_state extends State<home_page> {
                     top: ((HieghDevice - (HieghDevice / 12)) -
                             ((HieghDevice / 5.5))) -
                         he_wi[2],
-                    left: (WidthDevice / 1.7)-he_wi[2]),
+                    left: (WidthDevice / 1.7) - he_wi[2]),
                 child: Column(
                   children: [
                     Container(
-                        width: he_wi[2] ,
+                        width: he_wi[2],
                         height: he_wi[2],
                         decoration: BoxDecoration(
                             border:
@@ -304,20 +363,23 @@ class home_page_state extends State<home_page> {
                               BoxShadow(color: Colors.white, blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: ()  {setState(() {
-                            pagecheck = "S";
-                            showsendmessage = true;
-                            page = List.generate(messaging.length, (index) => List_messaging(index: index ));
-                            for(int i = 0; i<he_wi.length;i++){
-                              if(i == 2){
-                                he_wi[i] = 60;
-                                sizeicon[i] = 40;
-                              }else{
-                                he_wi[i] = 50;
-                                sizeicon[i] = 30;
+                          onPressed: () {
+                            setState(() {
+                              pagecheck = "S";
+                              showsendmessage = true;
+                              page = List.generate(lengthList,
+                                  (index) => List_messaging(index: index));
+                              for (int i = 0; i < he_wi.length; i++) {
+                                if (i == 2) {
+                                  he_wi[i] = 60;
+                                  sizeicon[i] = 40;
+                                } else {
+                                  he_wi[i] = 50;
+                                  sizeicon[i] = 30;
+                                }
                               }
-                            }
-                          });},
+                            });
+                          },
                           icon: Icon(
                             Icons.home_outlined,
                             size: sizeicon[2],
@@ -335,11 +397,11 @@ class home_page_state extends State<home_page> {
                     top: ((HieghDevice - (HieghDevice / 12)) -
                             ((HieghDevice / 5.5) / 1.1)) -
                         he_wi[3],
-                    left: (WidthDevice / 1.3)-he_wi[3]),
+                    left: (WidthDevice / 1.3) - he_wi[3]),
                 child: Column(
                   children: [
                     Container(
-                      width: he_wi[3],
+                        width: he_wi[3],
                         height: he_wi[3],
                         decoration: BoxDecoration(
                             border:
@@ -350,20 +412,23 @@ class home_page_state extends State<home_page> {
                               BoxShadow(color: Colors.white, blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: () {setState(() {
-                            pagecheck = "PR";
-                            showsendmessage = true;
-                            page = List.generate(5, (index) => List_program(index: index + 1));
-                            for(int i = 0; i<he_wi.length;i++){
-                              if(i == 3){
-                                he_wi[i] = 60;
-                                sizeicon[i] = 40;
-                              }else{
-                                he_wi[i] = 50;
-                                sizeicon[i] = 30;
+                          onPressed: () {
+                            setState(() {
+                              pagecheck = "PR";
+                              showsendmessage = true;
+                              page = List.generate(
+                                  5, (index) => List_program(index: index + 1));
+                              for (int i = 0; i < he_wi.length; i++) {
+                                if (i == 3) {
+                                  he_wi[i] = 60;
+                                  sizeicon[i] = 40;
+                                } else {
+                                  he_wi[i] = 50;
+                                  sizeicon[i] = 30;
+                                }
                               }
-                            }
-                          });},
+                            });
+                          },
                           icon: Icon(
                             Icons.filter_drama,
                             size: sizeicon[3],
@@ -381,11 +446,11 @@ class home_page_state extends State<home_page> {
                     top: ((HieghDevice - (HieghDevice / 10)) -
                             ((HieghDevice / 5.5) / 1.8)) -
                         he_wi[4],
-                    left: (WidthDevice /1.09)-he_wi[4]),
+                    left: (WidthDevice / 1.09) - he_wi[4]),
                 child: Stack(
                   children: [
                     Container(
-                      height: he_wi[4],
+                        height: he_wi[4],
                         width: he_wi[4],
                         decoration: BoxDecoration(
                             border:
@@ -396,22 +461,22 @@ class home_page_state extends State<home_page> {
                               BoxShadow(color: Colors.white, blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: ()  {
+                          onPressed: () {
                             setState(() {
                               pagecheck = "N";
                               showsendmessage = true;
-                              page = List.generate(5, (index) => List_Notif(index: index + 1));
-                              for(int i = 0; i<he_wi.length;i++){
-                                if(i == 4){
+                              page = List.generate(
+                                  5, (index) => List_Notif(index: index + 1));
+                              for (int i = 0; i < he_wi.length; i++) {
+                                if (i == 4) {
                                   he_wi[i] = 60;
                                   sizeicon[i] = 40;
-                                }else{
+                                } else {
                                   he_wi[i] = 50;
                                   sizeicon[i] = 30;
                                 }
                               }
                             });
-
                           },
                           icon: Icon(
                             Icons.notifications_active_outlined,
@@ -442,7 +507,7 @@ class home_page_state extends State<home_page> {
         if (checkadmin && showsendmessage)
           Container(
               margin: EdgeInsets.only(
-                right: 10,
+                  right: 10,
                   left: WidthDevice / 1.19,
                   top: (HieghDevice / 1.55) - (HieghDevice / 12)),
               decoration: BoxDecoration(
@@ -454,23 +519,27 @@ class home_page_state extends State<home_page> {
                         color: Colors.black38, blurRadius: 10, spreadRadius: 10)
                   ]),
               child: IconButton(
-                  onPressed: ()  {setState(() {
-                    checkubdate= false;
-                    if(he_wi[2]==60){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      return message_page("SI",new Messaging());
-                    }));
-                    }else if(he_wi[3]==60){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) {
-                        return message_page("PI",new Messaging_PR());
-                      }));
-                    }else if(he_wi[4]==60){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) {
-                        return message_page("NI",new Messaging_PU());
-                      }));
-                    }
-                  });
-                    },
+                  onPressed: () {
+                    setState(() {
+                      checkubdate = false;
+                      if (he_wi[2] == 60) {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return message_page("SI", new Messaging());
+                        }));
+                      } else if (he_wi[3] == 60) {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return message_page("PI", new Messaging_PR());
+                        }));
+                      } else if (he_wi[4] == 60) {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return message_page("NI", new Messaging_PU());
+                        }));
+                      }
+                    });
+                  },
                   icon: Icon(
                     Icons.message_outlined,
                     color: Colors.black,
@@ -478,6 +547,10 @@ class home_page_state extends State<home_page> {
                   )))
       ]),
     ));
+  }
+
+  Future<void> _hundgetdate() async {
+    await get_select_message();
   }
 }
 
@@ -492,218 +565,471 @@ class List_messaging extends StatefulWidget {
 }
 
 class _List_messaging extends State<List_messaging> {
-
   double WidthDevice = 0, HieghDevice = 0;
+  bool pay_or_not = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
   }
 
   @override
   Widget build(BuildContext context) {
-
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
 
-    endList = ((messaging.length-1) == widget.index) ? true : false;
+    endList = ((messaging.length - 1) == widget.index) ? true : false;
+    if (messaging.length > widget.index!) {
+      pay_or_not = ((messaging[widget.index!].MessagePrice) > 0) ? false : true;
 
-    return MaterialButton(
-        minWidth: WidthDevice,
-        padding: EdgeInsets.all(0),
-        onPressed: () async {
-          if (checkadmin) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return message_page("S",messaging.elementAt(widget.index!));
-            }));
-          }
-        },
-        child: Column(children: [
-          Container(
-              margin: EdgeInsets.only(top: 20),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(40),
-                  color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)]),
-              width: WidthDevice - 10,
-              height: 200,
-              child: Center(
-                  child: Stack(children: [
+      return messaging.length > 0
+          ? MaterialButton(
+              minWidth: WidthDevice,
+              padding: EdgeInsets.all(0),
+              onPressed: () async {
+                if (checkadmin) {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return message_page(
+                        "S", messaging.elementAt(widget.index!));
+                  }));
+                }
+              },
+              child: Column(children: [
                 Container(
-                    margin: EdgeInsets.only(left: WidthDevice / 9, top: 5),
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      messaging.elementAt(widget.index!).MessageDate,
-                      style: TextStyle(
-                          color: Colors.black38,
-                          fontSize: (HieghDevice / 180) * (WidthDevice / 180)),
-                    )),
-                Container(
-                    alignment: Alignment.topLeft,
-                    child: Container(
-                        margin:
-                            EdgeInsets.only(left: WidthDevice / 18, top: 25),
-                        height: 130,
-                        width: 130,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black38, blurRadius: 20)
-                          ],
-                        ),
-                        child: CachedNetworkImage(
-                          imageUrl:
-                              messaging.elementAt(widget.index!).MessageLink,
-                          imageBuilder: (context, imageProvider) => Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              image: DecorationImage(
-                                image: imageProvider,
-                                fit: BoxFit.fill,
-                              ),
+                    margin: EdgeInsets.only(top: 20),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(40),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(color: Colors.black12, blurRadius: 5)
+                        ]),
+                    width: WidthDevice - 10,
+                    height: 200,
+                    child: Center(
+                        //form message in list
+                        child: Stack(children: [
+                      //this feild the date
+                      Container(
+                        margin: EdgeInsets.only(left: WidthDevice / 9, top: 5),
+                        alignment: Alignment.topLeft,
+                        child: pay_or_not||checkadmin ? Text(
+                          messaging.elementAt(widget.index!).MessageDate,
+                          style: TextStyle(
+                              color: Colors.black38,
+                              fontSize:
+                              (HieghDevice / 180) * (WidthDevice / 180)),
+                        ):ImageFiltered(
+                            imageFilter: ImageFilter.blur(
+                              sigmaX: 3,
+                              sigmaY: 3,
                             ),
-                          ),
-                          placeholder: (context, url) =>
-                              CircularProgressIndicator(),
-                          errorWidget: (context, url, error) =>
-                              Icon(Icons.error),
-                        ))),
-                Container(
-                      margin: EdgeInsets.only(left: WidthDevice / 2.6, top: 10),
-                      child: Row(textDirection: TextDirection.ltr,
-                          children: [
-                        Container(
-                            margin: EdgeInsets.only(bottom: 2),
                             child: Text(
-                              Message_type.values.elementAt(int.parse(messaging.elementAt(widget.index!).MessageType)),
+                              messaging.elementAt(widget.index!).MessageDate,
                               style: TextStyle(
-                                  color: Colors.redAccent,
-                                  fontSize: (HieghDevice / 180) *
-                                          (WidthDevice / 180) +
-                                      5),
+                                  color: Colors.black38,
+                                  fontSize:
+                                  (HieghDevice / 180) * (WidthDevice / 180)),
                             )),
-                        Text(
-                          "  " + messaging.elementAt(widget.index!).MessageSymbol + "  ",
-                          style: TextStyle(
-                              color: Colors.black54,
-                              fontSize:
-                                  (HieghDevice / 180) * (WidthDevice / 180) +
-                                      5),
-                        ),
-                        Container(
+                      ),
+                      Container(
+                          alignment: Alignment.topLeft,
+                          child: pay_or_not||checkadmin ? Container(
+                              margin: EdgeInsets.only(
+                                  left: WidthDevice / 18, top: 25),
+                              height: 130,
+                              width: 130,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.black38, blurRadius: 20)
+                                ],
+                              ),
+                              child: CachedNetworkImage(
+                                imageUrl: messaging
+                                    .elementAt(widget.index!)
+                                    .MessageLink,
+                                imageBuilder: (context, imageProvider) =>
+                                    Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    image: DecorationImage(
+                                      image: imageProvider,
+                                      fit: BoxFit.fill,
+                                    ),
+                                  ),
+                                ),
+                                placeholder: (context, url) =>
+                                    CircularProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    Icon(Icons.error),
+                              )):ImageFiltered(imageFilter: ImageFilter.blur(
+                            sigmaY: 5,
+                            sigmaX: 5,
+                          ),child: Container(
+                              margin: EdgeInsets.only(
+                                  left: WidthDevice / 18, top: 25),
+                              height: 130,
+                              width: 130,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.black38, blurRadius: 20)
+                                ],
+                              ),
+                              child: CachedNetworkImage(
+                                imageUrl: messaging
+                                    .elementAt(widget.index!)
+                                    .MessageLink,
+                                imageBuilder: (context, imageProvider) =>
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        image: DecorationImage(
+                                          image: imageProvider,
+                                          fit: BoxFit.fill,
+                                        ),
+                                      ),
+                                    ),
+                                placeholder: (context, url) =>
+                                    CircularProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    Icon(Icons.error),
+                              )),)),
+                      Container(
+                        margin:
+                            EdgeInsets.only(left: WidthDevice / 2.6, top: 10),
+                        child: Row(textDirection: TextDirection.ltr, children: [
+                          Container(
+                              margin: EdgeInsets.only(bottom: 2),
+                              child:pay_or_not||checkadmin ? Text(
+                                Message_type.values.elementAt(int.parse(
+                                    messaging
+                                        .elementAt(widget.index!)
+                                        .MessageType)),
+                                style: TextStyle(
+                                    color: (int.parse(messaging
+                                                .elementAt(widget.index!)
+                                                .MessageType) <
+                                            3)
+                                        ? Colors.blue
+                                        : Colors.redAccent,
+                                    fontSize: (HieghDevice / 180) *
+                                            (WidthDevice / 180) +
+                                        5),
+                              ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 5,sigmaY: 5),child: Text(
+                                Message_type.values.elementAt(int.parse(
+                                    messaging
+                                        .elementAt(widget.index!)
+                                        .MessageType)),
+                                style: TextStyle(
+                                    color: (int.parse(messaging
+                                        .elementAt(widget.index!)
+                                        .MessageType) <
+                                        3)
+                                        ? Colors.blue
+                                        : Colors.redAccent,
+                                    fontSize: (HieghDevice / 180) *
+                                        (WidthDevice / 180) +
+                                        5),
+                              ),)),
+                          Container(
+                              child: Text(
+                            "  " +
+                                messaging
+                                    .elementAt(widget.index!)
+                                    .MessageSymbol +
+                                "  ",
+                            style: TextStyle(
+                                color: Colors.black54,
+                                fontSize:
+                                    (HieghDevice / 180) * (WidthDevice / 180) +
+                                        5),
+                          )),
+                          Container(
+                              child:pay_or_not||checkadmin ? Text(
+                            "AT: " +
+                                messaging
+                                    .elementAt(widget.index!)
+                                    .MessageEntryPoint
+                                    .toString(),
+                            style: TextStyle(
+                                color: Colors.amber,
+                                fontSize:
+                                    (HieghDevice / 180) * (WidthDevice / 180) +
+                                        5),
+                          ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaY: 3,sigmaX: 3),child: Text(
+                                "AT: " +
+                                    messaging
+                                        .elementAt(widget.index!)
+                                        .MessageEntryPoint
+                                        .toString(),
+                                style: TextStyle(
+                                    color: Colors.amber,
+                                    fontSize:
+                                    (HieghDevice / 180) * (WidthDevice / 180) +
+                                        5),
+                              ),))
+                        ]),
+                      ),
+                      Container(
+                        margin:
+                            EdgeInsets.only(left: WidthDevice - 85, top: 65),
+                        child: pay_or_not||checkadmin ? Row(
+                          textDirection: TextDirection.ltr,
+                          children: [
+                            Icon(
+                              Icons.visibility_outlined,
+                              color: Colors.black,
+                            ),
+                            SizedBox(
+                              width: 7,
+                            ),
+                            Text(
+                              messaging
+                                  .elementAt(widget.index!)
+                                  .MessageCountView,
+                              style: TextStyle(color: Colors.black54),
+                            )
+                          ],
+                        ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 3,sigmaY: 3),child: Row(
+                          textDirection: TextDirection.ltr,
+                          children: [
+                            Icon(
+                              Icons.visibility_outlined,
+                              color: Colors.black,
+                            ),
+                            SizedBox(
+                              width: 7,
+                            ),
+                            Text(
+                              messaging
+                                  .elementAt(widget.index!)
+                                  .MessageCountView,
+                              style: TextStyle(color: Colors.black54),
+                            )
+                          ],
+                        ),),
+                      ),
+                      Container(
+                        alignment: Alignment.topLeft,
+                        height: 70,
+                        margin:
+                            EdgeInsets.only(top: 50, left: WidthDevice / 2.4),
+                        child:pay_or_not||checkadmin ? Container(
+                            height: 70,
+                            width: WidthDevice / 3,
                             child: Text(
-                          "AT: "+messaging.elementAt(widget.index!).MessageEntryPoint.toString(),
-                          style: TextStyle(
-                              color: Colors.amber,
-                              fontSize:
-                                  (HieghDevice / 180) * (WidthDevice / 180) +
-                                      5),
-                        ))
-                      ]),
-                    ),
-                Container(
-                  margin: EdgeInsets.only(left: WidthDevice - 85, top: 35),
-                  child: Row(
-                    textDirection: TextDirection.ltr,
-                    children: [
-                      Icon(
-                        Icons.visibility_outlined,
-                        color: Colors.black,
-                      ),
-                      SizedBox(
-                        width: 7,
-                      ),
-                      Text(
-                        messaging.elementAt(widget.index!).MessageCountView,
-                        style: TextStyle(color: Colors.black54),
-                      )
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 85,
-                  height: 60,
-                  margin: EdgeInsets.only(top: 140, left: WidthDevice - 95),
-                  child: ElevatedButton(
-                    onPressed: () => {},
-                    child: Text(
-                      (messaging.elementAt(widget.index!).MessagePrice > 0.0) ? '${getLang(context, "Pay")}'+" : ${messaging.elementAt(widget.index!).MessagePrice}"+r"$" : "Free",
-                      style: TextStyle(color: Colors.black38),textDirection: TextDirection.ltr,
-                    ),
-                    style: ButtonStyle(
-                        padding: MaterialStateProperty.all(EdgeInsets.all(5)),
-                        elevation: MaterialStateProperty.all(20),
-                        backgroundColor:
-                            MaterialStateProperty.all(Colors.lightBlueAccent),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(20),
-                                        topRight: Radius.zero,
-                                        bottomRight: Radius.circular(40)),
-                                    side: BorderSide(
-                                        color: Colors.black38, width: 0.2)))),
-                  ),
-                ),
-                Container(
-                  alignment: Alignment.topLeft,
-                  height: 70,
-                  margin: EdgeInsets.only(top: 50,left: WidthDevice/2.4),
-                  child: Container(
-                    height: 70,
-                    width: WidthDevice/3,
-                    child: Text(
-                    messaging.elementAt(widget.index!).MessageContent,
-                    style: TextStyle(color: Colors.black38),maxLines: 4,
-                  )),
-                ),
-                Container(
-                  width: WidthDevice,
-                    margin: EdgeInsets.only(left: WidthDevice / 10, top: 170),
-                    child: Text(
-                      "SL : " + messaging.elementAt(widget.index!).OrderStopLoss,
-                      style: TextStyle(
-                          color: Color.fromARGB(500, 200, 10, 10),
-                          fontSize:
-                              (HieghDevice / 180) * (WidthDevice / 180) + 5),textDirection: TextDirection.ltr,
-                    )),
-                Container(
-                  margin: EdgeInsets.only(left: WidthDevice / 2.3, top: 135),
-                  child: Column(
-                      textDirection: TextDirection.ltr,
-                    children: [
-                      Container(
-                        width: WidthDevice,
-                          child: Text(
-                        "TD1 : " + messaging.elementAt(widget.index!).Target1,
-                        style: TextStyle(
-                            color: Colors.green,
-                            fontSize:
-                                (HieghDevice / 180) * (WidthDevice / 180) + 5),textDirection: TextDirection.ltr,
-                      )),
-                      SizedBox(
-                        height: 20,
+                              messaging.elementAt(widget.index!).MessageContent,
+                              style: TextStyle(color: Colors.black38),
+                              maxLines: 4,
+                            )):ImageFiltered(imageFilter: ImageFilter.blur(sigmaY: 3,sigmaX: 3),child: Container(
+                            height: 70,
+                            width: WidthDevice / 3,
+                            child: Text(
+                              messaging.elementAt(widget.index!).MessageContent,
+                              style: TextStyle(color: Colors.black38),
+                              maxLines: 4,
+                            )),),
                       ),
                       Container(
-                        width: WidthDevice,
+                          width: WidthDevice,
+                          margin:
+                              EdgeInsets.only(left: WidthDevice / 10, top: 170),
+                          child:pay_or_not||checkadmin ? Text(
+                            "SL : " +
+                                messaging
+                                    .elementAt(widget.index!)
+                                    .OrderStopLoss,
+                            style: TextStyle(
+                                color: Color.fromARGB(500, 200, 10, 10),
+                                fontSize:
+                                    (HieghDevice / 180) * (WidthDevice / 180) +
+                                        5),
+                            textDirection: TextDirection.ltr,
+                          ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 4,sigmaY: 4),child: Text(
+                            "SL : " +
+                                messaging
+                                    .elementAt(widget.index!)
+                                    .OrderStopLoss,
+                            style: TextStyle(
+                                color: Color.fromARGB(500, 200, 10, 10),
+                                fontSize:
+                                (HieghDevice / 180) * (WidthDevice / 180) +
+                                    5),
+                            textDirection: TextDirection.ltr,
+                          ),)),
+                      Container(
+                        margin:
+                            EdgeInsets.only(left: WidthDevice / 2.3, top: 135),
+                        child:pay_or_not||checkadmin ? Column(
+                          textDirection: TextDirection.ltr,
+                          children: [
+                            Container(
+                                width: WidthDevice,
+                                child: Text(
+                                  "TD1 : " +
+                                      messaging
+                                          .elementAt(widget.index!)
+                                          .Target1,
+                                  style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: (HieghDevice / 180) *
+                                              (WidthDevice / 180) +
+                                          5),
+                                  textDirection: TextDirection.ltr,
+                                )),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            Container(
+                                width: WidthDevice,
+                                child: Text(
+                                  "TD2 : " +
+                                      messaging
+                                          .elementAt(widget.index!)
+                                          .Target2,
+                                  style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: (HieghDevice / 180) *
+                                              (WidthDevice / 180) +
+                                          5),
+                                  textDirection: TextDirection.ltr,
+                                ))
+                          ],
+                        ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaY: 4,sigmaX: 4),child: Column(
+                          textDirection: TextDirection.ltr,
+                          children: [
+                            Container(
+                                width: WidthDevice,
+                                child: Text(
+                                  "TD1 : " +
+                                      messaging
+                                          .elementAt(widget.index!)
+                                          .Target1,
+                                  style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: (HieghDevice / 180) *
+                                          (WidthDevice / 180) +
+                                          5),
+                                  textDirection: TextDirection.ltr,
+                                )),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            Container(
+                                width: WidthDevice,
+                                child: Text(
+                                  "TD2 : " +
+                                      messaging
+                                          .elementAt(widget.index!)
+                                          .Target2,
+                                  style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: (HieghDevice / 180) *
+                                          (WidthDevice / 180) +
+                                          5),
+                                  textDirection: TextDirection.ltr,
+                                ))
+                          ],
+                        ),),
+                      ),
+                      Container(
+                        width: 85,
+                        height: 60,
+                        margin:
+                            EdgeInsets.only(top: 140, left: WidthDevice - 95),
+                        child: ElevatedButton(
+                          onPressed: () => {},
                           child: Text(
-                        "TD2 : " + messaging.elementAt(widget.index!).Target2,
-                        style: TextStyle(
-                            color: Colors.green,
-                            fontSize:
-                                (HieghDevice / 180) * (WidthDevice / 180) + 5),textDirection: TextDirection.ltr,
-                      ))
-                    ],
-                  ),
-                )
-              ]))),
-          if (endList)
-            Container(
-              height: (HieghDevice / 5.5) + 60,
-            )
-        ]));
+                            (messaging.elementAt(widget.index!).MessagePrice >
+                                    0.0)
+                                ? '${getLang(context, "Pay")}' +
+                                    " : ${messaging.elementAt(widget.index!).MessagePrice}" +
+                                    r"$"
+                                : "Free",
+                            style: TextStyle(color: Colors.black38),
+                            textDirection: TextDirection.ltr,
+                          ),
+                          style: ButtonStyle(
+                              padding:
+                                  MaterialStateProperty.all(EdgeInsets.all(5)),
+                              elevation: MaterialStateProperty.all(20),
+                              backgroundColor: MaterialStateProperty.all(
+                                  Colors.lightBlueAccent),
+                              shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          topRight: Radius.zero,
+                                          bottomRight: Radius.circular(40)),
+                                      side: BorderSide(
+                                          color: Colors.black38, width: 0.2)))),
+                        ),
+                      ),
+                    ]))),
+                if (endList)
+                  Container(
+                    height: (HieghDevice / 5.5) + 60,
+                  )
+              ]))
+          : Center(child: CircularProgressIndicator());
+    } else {
+      return SizedBox();
+    }
+  }
+}
+
+void SortByDate() {
+  for (int i = 0; i < messaging.length; i++) {
+    for (int j = i + 1; j < messaging.length; j++) {
+      if (DateTime.parse(messaging[i].MessageDate)
+          .isBefore(DateTime.parse(messaging[j].MessageDate))) {
+        Messaging item = messaging[i];
+        messaging[i] = messaging[j];
+        messaging[j] = item;
+      }
+    }
+  }
+}
+
+void SortByView() {
+  for (int i = 0; i < messaging.length; i++) {
+    for (int j = i + 1; j < messaging.length; j++) {
+      if (DateTime.parse(messaging[i].MessageDate)
+          .isBefore(DateTime.parse(messaging[j].MessageDate))) {
+        Messaging item = messaging[i];
+        messaging[i] = messaging[j];
+        messaging[j] = item;
+      }
+    }
+  }
+}
+
+void SortByName() {
+  for (int i = 0; i < messaging.length; i++) {
+    for (int j = i + 1; j < messaging.length; j++) {
+      if (messaging[i].MessageSymbol.compareTo(messaging[j].MessageSymbol) >
+          0) {
+        Messaging item = messaging[i];
+        messaging[i] = messaging[j];
+        messaging[j] = item;
+      }
+    }
+  }
+}
+
+void SortByPrice() {
+  for (int i = 0; i < messaging.length; i++) {
+    for (int j = i + 1; j < messaging.length; j++) {
+      if (messaging[i].MessagePrice < messaging[j].MessagePrice) {
+        Messaging item = messaging[i];
+        messaging[i] = messaging[j];
+        messaging[j] = item;
+      }
+    }
   }
 }
