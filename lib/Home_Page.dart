@@ -3,10 +3,12 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:clippy_flutter/arc.dart';
 import 'package:flutter/material.dart';
+import 'package:mailing/Login_Mailing.dart';
 import 'package:mailing/Pages_File/Notif_Page.dart';
 import 'package:mailing/Pages_File/Profile_Page.dart';
 import 'package:mailing/Pages_File/Program_Page.dart';
 import 'package:mailing/Pages_File/Setting_Page.dart';
+import 'package:swipe_to/swipe_to.dart';
 
 import 'Class/Class_database.dart';
 import 'Message_page.dart';
@@ -24,7 +26,7 @@ Map<String, String> Message_type = {
 ScrollController _controller = ScrollController();
 
 late bool checkadmin, endList, showsendmessage;
-int lengthList = 4;
+int lengthList = 5;
 var page;
 String pagecheck = "";
 List<double> he_wi = [50, 50, 70, 50, 50];
@@ -46,7 +48,10 @@ class home_page_state extends State<home_page> {
   Future<void> get_select_message() async {
     messaging = await messsage_dataBase.Select();
 
-    page = List.generate(lengthList, (index) => List_messaging(index: index));
+    setState(() {
+      page = List.generate(lengthList, (index) => List_messaging(index: index));
+    });
+
     for (int i = 0; i < he_wi.length; i++) {
       if (i == 2) {
         he_wi[i] = 60;
@@ -60,22 +65,29 @@ class home_page_state extends State<home_page> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     get_select_message().whenComplete(() => this.setState(() {
           print("Complate");
         }));
-    checkadmin = true;
     showsendmessage = true;
-    _controller.addListener(() {
-      if (_controller.offset >= _controller.position.maxScrollExtent) {
+    _controller.addListener(_scrollListener);
+  }
+
+  _scrollListener() {
+    if (_controller.offset >= _controller.position.maxScrollExtent &&
+        !_controller.position.outOfRange &&
+        messaging.length > lengthList) {
+      setStatecalback();
+    }
+  }
+
+  void setStatecalback() {
+    if (mounted)
+      setState(() {
         lengthList = lengthList + 5;
-        setState(() {
-          page = List.generate(
-              lengthList, (index) => List_messaging(index: index));
-        });
-      }
-    });
+        page =
+            List.generate(lengthList, (index) => List_messaging(index: index));
+      });
   }
 
   @override
@@ -207,6 +219,7 @@ class home_page_state extends State<home_page> {
             height: HieghDevice,
             width: WidthDevice,
             child: RefreshIndicator(
+              triggerMode: RefreshIndicatorTriggerMode.anywhere,
                 onRefresh: _hundgetdate,
                 child: ListView(
                   controller: _controller,
@@ -550,7 +563,12 @@ class home_page_state extends State<home_page> {
   }
 
   Future<void> _hundgetdate() async {
-    await get_select_message();
+    lengthList = 5;
+    try {
+      await get_select_message();
+    } catch (e) {
+      print(e);
+    }
   }
 }
 
@@ -558,7 +576,7 @@ class List_messaging extends StatefulWidget {
   @override
   _List_messaging createState() => _List_messaging();
 
-  List_messaging({this.index, this.onPress});
+  List_messaging({Key? key, this.index, this.onPress}) : super(key: key);
 
   final int? index;
   final Function? onPress;
@@ -579,22 +597,72 @@ class _List_messaging extends State<List_messaging> {
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
 
-    endList = ((messaging.length - 1) == widget.index) ? true : false;
     if (messaging.length > widget.index!) {
+      endList = ((lengthList - 1) == widget.index) ? true : false;
       pay_or_not = ((messaging[widget.index!].MessagePrice) > 0) ? false : true;
 
       return messaging.length > 0
-          ? MaterialButton(
-              minWidth: WidthDevice,
-              padding: EdgeInsets.all(0),
-              onPressed: () async {
-                if (checkadmin) {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return message_page(
-                        "S", messaging.elementAt(widget.index!));
-                  }));
-                }
-              },
+          ? SwipeTo(
+              animationDuration: Duration(seconds: 1),
+              onLeftSwipe: checkadmin ? () {
+                //end to start
+                showDialog(
+                    context: context,
+                    builder: (context) => MyDialogeHome(
+                        type: "D",
+                        onPresed: () async {
+                          if (checkadmin) {
+                            if (await messsage_dataBase.Delete(
+                                messaging[widget.index!]
+                                    .MessageID
+                                    .toString())) {
+                              messaging.removeAt(widget.index!);
+                              setState(() {
+                                showtoast("Delete Seccessfully");
+                              });
+                            } else {
+                              showtoast("Delete Problem");
+                            }
+                          }
+                        }));
+              }: (){},
+              onRightSwipe: checkadmin ? () {
+                //start to end
+                showDialog(
+                    context: context,
+                    builder: (context) => MyDialogeHome(
+                        type: "U",
+                        onPresed: () {
+                          if (checkadmin) {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return message_page(
+                                  "S", messaging.elementAt(widget.index!));
+                            }));
+                          }
+                        }));
+              }:(){},
+              rightSwipeWidget: checkadmin ? Container(
+                margin: EdgeInsets.only(left: 20,right: 20),
+                alignment: Alignment.centerLeft,
+                decoration: BoxDecoration(
+                    color: Color.fromARGB(200, 201, 133, 0),
+                    borderRadius: BorderRadius.circular(20)),
+                child: Icon(
+                  Icons.edit_outlined,
+                  size: 50,
+                ),
+              ):SizedBox(),
+              leftSwipeWidget: checkadmin ? Container(
+                margin: EdgeInsets.only(right: 20,left: 20),
+                  alignment: Alignment.centerRight,
+                  decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Icon(
+                    Icons.delete,
+                    size: 50,
+                  )):SizedBox(),
               child: Column(children: [
                 Container(
                     margin: EdgeInsets.only(top: 20),
@@ -613,78 +681,50 @@ class _List_messaging extends State<List_messaging> {
                       Container(
                         margin: EdgeInsets.only(left: WidthDevice / 9, top: 5),
                         alignment: Alignment.topLeft,
-                        child: pay_or_not||checkadmin ? Text(
-                          messaging.elementAt(widget.index!).MessageDate,
-                          style: TextStyle(
-                              color: Colors.black38,
-                              fontSize:
-                              (HieghDevice / 180) * (WidthDevice / 180)),
-                        ):ImageFiltered(
-                            imageFilter: ImageFilter.blur(
-                              sigmaX: 3,
-                              sigmaY: 3,
-                            ),
-                            child: Text(
-                              messaging.elementAt(widget.index!).MessageDate,
-                              style: TextStyle(
-                                  color: Colors.black38,
-                                  fontSize:
-                                  (HieghDevice / 180) * (WidthDevice / 180)),
-                            )),
+                        child: pay_or_not || checkadmin
+                            ? Text(
+                                messaging.elementAt(widget.index!).MessageDate,
+                                style: TextStyle(
+                                    color: Colors.black38,
+                                    fontSize: (HieghDevice / 180) *
+                                        (WidthDevice / 180)),
+                              )
+                            : ImageFiltered(
+                                imageFilter: ImageFilter.blur(
+                                  sigmaX: 3,
+                                  sigmaY: 3,
+                                ),
+                                child: Text(
+                                  messaging
+                                      .elementAt(widget.index!)
+                                      .MessageDate,
+                                  style: TextStyle(
+                                      color: Colors.black38,
+                                      fontSize: (HieghDevice / 180) *
+                                          (WidthDevice / 180)),
+                                )),
                       ),
                       Container(
                           alignment: Alignment.topLeft,
-                          child: pay_or_not||checkadmin ? Container(
-                              margin: EdgeInsets.only(
-                                  left: WidthDevice / 18, top: 25),
-                              height: 130,
-                              width: 130,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: Colors.black38, blurRadius: 20)
-                                ],
-                              ),
-                              child: CachedNetworkImage(
-                                imageUrl: messaging
-                                    .elementAt(widget.index!)
-                                    .MessageLink,
-                                imageBuilder: (context, imageProvider) =>
-                                    Container(
+                          child: pay_or_not || checkadmin
+                              ? Container(
+                                  margin: EdgeInsets.only(
+                                      left: WidthDevice / 18, top: 25),
+                                  height: 130,
+                                  width: 130,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
-                                    image: DecorationImage(
-                                      image: imageProvider,
-                                      fit: BoxFit.fill,
-                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: Colors.black38, blurRadius: 20)
+                                    ],
                                   ),
-                                ),
-                                placeholder: (context, url) =>
-                                    CircularProgressIndicator(),
-                                errorWidget: (context, url, error) =>
-                                    Icon(Icons.error),
-                              )):ImageFiltered(imageFilter: ImageFilter.blur(
-                            sigmaY: 5,
-                            sigmaX: 5,
-                          ),child: Container(
-                              margin: EdgeInsets.only(
-                                  left: WidthDevice / 18, top: 25),
-                              height: 130,
-                              width: 130,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: Colors.black38, blurRadius: 20)
-                                ],
-                              ),
-                              child: CachedNetworkImage(
-                                imageUrl: messaging
-                                    .elementAt(widget.index!)
-                                    .MessageLink,
-                                imageBuilder: (context, imageProvider) =>
-                                    Container(
+                                  child: CachedNetworkImage(
+                                    imageUrl: messaging
+                                        .elementAt(widget.index!)
+                                        .MessageLink,
+                                    imageBuilder: (context, imageProvider) =>
+                                        Container(
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(20),
                                         image: DecorationImage(
@@ -693,48 +733,95 @@ class _List_messaging extends State<List_messaging> {
                                         ),
                                       ),
                                     ),
-                                placeholder: (context, url) =>
-                                    CircularProgressIndicator(),
-                                errorWidget: (context, url, error) =>
-                                    Icon(Icons.error),
-                              )),)),
+                                    placeholder: (context, url) =>
+                                        CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) =>
+                                        Icon(Icons.error),
+                                  ))
+                              : ImageFiltered(
+                                  imageFilter: ImageFilter.blur(
+                                    sigmaY: 5,
+                                    sigmaX: 5,
+                                  ),
+                                  child: Container(
+                                      margin: EdgeInsets.only(
+                                          left: WidthDevice / 18, top: 25),
+                                      height: 130,
+                                      width: 130,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Colors.black38,
+                                              blurRadius: 20)
+                                        ],
+                                      ),
+                                      child: CachedNetworkImage(
+                                        imageUrl: messaging
+                                            .elementAt(widget.index!)
+                                            .MessageLink,
+                                        imageBuilder:
+                                            (context, imageProvider) =>
+                                                Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            image: DecorationImage(
+                                              image: imageProvider,
+                                              fit: BoxFit.fill,
+                                            ),
+                                          ),
+                                        ),
+                                        placeholder: (context, url) =>
+                                            CircularProgressIndicator(),
+                                        errorWidget: (context, url, error) =>
+                                            Icon(Icons.error),
+                                      )),
+                                )),
                       Container(
                         margin:
                             EdgeInsets.only(left: WidthDevice / 2.6, top: 10),
                         child: Row(textDirection: TextDirection.ltr, children: [
                           Container(
                               margin: EdgeInsets.only(bottom: 2),
-                              child:pay_or_not||checkadmin ? Text(
-                                Message_type.values.elementAt(int.parse(
-                                    messaging
-                                        .elementAt(widget.index!)
-                                        .MessageType)),
-                                style: TextStyle(
-                                    color: (int.parse(messaging
+                              child: pay_or_not || checkadmin
+                                  ? Text(
+                                      Message_type.values.elementAt(int.parse(
+                                          messaging
+                                              .elementAt(widget.index!)
+                                              .MessageType)),
+                                      style: TextStyle(
+                                          color: (int.parse(messaging
+                                                      .elementAt(widget.index!)
+                                                      .MessageType) <
+                                                  3)
+                                              ? Colors.blue
+                                              : Colors.redAccent,
+                                          fontSize: (HieghDevice / 180) *
+                                                  (WidthDevice / 180) +
+                                              5),
+                                    )
+                                  : ImageFiltered(
+                                      imageFilter: ImageFilter.blur(
+                                          sigmaX: 5, sigmaY: 5),
+                                      child: Text(
+                                        Message_type.values.elementAt(int.parse(
+                                            messaging
                                                 .elementAt(widget.index!)
-                                                .MessageType) <
-                                            3)
-                                        ? Colors.blue
-                                        : Colors.redAccent,
-                                    fontSize: (HieghDevice / 180) *
-                                            (WidthDevice / 180) +
-                                        5),
-                              ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 5,sigmaY: 5),child: Text(
-                                Message_type.values.elementAt(int.parse(
-                                    messaging
-                                        .elementAt(widget.index!)
-                                        .MessageType)),
-                                style: TextStyle(
-                                    color: (int.parse(messaging
-                                        .elementAt(widget.index!)
-                                        .MessageType) <
-                                        3)
-                                        ? Colors.blue
-                                        : Colors.redAccent,
-                                    fontSize: (HieghDevice / 180) *
-                                        (WidthDevice / 180) +
-                                        5),
-                              ),)),
+                                                .MessageType)),
+                                        style: TextStyle(
+                                            color: (int.parse(messaging
+                                                        .elementAt(
+                                                            widget.index!)
+                                                        .MessageType) <
+                                                    3)
+                                                ? Colors.blue
+                                                : Colors.redAccent,
+                                            fontSize: (HieghDevice / 180) *
+                                                    (WidthDevice / 180) +
+                                                5),
+                                      ),
+                                    )),
                           Container(
                               child: Text(
                             "  " +
@@ -749,192 +836,226 @@ class _List_messaging extends State<List_messaging> {
                                         5),
                           )),
                           Container(
-                              child:pay_or_not||checkadmin ? Text(
-                            "AT: " +
-                                messaging
-                                    .elementAt(widget.index!)
-                                    .MessageEntryPoint
-                                    .toString(),
-                            style: TextStyle(
-                                color: Colors.amber,
-                                fontSize:
-                                    (HieghDevice / 180) * (WidthDevice / 180) +
-                                        5),
-                          ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaY: 3,sigmaX: 3),child: Text(
-                                "AT: " +
-                                    messaging
-                                        .elementAt(widget.index!)
-                                        .MessageEntryPoint
-                                        .toString(),
-                                style: TextStyle(
-                                    color: Colors.amber,
-                                    fontSize:
-                                    (HieghDevice / 180) * (WidthDevice / 180) +
-                                        5),
-                              ),))
+                              child: pay_or_not || checkadmin
+                                  ? Text(
+                                      "AT: " +
+                                          messaging
+                                              .elementAt(widget.index!)
+                                              .MessageEntryPoint
+                                              .toString(),
+                                      style: TextStyle(
+                                          color: Colors.amber,
+                                          fontSize: (HieghDevice / 180) *
+                                                  (WidthDevice / 180) +
+                                              5),
+                                    )
+                                  : ImageFiltered(
+                                      imageFilter: ImageFilter.blur(
+                                          sigmaY: 3, sigmaX: 3),
+                                      child: Text(
+                                        "AT: " +
+                                            messaging
+                                                .elementAt(widget.index!)
+                                                .MessageEntryPoint
+                                                .toString(),
+                                        style: TextStyle(
+                                            color: Colors.amber,
+                                            fontSize: (HieghDevice / 180) *
+                                                    (WidthDevice / 180) +
+                                                5),
+                                      ),
+                                    ))
                         ]),
                       ),
                       Container(
                         margin:
                             EdgeInsets.only(left: WidthDevice - 85, top: 65),
-                        child: pay_or_not||checkadmin ? Row(
-                          textDirection: TextDirection.ltr,
-                          children: [
-                            Icon(
-                              Icons.visibility_outlined,
-                              color: Colors.black,
-                            ),
-                            SizedBox(
-                              width: 7,
-                            ),
-                            Text(
-                              messaging
-                                  .elementAt(widget.index!)
-                                  .MessageCountView,
-                              style: TextStyle(color: Colors.black54),
-                            )
-                          ],
-                        ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 3,sigmaY: 3),child: Row(
-                          textDirection: TextDirection.ltr,
-                          children: [
-                            Icon(
-                              Icons.visibility_outlined,
-                              color: Colors.black,
-                            ),
-                            SizedBox(
-                              width: 7,
-                            ),
-                            Text(
-                              messaging
-                                  .elementAt(widget.index!)
-                                  .MessageCountView,
-                              style: TextStyle(color: Colors.black54),
-                            )
-                          ],
-                        ),),
+                        child: pay_or_not || checkadmin
+                            ? Row(
+                                textDirection: TextDirection.ltr,
+                                children: [
+                                  Icon(
+                                    Icons.visibility_outlined,
+                                    color: Colors.black,
+                                  ),
+                                  SizedBox(
+                                    width: 7,
+                                  ),
+                                  Text(
+                                    messaging
+                                        .elementAt(widget.index!)
+                                        .MessageCountView,
+                                    style: TextStyle(color: Colors.black54),
+                                  )
+                                ],
+                              )
+                            : ImageFiltered(
+                                imageFilter:
+                                    ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                                child: Row(
+                                  textDirection: TextDirection.ltr,
+                                  children: [
+                                    Icon(
+                                      Icons.visibility_outlined,
+                                      color: Colors.black,
+                                    ),
+                                    SizedBox(
+                                      width: 7,
+                                    ),
+                                    Text(
+                                      messaging
+                                          .elementAt(widget.index!)
+                                          .MessageCountView,
+                                      style: TextStyle(color: Colors.black54),
+                                    )
+                                  ],
+                                ),
+                              ),
                       ),
                       Container(
                         alignment: Alignment.topLeft,
                         height: 70,
                         margin:
                             EdgeInsets.only(top: 50, left: WidthDevice / 2.4),
-                        child:pay_or_not||checkadmin ? Container(
-                            height: 70,
-                            width: WidthDevice / 3,
-                            child: Text(
-                              messaging.elementAt(widget.index!).MessageContent,
-                              style: TextStyle(color: Colors.black38),
-                              maxLines: 4,
-                            )):ImageFiltered(imageFilter: ImageFilter.blur(sigmaY: 3,sigmaX: 3),child: Container(
-                            height: 70,
-                            width: WidthDevice / 3,
-                            child: Text(
-                              messaging.elementAt(widget.index!).MessageContent,
-                              style: TextStyle(color: Colors.black38),
-                              maxLines: 4,
-                            )),),
+                        child: pay_or_not || checkadmin
+                            ? Container(
+                                height: 70,
+                                width: WidthDevice / 3,
+                                child: Text(
+                                  messaging
+                                      .elementAt(widget.index!)
+                                      .MessageContent,
+                                  style: TextStyle(color: Colors.black38),
+                                  maxLines: 4,
+                                ))
+                            : ImageFiltered(
+                                imageFilter:
+                                    ImageFilter.blur(sigmaY: 3, sigmaX: 3),
+                                child: Container(
+                                    height: 70,
+                                    width: WidthDevice / 3,
+                                    child: Text(
+                                      messaging
+                                          .elementAt(widget.index!)
+                                          .MessageContent,
+                                      style: TextStyle(color: Colors.black38),
+                                      maxLines: 4,
+                                    )),
+                              ),
                       ),
                       Container(
                           width: WidthDevice,
                           margin:
                               EdgeInsets.only(left: WidthDevice / 10, top: 170),
-                          child:pay_or_not||checkadmin ? Text(
-                            "SL : " +
-                                messaging
-                                    .elementAt(widget.index!)
-                                    .OrderStopLoss,
-                            style: TextStyle(
-                                color: Color.fromARGB(500, 200, 10, 10),
-                                fontSize:
-                                    (HieghDevice / 180) * (WidthDevice / 180) +
-                                        5),
-                            textDirection: TextDirection.ltr,
-                          ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 4,sigmaY: 4),child: Text(
-                            "SL : " +
-                                messaging
-                                    .elementAt(widget.index!)
-                                    .OrderStopLoss,
-                            style: TextStyle(
-                                color: Color.fromARGB(500, 200, 10, 10),
-                                fontSize:
-                                (HieghDevice / 180) * (WidthDevice / 180) +
-                                    5),
-                            textDirection: TextDirection.ltr,
-                          ),)),
+                          child: pay_or_not || checkadmin
+                              ? Text(
+                                  "SL : " +
+                                      messaging
+                                          .elementAt(widget.index!)
+                                          .OrderStopLoss,
+                                  style: TextStyle(
+                                      color: Color.fromARGB(500, 200, 10, 10),
+                                      fontSize: (HieghDevice / 180) *
+                                              (WidthDevice / 180) +
+                                          5),
+                                  textDirection: TextDirection.ltr,
+                                )
+                              : ImageFiltered(
+                                  imageFilter:
+                                      ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                                  child: Text(
+                                    "SL : " +
+                                        messaging
+                                            .elementAt(widget.index!)
+                                            .OrderStopLoss,
+                                    style: TextStyle(
+                                        color: Color.fromARGB(500, 200, 10, 10),
+                                        fontSize: (HieghDevice / 180) *
+                                                (WidthDevice / 180) +
+                                            5),
+                                    textDirection: TextDirection.ltr,
+                                  ),
+                                )),
                       Container(
                         margin:
                             EdgeInsets.only(left: WidthDevice / 2.3, top: 135),
-                        child:pay_or_not||checkadmin ? Column(
-                          textDirection: TextDirection.ltr,
-                          children: [
-                            Container(
-                                width: WidthDevice,
-                                child: Text(
-                                  "TD1 : " +
-                                      messaging
-                                          .elementAt(widget.index!)
-                                          .Target1,
-                                  style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: (HieghDevice / 180) *
-                                              (WidthDevice / 180) +
-                                          5),
+                        child: pay_or_not || checkadmin
+                            ? Column(
+                                textDirection: TextDirection.ltr,
+                                children: [
+                                  Container(
+                                      width: WidthDevice,
+                                      child: Text(
+                                        "TD1 : " +
+                                            messaging
+                                                .elementAt(widget.index!)
+                                                .Target1,
+                                        style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: (HieghDevice / 180) *
+                                                    (WidthDevice / 180) +
+                                                5),
+                                        textDirection: TextDirection.ltr,
+                                      )),
+                                  SizedBox(
+                                    height: 20,
+                                  ),
+                                  Container(
+                                      width: WidthDevice,
+                                      child: Text(
+                                        "TD2 : " +
+                                            messaging
+                                                .elementAt(widget.index!)
+                                                .Target2,
+                                        style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: (HieghDevice / 180) *
+                                                    (WidthDevice / 180) +
+                                                5),
+                                        textDirection: TextDirection.ltr,
+                                      ))
+                                ],
+                              )
+                            : ImageFiltered(
+                                imageFilter:
+                                    ImageFilter.blur(sigmaY: 4, sigmaX: 4),
+                                child: Column(
                                   textDirection: TextDirection.ltr,
-                                )),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Container(
-                                width: WidthDevice,
-                                child: Text(
-                                  "TD2 : " +
-                                      messaging
-                                          .elementAt(widget.index!)
-                                          .Target2,
-                                  style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: (HieghDevice / 180) *
-                                              (WidthDevice / 180) +
-                                          5),
-                                  textDirection: TextDirection.ltr,
-                                ))
-                          ],
-                        ):ImageFiltered(imageFilter: ImageFilter.blur(sigmaY: 4,sigmaX: 4),child: Column(
-                          textDirection: TextDirection.ltr,
-                          children: [
-                            Container(
-                                width: WidthDevice,
-                                child: Text(
-                                  "TD1 : " +
-                                      messaging
-                                          .elementAt(widget.index!)
-                                          .Target1,
-                                  style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: (HieghDevice / 180) *
-                                          (WidthDevice / 180) +
-                                          5),
-                                  textDirection: TextDirection.ltr,
-                                )),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            Container(
-                                width: WidthDevice,
-                                child: Text(
-                                  "TD2 : " +
-                                      messaging
-                                          .elementAt(widget.index!)
-                                          .Target2,
-                                  style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: (HieghDevice / 180) *
-                                          (WidthDevice / 180) +
-                                          5),
-                                  textDirection: TextDirection.ltr,
-                                ))
-                          ],
-                        ),),
+                                  children: [
+                                    Container(
+                                        width: WidthDevice,
+                                        child: Text(
+                                          "TD1 : " +
+                                              messaging
+                                                  .elementAt(widget.index!)
+                                                  .Target1,
+                                          style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: (HieghDevice / 180) *
+                                                      (WidthDevice / 180) +
+                                                  5),
+                                          textDirection: TextDirection.ltr,
+                                        )),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    Container(
+                                        width: WidthDevice,
+                                        child: Text(
+                                          "TD2 : " +
+                                              messaging
+                                                  .elementAt(widget.index!)
+                                                  .Target2,
+                                          style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: (HieghDevice / 180) *
+                                                      (WidthDevice / 180) +
+                                                  5),
+                                          textDirection: TextDirection.ltr,
+                                        ))
+                                  ],
+                                ),
+                              ),
                       ),
                       Container(
                         width: 85,
@@ -978,7 +1099,13 @@ class _List_messaging extends State<List_messaging> {
               ]))
           : Center(child: CircularProgressIndicator());
     } else {
-      return SizedBox();
+      if (lengthList - 1 == widget.index!) {
+        return Container(
+          height: (HieghDevice / 5.5) + 60,
+        );
+      } else {
+        return SizedBox();
+      }
     }
   }
 }
@@ -1031,5 +1158,51 @@ void SortByPrice() {
         messaging[j] = item;
       }
     }
+  }
+}
+
+class MyDialogeHome extends StatefulWidget {
+  @override
+  MyDialogeHomeState createState() => MyDialogeHomeState();
+
+  MyDialogeHome({required this.type, required this.onPresed});
+
+  late final String type;
+  late final Function onPresed;
+}
+
+class MyDialogeHomeState extends State<MyDialogeHome> {
+  String? ubd_or_del;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.type == "D") {
+      ubd_or_del = "Delete";
+    } else {
+      ubd_or_del = "Ubdate";
+    }
+    return AlertDialog(
+        scrollable: true,
+        title: Text(ubd_or_del!),
+        content: StatefulBuilder(builder: (context, setState) {
+          return Column(
+              // Then, the content of your dialog.
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, 'OK');
+                      widget.onPresed();
+                    },
+                    child: const Text('OK'),
+                  )
+                ]),
+              ]);
+        }));
   }
 }

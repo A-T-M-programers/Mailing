@@ -287,6 +287,7 @@ abstract class DataBase_Access {
   Future<bool> Insert(List<String> list);
 
   Future<bool> Ubdate(List<String> list);
+  Future<bool> Delete(String id);
 
   Future<List<Messaging>> Select();
 
@@ -343,6 +344,24 @@ class Messsage_DataBase extends DataBase_Access{
         'stoploss': list.elementAt(8),
         'content': list.elementAt(9),
         'entrypoint': list.elementAt(10),
+        'secret': '$secret'
+      }
+      );
+      return Status(response.statusCode);
+    }
+  }
+
+  @override
+  Future<bool> Delete(String id)async{
+    if(id.isEmpty){
+      return false;
+    }else {
+      var secret = Crypt.sha256("delete_message");
+      Uri url = Uri(
+          host: host, path: 'Mailing_API/Delete/Delete.php', scheme: scheme);
+      var response =
+      await http.post(url, body: {
+        'id': id,
         'secret': '$secret'
       }
       );
