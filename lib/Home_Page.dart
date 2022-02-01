@@ -1,13 +1,19 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:clippy_flutter/arc.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter_share/flutter_share.dart';
+import 'package:http/http.dart';
 import 'package:mailing/Login_Mailing.dart';
 import 'package:mailing/Pages_File/Notif_Page.dart';
 import 'package:mailing/Pages_File/Profile_Page.dart';
 import 'package:mailing/Pages_File/Program_Page.dart';
 import 'package:mailing/Pages_File/Setting_Page.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:swipe_to/swipe_to.dart';
 
 import 'Class/Class_database.dart';
@@ -32,7 +38,9 @@ String pagecheck = "";
 List<double> he_wi = [50, 50, 70, 50, 50];
 List<double> sizeicon = [30, 30, 50, 30, 30];
 List<Messaging> messaging = [];
+List<int> countviewint = [];
 Messsage_DataBase messsage_dataBase = Messsage_DataBase();
+Contentviewinfo_DataBase countview = Contentviewinfo_DataBase();
 
 class home_page extends StatefulWidget {
   const home_page({Key? key}) : super(key: key);
@@ -47,6 +55,7 @@ class home_page_state extends State<home_page> {
 
   Future<void> get_select_message() async {
     messaging = await messsage_dataBase.Select();
+    countviewint = await countview.Select();
 
     setState(() {
       page = List.generate(lengthList, (index) => List_messaging(index: index));
@@ -219,7 +228,7 @@ class home_page_state extends State<home_page> {
             height: HieghDevice,
             width: WidthDevice,
             child: RefreshIndicator(
-              triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
                 onRefresh: _hundgetdate,
                 child: ListView(
                   controller: _controller,
@@ -563,11 +572,13 @@ class home_page_state extends State<home_page> {
   }
 
   Future<void> _hundgetdate() async {
-    lengthList = 5;
-    try {
-      await get_select_message();
-    } catch (e) {
-      print(e);
+    if (pagecheck == "S" || pagecheck == "SI") {
+      lengthList = 5;
+      try {
+        await get_select_message();
+      } catch (e) {
+        print(e);
+      }
     }
   }
 }
@@ -584,7 +595,7 @@ class List_messaging extends StatefulWidget {
 
 class _List_messaging extends State<List_messaging> {
   double WidthDevice = 0, HieghDevice = 0;
-  bool pay_or_not = false;
+  bool pay_or_not = false,pay_complate = false;
 
   @override
   void initState() {
@@ -600,69 +611,123 @@ class _List_messaging extends State<List_messaging> {
     if (messaging.length > widget.index!) {
       endList = ((lengthList - 1) == widget.index) ? true : false;
       pay_or_not = ((messaging[widget.index!].MessagePrice) > 0) ? false : true;
+      for(int i = 0 ; i<countviewint.length;i++){
+        if(messaging[widget.index!].MessageID == countviewint[i]){
+          pay_complate = true;
+          break;
+        }
+      }
 
       return messaging.length > 0
           ? SwipeTo(
               animationDuration: Duration(seconds: 1),
-              onLeftSwipe: checkadmin ? () {
-                //end to start
-                showDialog(
-                    context: context,
-                    builder: (context) => MyDialogeHome(
-                        type: "D",
-                        onPresed: () async {
-                          if (checkadmin) {
-                            if (await messsage_dataBase.Delete(
-                                messaging[widget.index!]
-                                    .MessageID
-                                    .toString())) {
-                              messaging.removeAt(widget.index!);
-                              setState(() {
-                                showtoast("Delete Seccessfully");
-                              });
-                            } else {
-                              showtoast("Delete Problem");
-                            }
-                          }
-                        }));
-              }: (){},
-              onRightSwipe: checkadmin ? () {
-                //start to end
-                showDialog(
-                    context: context,
-                    builder: (context) => MyDialogeHome(
-                        type: "U",
-                        onPresed: () {
-                          if (checkadmin) {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return message_page(
-                                  "S", messaging.elementAt(widget.index!));
-                            }));
-                          }
-                        }));
-              }:(){},
-              rightSwipeWidget: checkadmin ? Container(
-                margin: EdgeInsets.only(left: 20,right: 20),
-                alignment: Alignment.centerLeft,
-                decoration: BoxDecoration(
-                    color: Color.fromARGB(200, 201, 133, 0),
-                    borderRadius: BorderRadius.circular(20)),
-                child: Icon(
-                  Icons.edit_outlined,
-                  size: 50,
-                ),
-              ):SizedBox(),
-              leftSwipeWidget: checkadmin ? Container(
-                margin: EdgeInsets.only(right: 20,left: 20),
-                  alignment: Alignment.centerRight,
-                  decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Icon(
-                    Icons.delete,
-                    size: 50,
-                  )):SizedBox(),
+              onLeftSwipe: checkadmin
+                  ? () {
+                      //end to start
+                      showDialog(
+                          context: context,
+                          builder: (context) => MyDialogeHome(
+                              type: "D",
+                              onPresed: () async {
+                                if (checkadmin) {
+                                  if (await messsage_dataBase.Delete(
+                                      messaging[widget.index!]
+                                          .MessageID
+                                          .toString())) {
+                                    messaging.removeAt(widget.index!);
+                                    setState(() {
+                                      showtoast("Delete Seccessfully");
+                                    });
+                                  } else {
+                                    showtoast("Delete Problem");
+                                  }
+                                }
+                              }));
+                    }
+                  : () async {
+                      if (pay_or_not) {
+                        if (messaging[widget.index!].MessageLink !=
+                            "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg") {
+                          await shareFile();
+                        } else {
+                          await share();
+                        }
+                      }
+                    },
+              onRightSwipe: checkadmin
+                  ? () {
+                      //start to end
+                      showDialog(
+                          context: context,
+                          builder: (context) => MyDialogeHome(
+                              type: "U",
+                              onPresed: () {
+                                if (checkadmin) {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                    return message_page("S",
+                                        messaging.elementAt(widget.index!));
+                                  }));
+                                }
+                              }));
+                    }
+                  : () async {
+                      if (pay_or_not) {
+                        if (messaging[widget.index!].MessageLink !=
+                            "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg") {
+                          await shareFile();
+                        } else {
+                          await share();
+                        }
+                      }
+                    },
+              rightSwipeWidget: checkadmin
+                  ? Container(
+                      margin: EdgeInsets.only(left: 20, right: 20),
+                      alignment: Alignment.centerLeft,
+                      decoration: BoxDecoration(
+                          color: Color.fromARGB(200, 201, 133, 0),
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        size: 50,
+                      ),
+                    )
+                  : pay_or_not
+                      ? Container(
+                          margin: EdgeInsets.only(left: 20, right: 20),
+                          alignment: Alignment.centerLeft,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20)),
+                          child: Icon(
+                            Icons.reply,
+                            size: 50,
+                            textDirection: TextDirection.rtl,
+                          ),
+                        )
+                      : SizedBox(),
+              leftSwipeWidget: checkadmin
+                  ? Container(
+                      margin: EdgeInsets.only(right: 20, left: 20),
+                      alignment: Alignment.centerRight,
+                      decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Icon(
+                        Icons.delete,
+                        size: 50,
+                      ))
+                  : pay_or_not
+                      ? Container(
+                          margin: EdgeInsets.only(right: 20, left: 20),
+                          alignment: Alignment.centerRight,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20)),
+                          child: Icon(
+                            Icons.reply,
+                            size: 50,
+                          ))
+                      : SizedBox(),
               child: Column(children: [
                 Container(
                     margin: EdgeInsets.only(top: 20),
@@ -681,7 +746,7 @@ class _List_messaging extends State<List_messaging> {
                       Container(
                         margin: EdgeInsets.only(left: WidthDevice / 9, top: 5),
                         alignment: Alignment.topLeft,
-                        child: pay_or_not || checkadmin
+                        child: pay_complate || checkadmin
                             ? Text(
                                 messaging.elementAt(widget.index!).MessageDate,
                                 style: TextStyle(
@@ -706,7 +771,7 @@ class _List_messaging extends State<List_messaging> {
                       ),
                       Container(
                           alignment: Alignment.topLeft,
-                          child: pay_or_not || checkadmin
+                          child: pay_complate || checkadmin
                               ? Container(
                                   margin: EdgeInsets.only(
                                       left: WidthDevice / 18, top: 25),
@@ -784,7 +849,7 @@ class _List_messaging extends State<List_messaging> {
                         child: Row(textDirection: TextDirection.ltr, children: [
                           Container(
                               margin: EdgeInsets.only(bottom: 2),
-                              child: pay_or_not || checkadmin
+                              child: pay_complate || checkadmin
                                   ? Text(
                                       Message_type.values.elementAt(int.parse(
                                           messaging
@@ -830,13 +895,17 @@ class _List_messaging extends State<List_messaging> {
                                     .MessageSymbol +
                                 "  ",
                             style: TextStyle(
-                                color: Colors.black54,
+                                color:
+                                pay_complate ? Colors.black54 : Colors.black,
                                 fontSize:
                                     (HieghDevice / 180) * (WidthDevice / 180) +
-                                        5),
+                                        5,
+                                fontWeight: pay_complate
+                                    ? FontWeight.normal
+                                    : FontWeight.bold),
                           )),
                           Container(
-                              child: pay_or_not || checkadmin
+                              child: pay_complate || checkadmin
                                   ? Text(
                                       "AT: " +
                                           messaging
@@ -870,7 +939,7 @@ class _List_messaging extends State<List_messaging> {
                       Container(
                         margin:
                             EdgeInsets.only(left: WidthDevice - 85, top: 65),
-                        child: pay_or_not || checkadmin
+                        child: pay_complate || checkadmin
                             ? Row(
                                 textDirection: TextDirection.ltr,
                                 children: [
@@ -917,7 +986,7 @@ class _List_messaging extends State<List_messaging> {
                         height: 70,
                         margin:
                             EdgeInsets.only(top: 50, left: WidthDevice / 2.4),
-                        child: pay_or_not || checkadmin
+                        child: pay_complate || checkadmin
                             ? Container(
                                 height: 70,
                                 width: WidthDevice / 3,
@@ -979,7 +1048,7 @@ class _List_messaging extends State<List_messaging> {
                       Container(
                         margin:
                             EdgeInsets.only(left: WidthDevice / 2.3, top: 135),
-                        child: pay_or_not || checkadmin
+                        child: pay_complate || checkadmin
                             ? Column(
                                 textDirection: TextDirection.ltr,
                                 children: [
@@ -1063,8 +1132,22 @@ class _List_messaging extends State<List_messaging> {
                         margin:
                             EdgeInsets.only(top: 140, left: WidthDevice - 95),
                         child: ElevatedButton(
-                          onPressed: () => {},
-                          child: Text(
+                          onPressed: () async {
+                            if(pay_or_not && !pay_complate) {
+                              List<String> list = [];
+                              list.add(member.getEmail);
+                              list.add(messaging[widget.index!].MessageID
+                                  .toString());
+                              list.add("F");
+                              if(await countview.Insert(list)){
+                                setState(() {
+                                  messaging[widget.index!].MessageCountView = countview.countview!;
+                                  pay_complate = true;
+                                });
+                              }
+                            }
+                          },
+                          child: pay_complate ? Icon(Icons.check_circle_outlined,color: Colors.green,size: 40,) : Text(
                             (messaging.elementAt(widget.index!).MessagePrice >
                                     0.0)
                                 ? '${getLang(context, "Pay")}' +
@@ -1074,7 +1157,7 @@ class _List_messaging extends State<List_messaging> {
                             style: TextStyle(color: Colors.black38),
                             textDirection: TextDirection.ltr,
                           ),
-                          style: ButtonStyle(
+                          style: ButtonStyle(enableFeedback: !pay_complate,
                               padding:
                                   MaterialStateProperty.all(EdgeInsets.all(5)),
                               elevation: MaterialStateProperty.all(20),
@@ -1107,6 +1190,65 @@ class _List_messaging extends State<List_messaging> {
         return SizedBox();
       }
     }
+  }
+
+  Future<void> share() async {
+    await FlutterShare.share(
+        title: messaging[widget.index!].MessageSymbol,
+        text: Message_type.values.elementAt(
+                int.parse(messaging.elementAt(widget.index!).MessageType)) +
+            "   " +
+            messaging[widget.index!].MessageSymbol +
+            "   AT: " +
+            messaging[widget.index!].MessageEntryPoint.toString() +
+            "\n" +
+            messaging[widget.index!].MessageContent +
+            "\n" +
+            "TD1 :" +
+            messaging[widget.index!].Target1 +
+            "   " +
+            "TD2 :" +
+            messaging[widget.index!].Target2 +
+            "\n" +
+            "SL :" +
+            messaging[widget.index!].OrderStopLoss +
+            "\n" +
+            messaging[widget.index!].MessageDate +
+            "\n",
+        linkUrl: "https://www.youtube.com/",
+        chooserTitle: 'Example Chooser Title');
+  }
+
+  Future<void> shareFile() async {
+    final response = await get(Uri.parse(messaging[widget.index!].MessageLink));
+    final bytes = response.bodyBytes;
+    final Directory? temp = await getExternalStorageDirectory();
+    final File imageFile = File('${temp!.path}/tempImage.png');
+    imageFile.writeAsBytesSync(bytes);
+
+    await FlutterShare.shareFile(
+      title: Message_type.values.elementAt(
+              int.parse(messaging.elementAt(widget.index!).MessageType)) +
+          " " +
+          messaging[widget.index!].MessageSymbol +
+          " AT: " +
+          messaging[widget.index!].MessageEntryPoint.toString(),
+      text: messaging[widget.index!].MessageContent +
+          "\n" +
+          "TD1 :" +
+          messaging[widget.index!].Target1 +
+          " " +
+          "TD2 :" +
+          messaging[widget.index!].Target2 +
+          "\n" +
+          "SL :" +
+          messaging[widget.index!].OrderStopLoss +
+          "\n" +
+          messaging[widget.index!].MessageDate +
+          "\n" +
+          "https://www.youtube.com/",
+      filePath: imageFile.path,
+    );
   }
 }
 

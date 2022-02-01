@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:mailing/Home_Page.dart';
 import 'package:mailing/Login_Mailing.dart';
 import 'package:mailing/l10n/applocal.dart';
 import 'package:mailing/main.dart';
