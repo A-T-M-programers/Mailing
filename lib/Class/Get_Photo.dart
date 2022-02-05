@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:crypt/crypt.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,71 +11,78 @@ import 'package:photo_view/photo_view.dart';
 
 import 'Constant.dart';
 
-late String path = "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
+late File path = File("");
 
 class get_photo {
 
   static Future<String> Upload(File imageFile) async {
-
-    if(Validation.isValidnull(imageFile.path)){
-    var secret = Crypt.sha256("put_photo");
-    Uri url = Uri(
-        host: host,
-        path: 'Mailing_API/put_image.php',
-        scheme: scheme);
-    var response = await http.post(url, body: {
-      'image': base64Encode(imageFile.readAsBytesSync()),
-      'name':imageFile.path.split("/").last ,
-      'secret': '$secret'
-    });
-    int status = response.statusCode;
-    switch (status) {
-      case 200:
-        {
-          showtoast("Image Uploaded Successfully.");
-          return scheme+'://'+host+'/'+'Mailing_API/Image_File/'+imageFile.path.split("/").last;
-        }
-      case 403:
-        {
-          showtoast("Image Uploaded Not Successfully.");
-          return "";
-        }case 101:
-      {
-        showtoast("Image Uploaded Is Exist in server");
-        return "";
+    if (Validation.isValidnull(imageFile.path)) {
+      var secret = Crypt.sha256("put_photo");
+      Uri url = Uri(
+          host: host,
+          path: 'Mailing_API/put_image.php',
+          scheme: scheme);
+      var response = await http.post(url, body: {
+        'image': base64Encode(imageFile.readAsBytesSync()),
+        'name': imageFile.path
+            .split("/")
+            .last,
+        'secret': '$secret'
+      });
+      int status = response.statusCode;
+      switch (status) {
+        case 200:
+          {
+            showtoast("Image Uploaded Successfully.");
+            return scheme + '://' + host + '/' + 'Mailing_API/Image_File/' +
+                imageFile.path
+                    .split("/")
+                    .last;
+          }
+        case 403:
+          {
+            showtoast("Image Uploaded Not Successfully.");
+            return "";
+          }
+        case 101:
+          {
+            showtoast("Image Uploaded Is Exist in server");
+            return "";
+          }
+        default:
+          {
+            showtoast(response.reasonPhrase!);
+            return "";
+          }
       }
-      default:
-        {
-          showtoast(response.reasonPhrase!);
-          return "";
-        }
-    }
     }
     return "";
   }
 
   /// Get from gallery
   static Future<File> _getFromGallery() async {
-    XFile? pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    XFile? pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery);
     if (pickedFile != null) {
       return File(pickedFile.path);
-    }else{
-        return File("");
+    } else {
+      return File("");
     }
   }
 
 
   /// Get from camera
   static Future<File> _getFromCamera() async {
-    XFile? pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+    XFile? pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.camera);
     if (pickedFile != null) {
       return File(pickedFile.path);
-    }else{
+    } else {
       return File("");
     }
   }
 
-  static showSelectionDialog(BuildContext context)   {
+  static showSelectionDialog(BuildContext context) {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -87,17 +93,20 @@ class get_photo {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: <Widget>[
                     GestureDetector(
-                      child: Icon(Icons.photo,color: Colors.lightBlueAccent,size: 70,),
-                      onTap: () async{
-                        path = await Upload(await _getFromGallery());
+                      child: Icon(
+                        Icons.photo, color: Colors.lightBlueAccent, size: 70,),
+                      onTap: () async {
+                        path = await _getFromGallery();
                         Navigator.maybePop(context, 'Ok');
                       },
                     ),
                     Padding(padding: EdgeInsets.all(8.0)),
                     GestureDetector(
-                      child: Icon(Icons.camera_alt_rounded,color: Colors.redAccent,size: 70, ),
-                      onTap: () async{
-                        path = await Upload(await _getFromCamera());
+                      child: Icon(
+                        Icons.camera_alt_rounded, color: Colors.redAccent,
+                        size: 70,),
+                      onTap: () async {
+                        path = await _getFromCamera();
                         Navigator.pop(context, 'Ok');
                       },
                     )
@@ -108,32 +117,34 @@ class get_photo {
   }
 }
 
-class show_photo extends StatefulWidget{
-  final String path;
-  show_photo({required this.path});
+class show_photo extends StatefulWidget {
+  final String path, type;
+
+  show_photo({required this.path, required this.type});
 
   @override
   show_photo_state createState() => show_photo_state();
 
 }
-class show_photo_state extends State<show_photo>{
+
+class show_photo_state extends State<show_photo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-      ),
-      backgroundColor: Colors.transparent,
-      body: Container(
-        child:CachedNetworkImage(
-          imageUrl: widget.path,
-            imageBuilder: (context, imageProvider) => PhotoView(
-              imageProvider: imageProvider,
-            ),
-          placeholder: (context, url) => CircularProgressIndicator(),
-          errorWidget: (context, url, error) => Icon(Icons.error),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
         ),
-      ),
+        backgroundColor: Colors.transparent,
+        body: Container(
+            child: (widget.type == "N") ?
+            PhotoView(imageProvider: NetworkImage(widget.path)) :
+                (widget.type == "D") ?
+            PhotoView(imageProvider: FileImage(File(widget.path))) :
+            PhotoView(imageProvider: AssetImage("images/Untitled.png")
+    )
+    ,
+    )
+    ,
     );
   }
 }

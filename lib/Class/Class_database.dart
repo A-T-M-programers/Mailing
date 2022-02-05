@@ -65,8 +65,7 @@ class Messaging {
     this.MessageID = 1;
     this.MessageType = "5";
     this.MessageDate = "";
-    this.MessageLink =
-        "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
+    this.MessageLink = "";
     this.MessagePrice = 0.0;
     this.MessageState = "O";
     this.MessageSymbol = "ASDFGASAS";
@@ -110,7 +109,7 @@ class Messaging_PR {
 
   Messaging_PR() {
     this.ProgramID = 1;
-    this.ProgramType = "Sell Stop";
+    this.ProgramType = "0";
     this.list_image.add(Imagen());
     this.ProgramLink =
         "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
@@ -240,8 +239,9 @@ class Member {
   }
   deletefile() async{
     File file = await _localFile();
-
-    await file.delete();
+    if(file.existsSync()) {
+      await file.delete();
+    }
   }
 
   Future<bool> readFileLogIn()async {

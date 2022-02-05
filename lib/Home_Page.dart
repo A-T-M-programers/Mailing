@@ -13,6 +13,7 @@ import 'package:mailing/Pages_File/Notif_Page.dart';
 import 'package:mailing/Pages_File/Profile_Page.dart';
 import 'package:mailing/Pages_File/Program_Page.dart';
 import 'package:mailing/Pages_File/Setting_Page.dart';
+import 'package:mailing/Validate.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:swipe_to/swipe_to.dart';
 
@@ -34,13 +35,14 @@ ScrollController _controller = ScrollController();
 late bool checkadmin, endList, showsendmessage;
 int lengthList = 5;
 var page;
-String pagecheck = "";
+String pagecheck = "S";
 List<double> he_wi = [50, 50, 70, 50, 50];
 List<double> sizeicon = [30, 30, 50, 30, 30];
 List<Messaging> messaging = [];
 List<int> countviewint = [];
 Messsage_DataBase messsage_dataBase = Messsage_DataBase();
 Contentviewinfo_DataBase countview = Contentviewinfo_DataBase();
+Widget _dialogContent = CircularProgressIndicator();
 
 class home_page extends StatefulWidget {
   const home_page({Key? key}) : super(key: key);
@@ -54,11 +56,19 @@ class home_page_state extends State<home_page> {
   double WidthDevice = 0, HieghDevice = 0;
 
   Future<void> get_select_message() async {
-    messaging = await messsage_dataBase.Select();
-    countviewint = await countview.Select();
+    try {
+      messaging = await messsage_dataBase.Select();
+    } catch (ex) {
+      print(ex);
+    }
+    if (!checkadmin) countviewint = await countview.Select();
 
     setState(() {
-      page = List.generate(lengthList, (index) => List_messaging(index: index));
+      if (messaging.length > 0)
+        page =
+            List.generate(lengthList, (index) => List_messaging(index: index));
+      else
+        return;
     });
 
     for (int i = 0; i < he_wi.length; i++) {
@@ -80,6 +90,29 @@ class home_page_state extends State<home_page> {
         }));
     showsendmessage = true;
     _controller.addListener(_scrollListener);
+    setState(() {
+      Future.delayed(Duration(seconds: 10), // Duration to wait
+          () {
+        _dialogContent = Container(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(right: 35),
+                      child:
+              IconButton(
+                  onPressed: _hundgetdate,
+                  icon: Icon(Icons.settings_backup_restore,
+                      size: 70, color: Colors.black54))),
+                  Icon(Icons.wifi,color: Colors.black45,size: 80,),
+              Text('${getLang(context, "Check_Your_Internet")}'),
+
+            ]));
+        setState(() {
+          print("Check Internet");
+        });
+      });
+    });
   }
 
   _scrollListener() {
@@ -101,6 +134,15 @@ class home_page_state extends State<home_page> {
 
   @override
   Widget build(BuildContext context) {
+
+    if (pagecheck == "OP") {
+      boxShadowPP = boxShadowOnClick;
+      boxShadowOP = boxShadowUpClick;
+    } else if (pagecheck == "PR") {
+      boxShadowOP = boxShadowOnClick;
+      boxShadowPP = boxShadowUpClick;
+    }
+
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
     return SafeArea(
@@ -113,14 +155,14 @@ class home_page_state extends State<home_page> {
         actions: [
           Stack(alignment: AlignmentDirectional.topCenter, children: [
             Container(
-              margin: EdgeInsets.only(top: 0, right: WidthDevice / 2.5),
+              margin: EdgeInsets.only(top: 0, right: WidthDevice / 4,left:WidthDevice / 4 ),
               child: Text(
                 "${getLang(context, "Mailing")}",
                 style: TextStyle(fontSize: HieghDevice / 18),
                 textAlign: TextAlign.center,
               ),
             ),
-            if (showsendmessage)
+            if (showsendmessage && pagecheck == "S")
               Container(
                   alignment: Alignment.center,
                   padding: EdgeInsets.only(left: 5),
@@ -194,6 +236,7 @@ class home_page_state extends State<home_page> {
       ),
       body: Stack(children: [
         Container(
+          margin: pagecheck == "PR"||pagecheck == "PP" ? EdgeInsets.only(top: HieghDevice / 17):EdgeInsets.only(top: 0),
             color: Color.fromARGB(500, 12, 0, 74),
             child: Container(
               decoration: BoxDecoration(
@@ -221,6 +264,7 @@ class home_page_state extends State<home_page> {
               child: null,
             )),
         Container(
+          margin: pagecheck == "PR"||pagecheck == "PP" ? EdgeInsets.only(top: HieghDevice / 17):EdgeInsets.only(top: 0),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(50),
               color: Colors.white,
@@ -230,14 +274,16 @@ class home_page_state extends State<home_page> {
             child: RefreshIndicator(
                 triggerMode: RefreshIndicatorTriggerMode.anywhere,
                 onRefresh: _hundgetdate,
-                child: ListView(
-                  controller: _controller,
-                  scrollDirection: Axis.vertical,
-                  children: (page != null)
-                      ? page
-                      : List.generate(
-                          0, (index) => List_messaging(index: index + 1)),
-                ))),
+                child: (page != null)
+                    ? ListView(
+                        controller: _controller,
+                        scrollDirection: Axis.vertical,
+                        children: page,
+                      )
+                    : Container(
+                        margin: EdgeInsets.only(bottom: HieghDevice / 3),
+                        alignment: Alignment.center,
+                        child: _dialogContent))),
         Stack(
           textDirection: TextDirection.ltr,
           children: [
@@ -266,10 +312,10 @@ class home_page_state extends State<home_page> {
             Container(
                 alignment: Alignment.topLeft,
                 margin: EdgeInsets.only(
-                    top: ((HieghDevice - (HieghDevice / 10)) -
-                            ((HieghDevice / 5.5) / 2)) -
-                        he_wi[0],
-                    left: (WidthDevice / 5.2) - he_wi[0]),
+                    top:HieghDevice > WidthDevice ? (HieghDevice - HieghDevice / 5.5) -
+                        he_wi[0] : (HieghDevice - HieghDevice / 5.5) -
+                        he_wi[0] - 15,
+                    left: (WidthDevice / 5.3) - he_wi[0]),
                 child: Column(
                   children: [
                     Container(
@@ -308,17 +354,19 @@ class home_page_state extends State<home_page> {
                           color: Colors.black,
                         )),
                     Text(
-                      "Setting",
+                      '${getLang(context, "Setting")}',
                       style: TextStyle(color: Colors.white),
                     )
                   ],
                 )),
             Container(
                 margin: EdgeInsets.only(
-                    top: ((HieghDevice - (HieghDevice / 12)) -
+                    top: HieghDevice > WidthDevice ? ((HieghDevice - (HieghDevice / 12)) -
                             ((HieghDevice / 5.5) / 1.16)) -
-                        he_wi[1],
-                    left: (WidthDevice / 2.8) - he_wi[1]),
+                        he_wi[1]-5 :((HieghDevice - (HieghDevice / 12)) -
+                        ((HieghDevice / 5.5) / 1.16)) -
+                        he_wi[1]-15,
+                    left: en_ar == "er" ? (WidthDevice / 2.8) - he_wi[1]-10 : (WidthDevice / 2.8) - he_wi[1]-5),
                 child: Column(
                   children: [
                     Container(
@@ -359,7 +407,7 @@ class home_page_state extends State<home_page> {
                           color: Colors.black,
                         )),
                     Text(
-                      "Profile",
+                      '${getLang(context, "Profile")}',
                       style: TextStyle(color: Colors.white),
                     )
                   ],
@@ -369,8 +417,8 @@ class home_page_state extends State<home_page> {
                 margin: EdgeInsets.only(
                     top: ((HieghDevice - (HieghDevice / 12)) -
                             ((HieghDevice / 5.5))) -
-                        he_wi[2],
-                    left: (WidthDevice / 1.7) - he_wi[2]),
+                        he_wi[2]-5,
+                    left: (WidthDevice / 1.7) - he_wi[2]-18),
                 child: Column(
                   children: [
                     Container(
@@ -409,7 +457,7 @@ class home_page_state extends State<home_page> {
                           color: Colors.black,
                         )),
                     Text(
-                      "Home",
+                      '${getLang(context, "Home")}',
                       style: TextStyle(color: Colors.white),
                     )
                   ],
@@ -458,7 +506,7 @@ class home_page_state extends State<home_page> {
                           color: Colors.black,
                         )),
                     Text(
-                      "Program",
+                      '${getLang(context, "Program")}',
                       style: TextStyle(color: Colors.white),
                     )
                   ],
@@ -466,9 +514,9 @@ class home_page_state extends State<home_page> {
             Container(
                 margin: EdgeInsets.only(
                     top: ((HieghDevice - (HieghDevice / 10)) -
-                            ((HieghDevice / 5.5) / 1.8)) -
+                            ((HieghDevice / 5.5) / 2)) -
                         he_wi[4],
-                    left: (WidthDevice / 1.09) - he_wi[4]),
+                    left: (WidthDevice / 1.10) - he_wi[4]),
                 child: Stack(
                   children: [
                     Container(
@@ -509,7 +557,7 @@ class home_page_state extends State<home_page> {
                     Container(
                         margin: EdgeInsets.only(bottom: 3, top: he_wi[4]),
                         child: Text(
-                          "Notificate",
+                          '${getLang(context, "Notificat")}',
                           style: TextStyle(color: Colors.white),
                         )),
                     Container(
@@ -566,7 +614,73 @@ class home_page_state extends State<home_page> {
                     Icons.message_outlined,
                     color: Colors.black,
                     size: 35,
-                  )))
+                  ))),
+        if (pagecheck == "PR"||pagecheck == "PP") Container(
+            margin: EdgeInsets.only(),
+            child: Row(
+              children: [
+                Container(
+                  height: HieghDevice / 17,
+                  width: WidthDevice / 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        pagecheck = "PR";
+                        boxShadowOP = boxShadowOnClick;
+                        boxShadowPP = boxShadowUpClick;
+                        showsendmessage = true;
+                        page = List.generate(
+                            5, (index) => List_program(index: index + 1));
+                      });
+                    },
+                    child: Container(
+                        decoration:
+                        BoxDecoration(boxShadow: [boxShadowOP!]),
+                        child:
+                        Text('${getLang(context, "Our_Product")}')),
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                          Color.fromARGB(500, 12, 0, 74),
+                        ),
+                        shape: MaterialStateProperty.all<
+                            RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.all(Radius.zero)))),
+                  ),
+                ),
+                Container(
+                  height: HieghDevice / 17,
+                  width: WidthDevice / 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        pagecheck = "PP";
+                        boxShadowPP = boxShadowOnClick;
+                        boxShadowOP = boxShadowUpClick;
+                        showsendmessage = true;
+                        page = List.generate(
+                            5, (index) => List_partner(index: index + 1));
+                      });
+                    },
+                    child: Container(
+                        decoration:
+                        BoxDecoration(boxShadow: [boxShadowPP!]),
+                        child: Text(
+                            '${getLang(context, "Partner_Programs")}')),
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                          Color.fromARGB(500, 12, 0, 74),
+                        ),
+                        shape: MaterialStateProperty.all<
+                            RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.all(Radius.zero)))),
+                  ),
+                )
+              ],
+            )) else SizedBox() ,
       ]),
     ));
   }
@@ -595,7 +709,7 @@ class List_messaging extends StatefulWidget {
 
 class _List_messaging extends State<List_messaging> {
   double WidthDevice = 0, HieghDevice = 0;
-  bool pay_or_not = false,pay_complate = false;
+  bool pay_or_not = false, pay_complate = false;
 
   @override
   void initState() {
@@ -611,8 +725,8 @@ class _List_messaging extends State<List_messaging> {
     if (messaging.length > widget.index!) {
       endList = ((lengthList - 1) == widget.index) ? true : false;
       pay_or_not = ((messaging[widget.index!].MessagePrice) > 0) ? false : true;
-      for(int i = 0 ; i<countviewint.length;i++){
-        if(messaging[widget.index!].MessageID == countviewint[i]){
+      for (int i = 0; i < countviewint.length; i++) {
+        if (messaging[widget.index!].MessageID == countviewint[i]) {
           pay_complate = true;
           break;
         }
@@ -620,7 +734,7 @@ class _List_messaging extends State<List_messaging> {
 
       return messaging.length > 0
           ? SwipeTo(
-              animationDuration: Duration(seconds: 1),
+              animationDuration: Duration(milliseconds: 500),
               onLeftSwipe: checkadmin
                   ? () {
                       //end to start
@@ -646,8 +760,8 @@ class _List_messaging extends State<List_messaging> {
                     }
                   : () async {
                       if (pay_or_not) {
-                        if (messaging[widget.index!].MessageLink !=
-                            "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg") {
+                        if (Validation.isValidnull(
+                            messaging[widget.index!].MessageLink)) {
                           await shareFile();
                         } else {
                           await share();
@@ -663,6 +777,7 @@ class _List_messaging extends State<List_messaging> {
                               type: "U",
                               onPresed: () {
                                 if (checkadmin) {
+                                  checkubdate = true;
                                   Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     return message_page("S",
@@ -673,8 +788,8 @@ class _List_messaging extends State<List_messaging> {
                     }
                   : () async {
                       if (pay_or_not) {
-                        if (messaging[widget.index!].MessageLink !=
-                            "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg") {
+                        if (Validation.isValidnull(
+                            messaging[widget.index!].MessageLink)) {
                           await shareFile();
                         } else {
                           await share();
@@ -784,25 +899,41 @@ class _List_messaging extends State<List_messaging> {
                                           color: Colors.black38, blurRadius: 20)
                                     ],
                                   ),
-                                  child: CachedNetworkImage(
-                                    imageUrl: messaging
-                                        .elementAt(widget.index!)
-                                        .MessageLink,
-                                    imageBuilder: (context, imageProvider) =>
-                                        Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        image: DecorationImage(
-                                          image: imageProvider,
-                                          fit: BoxFit.fill,
-                                        ),
-                                      ),
-                                    ),
-                                    placeholder: (context, url) =>
-                                        CircularProgressIndicator(),
-                                    errorWidget: (context, url, error) =>
-                                        Icon(Icons.error),
-                                  ))
+                                  child: Validation.isValidnull(messaging
+                                          .elementAt(widget.index!)
+                                          .MessageLink)
+                                      ? CachedNetworkImage(
+                                          imageUrl: messaging
+                                              .elementAt(widget.index!)
+                                              .MessageLink,
+                                          imageBuilder:
+                                              (context, imageProvider) =>
+                                                  Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              image: DecorationImage(
+                                                image: imageProvider,
+                                                fit: BoxFit.fill,
+                                              ),
+                                            ),
+                                          ),
+                                          placeholder: (context, url) =>
+                                              CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) =>
+                                              Icon(Icons.error),
+                                        )
+                                      : Container(
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage(
+                                                    "images/Untitled.png"),
+                                                fit: BoxFit.fill),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          child: null,
+                                        ))
                               : ImageFiltered(
                                   imageFilter: ImageFilter.blur(
                                     sigmaY: 5,
@@ -895,8 +1026,9 @@ class _List_messaging extends State<List_messaging> {
                                     .MessageSymbol +
                                 "  ",
                             style: TextStyle(
-                                color:
-                                pay_complate ? Colors.black54 : Colors.black,
+                                color: pay_complate
+                                    ? Colors.black54
+                                    : Colors.black,
                                 fontSize:
                                     (HieghDevice / 180) * (WidthDevice / 180) +
                                         5,
@@ -1133,31 +1265,46 @@ class _List_messaging extends State<List_messaging> {
                             EdgeInsets.only(top: 140, left: WidthDevice - 95),
                         child: ElevatedButton(
                           onPressed: () async {
-                            if(pay_or_not && !pay_complate) {
+                            if(member.getEmail == "admin@gmail.com"){
+                              showtoast(getLang(context, "Your_Admin" ));
+                              return;
+                            }
+                            if (pay_or_not && !pay_complate) {
                               List<String> list = [];
                               list.add(member.getEmail);
-                              list.add(messaging[widget.index!].MessageID
+                              list.add(messaging[widget.index!]
+                                  .MessageID
                                   .toString());
                               list.add("F");
-                              if(await countview.Insert(list)){
+                              if (await countview.Insert(list)) {
                                 setState(() {
-                                  messaging[widget.index!].MessageCountView = countview.countview!;
+                                  messaging[widget.index!].MessageCountView =
+                                      countview.countview!;
                                   pay_complate = true;
                                 });
                               }
                             }
                           },
-                          child: pay_complate ? Icon(Icons.check_circle_outlined,color: Colors.green,size: 40,) : Text(
-                            (messaging.elementAt(widget.index!).MessagePrice >
-                                    0.0)
-                                ? '${getLang(context, "Pay")}' +
-                                    " : ${messaging.elementAt(widget.index!).MessagePrice}" +
-                                    r"$"
-                                : "Free",
-                            style: TextStyle(color: Colors.black38),
-                            textDirection: TextDirection.ltr,
-                          ),
-                          style: ButtonStyle(enableFeedback: !pay_complate,
+                          child: pay_complate
+                              ? Icon(
+                                  Icons.check_circle_outlined,
+                                  color: Colors.green,
+                                  size: 40,
+                                )
+                              : Text(
+                                  (messaging
+                                              .elementAt(widget.index!)
+                                              .MessagePrice >
+                                          0.0)
+                                      ? '${getLang(context, "Pay")}' +
+                                          " : ${messaging.elementAt(widget.index!).MessagePrice}" +
+                                          r"$"
+                                      : "Free",
+                                  style: TextStyle(color: Colors.black38),
+                                  textDirection: TextDirection.ltr,
+                                ),
+                          style: ButtonStyle(
+                              enableFeedback: !pay_complate,
                               padding:
                                   MaterialStateProperty.all(EdgeInsets.all(5)),
                               elevation: MaterialStateProperty.all(20),

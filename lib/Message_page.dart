@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mailing/Class/Get_Photo.dart';
@@ -21,7 +23,7 @@ BoxShadow? boxShadowOnClick =
         BoxShadow(color: Color.fromARGB(500, 12, 0, 74), blurRadius: 10);
 
 class message_page extends StatefulWidget {
-  message_page(String type_page,var messaging) {
+  message_page(String type_page, var messaging) {
     this.type_page = type_page;
     this.messaging = messaging;
   }
@@ -31,7 +33,6 @@ class message_page extends StatefulWidget {
 
   late final String? type_page;
   late var messaging;
-
 }
 
 class message_page_state extends State<message_page> {
@@ -74,6 +75,11 @@ class message_page_state extends State<message_page> {
     HieghDevice = MediaQuery.of(context).size.height;
 
     return SafeArea(
+        child: WillPopScope(
+      onWillPop: () async {
+        path = File("");
+        return true;
+      },
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -176,8 +182,15 @@ class message_page_state extends State<message_page> {
                             boxShadowS = boxShadowOnClick;
                             boxShadowPu = boxShadowUpClick;
                             boxShadowPr = boxShadowUpClick;
-                            this.body_message_contain = body_message(
-                                message: widget.messaging, type: widget.type_page!);
+                            if(widget.type_page == "S"||widget.type_page == "SI") {
+                              this.body_message_contain = body_message(
+                                  message: widget.messaging,
+                                  type: widget.type_page!);
+                            }else{
+                              this.body_message_contain = body_message(
+                                  message: new Messaging(),
+                                  type: widget.type_page!);
+                            }
                           });
                         },
                         child: Container(
@@ -289,87 +302,79 @@ class message_page_state extends State<message_page> {
           ],
         ),
       ),
-    );
+    ));
   }
-  Future<void> _hundSendMessage() async{
-    if (Validation.isValidnull(
-        Message_Sympole_Price.text) &&
-        Validation.isValidnull(
-            Message_Sympole_MEP.text) &&
-        Validation.isValidnull(
-            Message_Sympole_OSL.text) &&
-        Validation.isValidnull(
-            Message_Sympole_Target2.text) &&
-        Validation.isValidnull(
-            Message_Sympole_Target1.text) &&
-        Validation.isValidnull(
-            Message_Sympole_Content.text) &&
-        Validation.isValidnull(
-            Message_Sympole.text) &&
-        Validation.isValidnull(
-            path)) {
+
+  Future<void> _hundSendMessage() async {
+    String pathurlimage = "";
+    if (Validation.isValidnull(path.path)) {
+      pathurlimage = await get_photo.Upload(path);
+    }
+    if (Validation.isValidnull(Message_Sympole_Price.text) &&
+        Validation.isValidnull(Message_Sympole_MEP.text) &&
+        Validation.isValidnull(Message_Sympole_OSL.text) &&
+        Validation.isValidnull(Message_Sympole_Target2.text) &&
+        Validation.isValidnull(Message_Sympole_Target1.text) &&
+        Validation.isValidnull(Message_Sympole_Content.text) &&
+        Validation.isValidnull(Message_Sympole.text)) {
       List<String> list = [];
-      list.add(numberdropdownValue!);
+      list.add(numberdropdownValueS!);
       list.add("0");
       list.add(Message_Sympole_Price.text);
       list.add(Message_Sympole.text);
-      list.add(path);
+      list.add(pathurlimage);
       list.add(Message_Sympole_Target1.text);
       list.add(Message_Sympole_Target2.text);
       list.add(Message_Sympole_OSL.text);
       list.add(Message_Sympole_Content.text);
       list.add(Message_Sympole_MEP.text);
-      Messsage_DataBase message_database =
-      Messsage_DataBase();
+      Messsage_DataBase message_database = Messsage_DataBase();
 
       if (await message_database.Insert(list)) {
-    Message_Sympole_Price.clear();
-    Message_Sympole_MEP.clear();
-    Message_Sympole_OSL.clear();
-    Message_Sympole_Target2.clear();
-    Message_Sympole_Target1.clear();
-    Message_Sympole_Content.clear();
-    Message_Sympole.clear();
-    path =
-    "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
-    }else{
-    showtoast('${getLang(context, "No_Insert")}');
-    }
+        Message_Sympole_Price.clear();
+        Message_Sympole_MEP.clear();
+        Message_Sympole_OSL.clear();
+        Message_Sympole_Target2.clear();
+        Message_Sympole_Target1.clear();
+        Message_Sympole_Content.clear();
+        Message_Sympole.clear();
+        path = File("");
+      } else {
+        showtoast('${getLang(context, "No_Insert")}');
+      }
     } else {
-    showtoast('${getLang(context, "Field_Empty")}');
+      showtoast('${getLang(context, "Field_Empty")}');
     }
   }
-  Future<void> _hundUbdateMessage() async{
-    if (Validation.isValidnull(
-        Message_Sympole_Price.text) &&
-        Validation.isValidnull(
-            Message_Sympole_MEP.text) &&
-        Validation.isValidnull(
-            Message_Sympole_OSL.text) &&
-        Validation.isValidnull(
-            Message_Sympole_Target2.text) &&
-        Validation.isValidnull(
-            Message_Sympole_Target1.text) &&
-        Validation.isValidnull(
-            Message_Sympole_Content.text) &&
-        Validation.isValidnull(
-            Message_Sympole.text) &&
-        Validation.isValidnull(
-            path)) {
+
+  Future<void> _hundUbdateMessage() async {
+    String pathurlimage = "";
+    if (Validation.isValidnull(path.path)) {
+      pathurlimage = await get_photo.Upload(path);
+    } else {
+      pathurlimage = widget.messaging.MessageLink;
+    }
+    if (Validation.isValidnull(Message_Sympole_Price.text) &&
+        Validation.isValidnull(Message_Sympole_MEP.text) &&
+        Validation.isValidnull(Message_Sympole_OSL.text) &&
+        Validation.isValidnull(Message_Sympole_Target2.text) &&
+        Validation.isValidnull(Message_Sympole_Target1.text) &&
+        Validation.isValidnull(Message_Sympole_Content.text) &&
+        Validation.isValidnull(Message_Sympole.text) &&
+        Validation.isValidnull(pathurlimage)) {
       List<String> list = [];
       list.add(widget.messaging.MessageID.toString());
-      list.add(numberdropdownValue!);
+      list.add(numberdropdownValueS!);
       list.add("0");
       list.add(Message_Sympole_Price.text);
       list.add(Message_Sympole.text);
-      list.add(path);
+      list.add(pathurlimage);
       list.add(Message_Sympole_Target1.text);
       list.add(Message_Sympole_Target2.text);
       list.add(Message_Sympole_OSL.text);
       list.add(Message_Sympole_Content.text);
       list.add(Message_Sympole_MEP.text);
-      Messsage_DataBase message_database =
-      Messsage_DataBase();
+      Messsage_DataBase message_database = Messsage_DataBase();
 
       if (await message_database.Ubdate(list)) {
         Message_Sympole_Price.clear();
@@ -379,9 +384,8 @@ class message_page_state extends State<message_page> {
         Message_Sympole_Target1.clear();
         Message_Sympole_Content.clear();
         Message_Sympole.clear();
-        path =
-        "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
-      }else{
+        path = File("");
+      } else {
         showtoast('${getLang(context, "No_Ubdate")}');
       }
     } else {
@@ -407,7 +411,8 @@ late TextEditingController Message_Sympole,
     Message_Sympole_OSL,
     Message_Sympole_MEP,
     Message_Sympole_Price;
-late String? numberdropdownValue = "0";
+late String? numberdropdownValueS = "0";
+late String? numberdropdownValueP = "0";
 
 class body_message_state extends State<body_message> {
   double WidthDevice = 0, HieghDevice = 0;
@@ -421,7 +426,7 @@ class body_message_state extends State<body_message> {
     super.initState();
     dropdownValue =
         Message_type.values.elementAt(int.parse(widget.message.MessageType));
-    numberdropdownValue = widget.message.MessageType;
+    numberdropdownValueS = widget.message.MessageType;
   }
 
   @override
@@ -525,18 +530,17 @@ class body_message_state extends State<body_message> {
                         onChanged: (String? newValue) {
                           setState(() {
                             dropdownValue = newValue!;
-                            for(int i = 0 ; i<Message_type.length;i++){
-                              if(newValue == Message_type.values.elementAt(i)){
-                                numberdropdownValue = i.toString();
+                            for (int i = 0; i < Message_type.length; i++) {
+                              if (newValue ==
+                                  Message_type.values.elementAt(i)) {
+                                numberdropdownValueS = i.toString();
                               }
                             }
                           });
                         },
                         items: <String>['0', '1', '2', '3', '4', '5']
                             .map<DropdownMenuItem<String>>((String value) {
-                          colortype = (int.parse(value) < 3)
-                              ? true
-                              : false;
+                          colortype = (int.parse(value) < 3) ? true : false;
                           return DropdownMenuItem<String>(
                             value:
                                 Message_type.values.elementAt(int.parse(value)),
@@ -786,30 +790,111 @@ class body_message_state extends State<body_message> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => show_photo(
-                                      path: widget.message.MessageLink,
-                                    )));
+                                builder: (context) =>
+                                    Validation.isValidnull(path.path)
+                                        ? show_photo(
+                                            path: path.path,
+                                            type: "D",
+                                          )
+                                        : Validation.isValidnull(
+                                                widget.message.MessageLink)
+                                            ? show_photo(
+                                                path:
+                                                    widget.message.MessageLink,
+                                                type: "N",
+                                              )
+                                            : show_photo(
+                                                path: "images/Untitled.png",
+                                                type: "A",
+                                              )));
                       });
                     },
-                    child: CachedNetworkImage(
-                      imageUrl: widget.message.MessageLink,
-                      imageBuilder: (context, imageProvider) {
-                        return Container(
-                            decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(color: Colors.black38, blurRadius: 10)
-                          ],
-                          borderRadius: BorderRadius.circular(50),
-                          image: DecorationImage(
-                            image: imageProvider,
-                            fit: BoxFit.fill,
-                          ),
-                        ));
-                      },
-                      placeholder: (context, url) =>
-                          CircularProgressIndicator(),
-                      errorWidget: (context, url, error) => Icon(Icons.error),
-                    )),
+                    child: !checkubdate
+                        ? Validation.isValidnull(path.path)
+                            ? Container(
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: FileImage(path), fit: BoxFit.fill),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.black38, blurRadius: 10)
+                                  ],
+                                  borderRadius: BorderRadius.circular(50),
+                                  border:
+                                      Border.all(color: Colors.white, width: 3),
+                                ),
+                                child: null,
+                              )
+                            : Container(
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: AssetImage("images/Untitled.png"),
+                                      fit: BoxFit.fill),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.black38, blurRadius: 10)
+                                  ],
+                                  borderRadius: BorderRadius.circular(50),
+                                  border:
+                                      Border.all(color: Colors.white, width: 3),
+                                ),
+                                child: null,
+                              )
+                        : Validation.isValidnull(path.path)
+                            ? Container(
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: FileImage(path), fit: BoxFit.fill),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.black38, blurRadius: 10)
+                                  ],
+                                  borderRadius: BorderRadius.circular(50),
+                                  border:
+                                      Border.all(color: Colors.white, width: 3),
+                                ),
+                                child: null,
+                              )
+                            : Validation.isValidnull(widget.message.MessageLink)
+                                ? CachedNetworkImage(
+                                    imageUrl: widget.message.MessageLink,
+                                    imageBuilder: (context, imageProvider) =>
+                                        Container(
+                                      decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Colors.black38,
+                                              blurRadius: 10)
+                                        ],
+                                        borderRadius: BorderRadius.circular(50),
+                                        image: DecorationImage(
+                                          image: imageProvider,
+                                          fit: BoxFit.fill,
+                                        ),
+                                      ),
+                                    ),
+                                    placeholder: (context, url) =>
+                                        CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) =>
+                                        Icon(Icons.error),
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                          image:
+                                              AssetImage("images/Untitled.png"),
+                                          fit: BoxFit.fill),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: Colors.black38,
+                                            blurRadius: 10)
+                                      ],
+                                      borderRadius: BorderRadius.circular(50),
+                                      border: Border.all(
+                                          color: Colors.white, width: 3),
+                                    ),
+                                    child: null,
+                                  )),
                 if (checkadmin)
                   Container(
                       margin: EdgeInsets.only(top: 62, left: 62),
@@ -846,11 +931,21 @@ class body_message_pr extends StatefulWidget {
 class body_message_pr_state extends State<body_message_pr> {
   late TextEditingController Program_Link, Program_Content;
   double WidthDevice = 0, HieghDevice = 0;
+  late String? dropdownValue = "Partner_Program";
+  Map<String, String> Program_type = {
+    '0': 'Partner Program',
+    '1': 'Our Product',
+  };
+  String type_send_program = "PR";
+  List<String> list_image = [];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    dropdownValue =
+        Program_type.values.elementAt(int.parse(widget.message.gettype));
+    numberdropdownValueP = widget.message.gettype;
   }
 
   @override
@@ -871,7 +966,7 @@ class body_message_pr_state extends State<body_message_pr> {
       children: [
         Container(
           width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 200, left: 20, right: 20),
+          margin: EdgeInsets.only(top: 240, left: 20, right: 20),
           child: Row(
             children: [
               Text(
@@ -902,7 +997,7 @@ class body_message_pr_state extends State<body_message_pr> {
         ),
         Container(
           width: WidthDevice / 1.15,
-          margin: EdgeInsets.only(top: 120, left: 20, right: 20),
+          margin: EdgeInsets.only(top: 170, left: 20, right: 20),
           child: Row(
             children: [
               Text(
@@ -963,6 +1058,86 @@ class body_message_pr_state extends State<body_message_pr> {
                   ))
           ]),
         ),
+        Container(
+          width: WidthDevice / 1.15,
+          margin: EdgeInsets.only(top: 120, left: 20, right: 20),
+          child: Row(
+            children: [
+              Text(
+                '${getLang(context, "Order_Type")}',
+                style: TextStyle(
+                    color: Colors.black54, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(
+                width: 20,
+              ),
+              Container(
+                  width: WidthDevice / 2.5,
+                  child: DropdownButton<String>(
+                    dropdownColor: Colors.white,
+                    value: dropdownValue,
+                    icon: const Icon(Icons.filter_list_rounded),
+                    elevation: 16,
+                    style: TextStyle(
+                        color: Colors.black54),
+                    underline: Container(
+                      height: 2,
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        if(newValue == "Partner Program"){
+                          type_send_program = "PP";
+                        }else{
+                          type_send_program = "OP";
+                        }
+                        dropdownValue = newValue!;
+                        for (int i = 0; i < Program_type.length; i++) {
+                          if (newValue ==
+                              Program_type.values.elementAt(i)) {
+                            numberdropdownValueP = i.toString();
+                          }
+                        }
+                      });
+                    },
+                    items: <String>['0', '1']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value:
+                        Program_type.values.elementAt(int.parse(value)),
+                        child: Text(
+                          Program_type.values.elementAt(int.parse(value)),
+                          style: TextStyle(
+                              color: Colors.black54),
+                        ),
+                      );
+                    }).toList(),
+                  ))
+            ],
+          ),
+        ),
+        type_send_program == "OP" ? Container(
+          alignment: Alignment.bottomLeft,
+          margin: EdgeInsets.only(bottom: HieghDevice/2.5,left: 20,right: 20),
+          child:ElevatedButton.icon(
+            onPressed: (){},
+            icon: Icon(Icons.add_photo_alternate_outlined,size: 60,color: Colors.black45,), label: Text(""),
+            style: ButtonStyle(
+                padding:
+                MaterialStateProperty.all(EdgeInsets.all(5)),
+                elevation: MaterialStateProperty.all(20),
+                backgroundColor: MaterialStateProperty.all(
+                    Colors.white54),
+                shape: MaterialStateProperty.all<
+                    RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        side: BorderSide(
+                            color: Colors.black38, width: 0.2)
+                    )
+                ),fixedSize: MaterialStateProperty.all<Size>(Size(110,150))
+            ),
+          )
+        ):SizedBox()
       ],
     );
   }
