@@ -466,8 +466,8 @@ class home_page_state extends State<home_page> {
                 margin: EdgeInsets.only(
                     top: ((HieghDevice - (HieghDevice / 12)) -
                             ((HieghDevice / 5.5) / 1.1)) -
-                        he_wi[3],
-                    left: (WidthDevice / 1.3) - he_wi[3]),
+                        he_wi[3]-5,
+                    left: en_ar == "en" ? (WidthDevice / 1.3) - he_wi[3]-10 : (WidthDevice / 1.3) - he_wi[3]),
                 child: Column(
                   children: [
                     Container(
@@ -487,7 +487,71 @@ class home_page_state extends State<home_page> {
                               pagecheck = "PR";
                               showsendmessage = true;
                               page = List.generate(
-                                  5, (index) => List_program(index: index + 1));
+                                  5, (index) => checkadmin ? SwipeTo(
+                                  offsetDx: 1,
+                                  animationDuration: Duration(milliseconds: 800),
+                                  onLeftSwipe:  () {
+                                    //end to start
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) => MyDialogeHome(
+                                            type: "D",
+                                            onPresed: () async {
+                                              // if (checkadmin) {
+                                              //   if (await messsage_dataBase.Delete(
+                                              //       messaging[widget.index!]
+                                              //           .MessageID
+                                              //           .toString())) {
+                                              //     messaging.removeAt(widget.index!);
+                                              //     setState(() {
+                                              //       showtoast("Delete Seccessfully");
+                                              //     });
+                                              //   } else {
+                                              //     showtoast("Delete Problem");
+                                              //   }
+                                              // }
+                                            }));
+                                  },
+                                  onRightSwipe:  () {
+                                    //start to end
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) => MyDialogeHome(
+                                            type: "U",
+                                            onPresed: () {
+                                              // if (checkadmin) {
+                                              //   checkubdate = true;
+                                              //   Navigator.push(context,
+                                              //       MaterialPageRoute(builder: (context) {
+                                              //         return message_page("S",
+                                              //             messaging.elementAt(widget.index!));
+                                              //       }));
+                                              // }
+                                            }));
+                                  },
+                                  rightSwipeWidget:Container(
+                                      alignment: Alignment.center,
+                                      child: Container(
+                                        margin: EdgeInsets.only(left: 20, right: 20),
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(20)),
+                                        child: Icon(
+                                          Icons.edit_outlined,
+                                          size: 50,
+                                        ),
+                                      )),
+                                  leftSwipeWidget: Container(
+                                      margin: EdgeInsets.only(right: 20, left: 20),
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(20)),
+                                      child: Icon(
+                                        Icons.delete,
+                                        size: 50,
+                                      )),
+                                  child: List_program(index: index + 1)):List_program(index: index + 1));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 3) {
                                   he_wi[i] = 60;
@@ -630,7 +694,71 @@ class home_page_state extends State<home_page> {
                         boxShadowPP = boxShadowUpClick;
                         showsendmessage = true;
                         page = List.generate(
-                            5, (index) => List_program(index: index + 1));
+                            5, (index) => checkadmin ? SwipeTo(
+                            offsetDx: 1,
+                            animationDuration: Duration(milliseconds: 800),
+                            onLeftSwipe:  () {
+                              //end to start
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => MyDialogeHome(
+                                      type: "D",
+                                      onPresed: () async {
+                                        // if (checkadmin) {
+                                        //   if (await messsage_dataBase.Delete(
+                                        //       messaging[widget.index!]
+                                        //           .MessageID
+                                        //           .toString())) {
+                                        //     messaging.removeAt(widget.index!);
+                                        //     setState(() {
+                                        //       showtoast("Delete Seccessfully");
+                                        //     });
+                                        //   } else {
+                                        //     showtoast("Delete Problem");
+                                        //   }
+                                        // }
+                                      }));
+                            },
+                            onRightSwipe:  () {
+                              //start to end
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => MyDialogeHome(
+                                      type: "U",
+                                      onPresed: () {
+                                        // if (checkadmin) {
+                                        //   checkubdate = true;
+                                        //   Navigator.push(context,
+                                        //       MaterialPageRoute(builder: (context) {
+                                        //         return message_page("S",
+                                        //             messaging.elementAt(widget.index!));
+                                        //       }));
+                                        // }
+                                      }));
+                            },
+                            rightSwipeWidget:Container(
+                                alignment: Alignment.center,
+                                child: Container(
+                                  margin: EdgeInsets.only(left: 20, right: 20),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20)),
+                                  child: Icon(
+                                    Icons.edit_outlined,
+                                    size: 50,
+                                  ),
+                                )),
+                            leftSwipeWidget: Container(
+                                margin: EdgeInsets.only(right: 20, left: 20),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: Icon(
+                                  Icons.delete,
+                                  size: 50,
+                                )),
+                            child: List_program(index: index + 1)):List_program(index: index + 1));
                       });
                     },
                     child: Container(
@@ -660,7 +788,71 @@ class home_page_state extends State<home_page> {
                         boxShadowOP = boxShadowUpClick;
                         showsendmessage = true;
                         page = List.generate(
-                            5, (index) => List_partner(index: index + 1));
+                            5, (index) => checkadmin ? SwipeTo(
+                            offsetDx: 1,
+                            animationDuration: Duration(milliseconds: 800),
+                            onLeftSwipe:  () {
+                              //end to start
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => MyDialogeHome(
+                                      type: "D",
+                                      onPresed: () async {
+                                        // if (checkadmin) {
+                                        //   if (await messsage_dataBase.Delete(
+                                        //       messaging[widget.index!]
+                                        //           .MessageID
+                                        //           .toString())) {
+                                        //     messaging.removeAt(widget.index!);
+                                        //     setState(() {
+                                        //       showtoast("Delete Seccessfully");
+                                        //     });
+                                        //   } else {
+                                        //     showtoast("Delete Problem");
+                                        //   }
+                                        // }
+                                      }));
+                            },
+                            onRightSwipe:  () {
+                              //start to end
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => MyDialogeHome(
+                                      type: "U",
+                                      onPresed: () {
+                                        // if (checkadmin) {
+                                        //   checkubdate = true;
+                                        //   Navigator.push(context,
+                                        //       MaterialPageRoute(builder: (context) {
+                                        //         return message_page("S",
+                                        //             messaging.elementAt(widget.index!));
+                                        //       }));
+                                        // }
+                                      }));
+                            },
+                            rightSwipeWidget:Container(
+                                alignment: Alignment.center,
+                                child: Container(
+                                  margin: EdgeInsets.only(left: 20, right: 20),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20)),
+                                  child: Icon(
+                                    Icons.edit_outlined,
+                                    size: 50,
+                                  ),
+                                )),
+                            leftSwipeWidget: Container(
+                                margin: EdgeInsets.only(right: 20, left: 20),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: Icon(
+                                  Icons.delete,
+                                  size: 50,
+                                )),
+                            child: List_partner(index: index)) : List_partner(index: index));
                       });
                     },
                     child: Container(
@@ -734,7 +926,8 @@ class _List_messaging extends State<List_messaging> {
 
       return messaging.length > 0
           ? SwipeTo(
-              animationDuration: Duration(milliseconds: 500),
+        offsetDx: 1,
+              animationDuration: Duration(milliseconds: 800),
               onLeftSwipe: checkadmin
                   ? () {
                       //end to start
@@ -798,20 +991,21 @@ class _List_messaging extends State<List_messaging> {
                     },
               rightSwipeWidget: checkadmin
                   ? Container(
+                  alignment: Alignment.center,
+                  child: Container(
                       margin: EdgeInsets.only(left: 20, right: 20),
-                      alignment: Alignment.centerLeft,
                       decoration: BoxDecoration(
-                          color: Color.fromARGB(200, 201, 133, 0),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20)),
                       child: Icon(
                         Icons.edit_outlined,
                         size: 50,
                       ),
-                    )
+                    ))
                   : pay_or_not
                       ? Container(
                           margin: EdgeInsets.only(left: 20, right: 20),
-                          alignment: Alignment.centerLeft,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20)),
                           child: Icon(
@@ -822,11 +1016,11 @@ class _List_messaging extends State<List_messaging> {
                         )
                       : SizedBox(),
               leftSwipeWidget: checkadmin
-                  ? Container(
+                  ?  Container(
                       margin: EdgeInsets.only(right: 20, left: 20),
-                      alignment: Alignment.centerRight,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20)),
                       child: Icon(
                         Icons.delete,
@@ -835,7 +1029,7 @@ class _List_messaging extends State<List_messaging> {
                   : pay_or_not
                       ? Container(
                           margin: EdgeInsets.only(right: 20, left: 20),
-                          alignment: Alignment.centerRight,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20)),
                           child: Icon(
@@ -1285,7 +1479,7 @@ class _List_messaging extends State<List_messaging> {
                               }
                             }
                           },
-                          child: pay_complate
+                          child: pay_complate && !checkadmin
                               ? Icon(
                                   Icons.check_circle_outlined,
                                   color: Colors.green,

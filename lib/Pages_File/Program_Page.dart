@@ -47,17 +47,7 @@ class _List_progrmam_state extends State<List_program> {
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
 
-    return MaterialButton(
-        minWidth: WidthDevice,
-        padding: EdgeInsets.all(0),
-        onPressed: () async {
-          if (checkadmin) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return message_page("P", program);
-            }));
-          }
-        },
-        child: Column(children: [
+    return Column(children: [
           Container(
               margin: EdgeInsets.only(top: 20),
               decoration: BoxDecoration(
@@ -150,20 +140,22 @@ class _List_progrmam_state extends State<List_program> {
                 Container(
                     alignment: Alignment.bottomLeft,
                     child: Container(
-                      margin: EdgeInsets.all(10),
-                  height: 50,
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                      Container( child: Text("App Store : www.example.com")),
-                      Container(child: Text("Play Store : www.example.com")),
-                    ])))
+                        margin: EdgeInsets.all(10),
+                        height: 50,
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                  child: Text("App Store : www.example.com")),
+                              Container(
+                                  child: Text("Play Store : www.example.com")),
+                            ])))
               ])),
           if (endList)
             Container(
               height: (HieghDevice / 5.5) + 60,
             )
-        ]));
+        ]);
   }
 }
 
@@ -188,12 +180,34 @@ class show_photo_list_state extends State<show_photo_list> {
 
     return Row(children: [
       (widget.type == "N")
-          ? Container(width: 50, child: Image.network(widget.path))
+          ? Container(
+          width: 100,
+          height: 140,
+          decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: NetworkImage(widget.path),
+                  fit: BoxFit.fill),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(color: Colors.black12, blurRadius: 20)
+              ]))
           : (widget.type == "D")
-              ? Container(width: 50, child: Image.file(File(widget.path)))
+              ?Container(
+          width: 100,
+          height: 140,
+          child:
+                Container(
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: FileImage(File(widget.path)),
+                          fit: BoxFit.fill),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 20)
+                      ])),)
               : Container(
-                  width: WidthDevice / 3.8,
-                  height: HieghDevice / 5.5,
+                  width: 100,
+                  height: 140,
                   decoration: BoxDecoration(
                       image: DecorationImage(
                           image: AssetImage("images/Untitled.png"),
@@ -243,17 +257,8 @@ class _List_Partner_state extends State<List_partner> {
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
 
-    return MaterialButton(
-        minWidth: WidthDevice,
-        padding: EdgeInsets.all(0),
-        onPressed: () async {
-          if (checkadmin) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return message_page("P", program);
-            }));
-          }
-        },
-        child: Column(children: [
+    return Column(
+        children: [
           Container(
               margin: EdgeInsets.only(top: 20),
               decoration: BoxDecoration(
@@ -315,7 +320,7 @@ class _List_Partner_state extends State<List_partner> {
                                 backgroundColor: MaterialStateProperty.all(
                                     Colors.lightBlueAccent),
                                 shape: MaterialStateProperty.all<
-                                    RoundedRectangleBorder>(
+                                        RoundedRectangleBorder>(
                                     RoundedRectangleBorder(
                                         borderRadius: BorderRadius.only(
                                             topLeft: Radius.circular(20),
@@ -338,14 +343,16 @@ class _List_Partner_state extends State<List_partner> {
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container( child: Text("App Store : www.example.com")),
-                              Container(child: Text("Play Store : www.example.com")),
+                              Container(
+                                  child: Text("App Store : www.example.com")),
+                              Container(
+                                  child: Text("Play Store : www.example.com")),
                             ])))
               ])),
           if (endList)
             Container(
               height: (HieghDevice / 5.5) + 60,
             )
-        ]));
+        ]);
   }
 }

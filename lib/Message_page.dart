@@ -21,6 +21,10 @@ BoxShadow? boxShadowOnClick =
     boxShadowPr,
     boxShadowUpClick =
         BoxShadow(color: Color.fromARGB(500, 12, 0, 74), blurRadius: 10);
+late int list_image_count = 0;
+get_photo get_image_sympole = get_photo();
+get_photo set_image_OP = get_photo();
+late List<String> list_image = [] ;
 
 class message_page extends StatefulWidget {
   message_page(String type_page, var messaging) {
@@ -77,7 +81,11 @@ class message_page_state extends State<message_page> {
     return SafeArea(
         child: WillPopScope(
       onWillPop: () async {
-        path = File("");
+        get_image_sympole.path = File("");
+        set_image_OP.path = File("");
+        if(!checkubdate){
+          list_image_count = 0;
+        }
         return true;
       },
       child: Scaffold(
@@ -307,8 +315,8 @@ class message_page_state extends State<message_page> {
 
   Future<void> _hundSendMessage() async {
     String pathurlimage = "";
-    if (Validation.isValidnull(path.path)) {
-      pathurlimage = await get_photo.Upload(path);
+    if (Validation.isValidnull(get_image_sympole.path.path)) {
+      pathurlimage = await get_image_sympole.Upload(get_image_sympole.path);
     }
     if (Validation.isValidnull(Message_Sympole_Price.text) &&
         Validation.isValidnull(Message_Sympole_MEP.text) &&
@@ -338,7 +346,7 @@ class message_page_state extends State<message_page> {
         Message_Sympole_Target1.clear();
         Message_Sympole_Content.clear();
         Message_Sympole.clear();
-        path = File("");
+        get_image_sympole.path = File("");
       } else {
         showtoast('${getLang(context, "No_Insert")}');
       }
@@ -349,8 +357,8 @@ class message_page_state extends State<message_page> {
 
   Future<void> _hundUbdateMessage() async {
     String pathurlimage = "";
-    if (Validation.isValidnull(path.path)) {
-      pathurlimage = await get_photo.Upload(path);
+    if (Validation.isValidnull(get_image_sympole.path.path)) {
+      pathurlimage = await get_image_sympole.Upload(get_image_sympole.path);
     } else {
       pathurlimage = widget.messaging.MessageLink;
     }
@@ -384,7 +392,7 @@ class message_page_state extends State<message_page> {
         Message_Sympole_Target1.clear();
         Message_Sympole_Content.clear();
         Message_Sympole.clear();
-        path = File("");
+        get_image_sympole.path = File("");
       } else {
         showtoast('${getLang(context, "No_Ubdate")}');
       }
@@ -791,9 +799,9 @@ class body_message_state extends State<body_message> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    Validation.isValidnull(path.path)
+                                    Validation.isValidnull(get_image_sympole.path.path)
                                         ? show_photo(
-                                            path: path.path,
+                                            path: get_image_sympole.path.path,
                                             type: "D",
                                           )
                                         : Validation.isValidnull(
@@ -810,11 +818,11 @@ class body_message_state extends State<body_message> {
                       });
                     },
                     child: !checkubdate
-                        ? Validation.isValidnull(path.path)
+                        ? Validation.isValidnull(get_image_sympole.path.path)
                             ? Container(
                                 decoration: BoxDecoration(
                                   image: DecorationImage(
-                                      image: FileImage(path), fit: BoxFit.fill),
+                                      image: FileImage(get_image_sympole.path), fit: BoxFit.fill),
                                   boxShadow: [
                                     BoxShadow(
                                         color: Colors.black38, blurRadius: 10)
@@ -840,11 +848,11 @@ class body_message_state extends State<body_message> {
                                 ),
                                 child: null,
                               )
-                        : Validation.isValidnull(path.path)
+                        : Validation.isValidnull(get_image_sympole.path.path)
                             ? Container(
                                 decoration: BoxDecoration(
                                   image: DecorationImage(
-                                      image: FileImage(path), fit: BoxFit.fill),
+                                      image: FileImage(get_image_sympole.path), fit: BoxFit.fill),
                                   boxShadow: [
                                     BoxShadow(
                                         color: Colors.black38, blurRadius: 10)
@@ -900,7 +908,7 @@ class body_message_state extends State<body_message> {
                       margin: EdgeInsets.only(top: 62, left: 62),
                       child: IconButton(
                         onPressed: () async {
-                          await get_photo.showSelectionDialog(context);
+                          await get_image_sympole.showSelectionDialog(context);
                           setState(() {
                             print("Hello");
                           });
@@ -937,7 +945,6 @@ class body_message_pr_state extends State<body_message_pr> {
     '1': 'Our Product',
   };
   String type_send_program = "PR";
-  List<String> list_image = [];
 
   @override
   void initState() {
@@ -1115,11 +1122,23 @@ class body_message_pr_state extends State<body_message_pr> {
             ],
           ),
         ),
-        type_send_program == "OP" ? Container(
+        type_send_program == "OP" ?
+        Container(
           alignment: Alignment.bottomLeft,
-          margin: EdgeInsets.only(bottom: HieghDevice/2.5,left: 20,right: 20),
+            margin: EdgeInsets.only(bottom: HieghDevice/2.5,right: 10,left: 10),
+            width: WidthDevice,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children:[ Container(
           child:ElevatedButton.icon(
-            onPressed: (){},
+            onPressed: ()async{
+              await set_image_OP.showSelectionDialog(context);
+              list_image.add(set_image_OP.path.path);
+              setState(() {
+                list_image_count = list_image.length;
+                print("Get Image Saccess");
+              });
+            },
             icon: Icon(Icons.add_photo_alternate_outlined,size: 60,color: Colors.black45,), label: Text(""),
             style: ButtonStyle(
                 padding:
@@ -1137,7 +1156,29 @@ class body_message_pr_state extends State<body_message_pr> {
                 ),fixedSize: MaterialStateProperty.all<Size>(Size(110,150))
             ),
           )
-        ):SizedBox()
+        ),
+          Container(
+            height: 150,
+              width: WidthDevice/2,
+              child: ListView.builder(
+                shrinkWrap: true,
+                scrollDirection: Axis.horizontal,
+                itemCount: list_image.length,
+                itemBuilder: (context,index){
+                  return Dismissible(
+                    direction: DismissDirection.vertical,
+                    key: Key(list_image[index]),
+                child: list_image_count > 0 ?
+                show_photo_list(path: list_image[index], index: index, type: checkubdate ? "N":"D"):SizedBox(),
+                      onDismissed: (direction){
+                        setState(() {
+                          list_image.removeAt(index);
+                        });
+                      },
+                  );},
+              )
+          )
+        ])):SizedBox()
       ],
     );
   }

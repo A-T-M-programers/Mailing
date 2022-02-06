@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crypt/crypt.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:mailing/Class/Get_Photo.dart';
 import 'package:mailing/main.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -564,4 +565,144 @@ class Contentviewinfo_DataBase extends DataBase_Access{
     }
   }
 }
+class Program_DataBase extends DataBase_Access{
+  get_photo send_image = get_photo();
 
+  @override
+  Future<bool> Insert(List<String> list)async{
+    List<String> list_image_insert = [];
+    if(list.isEmpty){
+      return false;
+    }else {
+      for(int i = 2;i<list.length;i++){
+        list_image_insert.add(list[i]);
+        send_image.Upload(File(list[i]));
+      }
+      var secret = Crypt.sha256("insert_program");
+      Uri url = Uri(
+          host: host, path: 'Mailing_API/Insert/Insert.php', scheme: scheme);
+      var response =
+      await http.post(url, body: {
+        'type': list.elementAt(0),
+        'link': list.elementAt(1),
+        'text': list.elementAt(2),
+        'name': list_image_insert,
+        'secret': '$secret'
+      }
+      );
+      return Status(response.statusCode);
+    }
+  }
+
+  @override
+  Future<bool> Ubdate(List<String> list)async{
+    if(list.isEmpty){
+      return false;
+    }else {
+      var secret = Crypt.sha256("ubdate_message");
+      Uri url = Uri(
+          host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
+      var response =
+      await http.post(url, body: {
+        'id': list.elementAt(0),
+        'type': list.elementAt(1),
+        'state': list.elementAt(2),
+        'price': list.elementAt(3),
+        'name': list.elementAt(4),
+        'link': list.elementAt(5),
+        'target1': list.elementAt(6),
+        'target2': list.elementAt(7),
+        'stoploss': list.elementAt(8),
+        'content': list.elementAt(9),
+        'entrypoint': list.elementAt(10),
+        'secret': '$secret'
+      }
+      );
+      return Status(response.statusCode);
+    }
+  }
+
+  @override
+  Future<bool> Delete(String id)async{
+    if(id.isEmpty){
+      return false;
+    }else {
+      var secret = Crypt.sha256("delete_message");
+      Uri url = Uri(
+          host: host, path: 'Mailing_API/Delete/Delete.php', scheme: scheme);
+      var response =
+      await http.post(url, body: {
+        'id': id,
+        'secret': '$secret'
+      }
+      );
+      return Status(response.statusCode);
+    }
+  }
+
+  @override
+  Future<bool> Status(int codestate)async{
+    String errorMsg = '';
+    switch (codestate) {
+      case 200:
+        {
+          errorMsg = 'Successfully';
+          showtoast(errorMsg);
+          return true;
+        }
+      case 400:
+        {
+          errorMsg = 'Please check your data and try again';
+          showtoast(errorMsg);
+          return false;
+        }
+      case 500:
+        {
+          errorMsg = 'Something went wrong! please try again later';
+          showtoast(errorMsg);
+          return false;
+        }
+      default:
+        {
+          errorMsg =
+          'Please check your internet connection and try again';
+          showtoast(errorMsg);
+          return  false;
+        }
+    }
+  }
+  @override
+  Future<List<Messaging>> Select()async{
+    List<Messaging> listmessage = [];
+    var secret = Crypt.sha256("select_message");
+    Uri url = Uri(
+        host: host,
+        path: 'Mailing_API/Select/get_Message.php',
+        scheme: scheme);
+    var response = await http.post(url, body: {'secret': '$secret'
+    });
+    if(await Status(response.statusCode)){
+
+      List<dynamic> data = json.decode(response.body);
+      for(int i = 0 ;i<data.length;i++){
+        listmessage.add(Messaging());
+        listmessage[i].MessageID =int.parse(data.elementAt(i)['MessageID']);
+        listmessage[i].MessageType = data.elementAt(i)['MessageType'];
+        listmessage[i].MessageState = data.elementAt(i)['MessageState'];
+        listmessage[i].MessageCountView = data.elementAt(i)['MessageCountView'];
+        listmessage[i].MessagePrice =double.parse(data.elementAt(i)['MessagePrice']);
+        listmessage[i].MessageDate = data.elementAt(i)['MessageDate'];
+        listmessage[i].MessageSymbol = data.elementAt(i)['MessageSymbol'];
+        listmessage[i].MessageLink = data.elementAt(i)['MessageLink'];
+        listmessage[i].Target1 = data.elementAt(i)['Target1'];
+        listmessage[i].Target2 = data.elementAt(i)['Target2'];
+        listmessage[i].OrderStopLoss = data.elementAt(i)['OrderStopLoss'];
+        listmessage[i].MessageContent = data.elementAt(i)['MessageContent'];
+        listmessage[i].MessageEntryPoint =double.parse(data.elementAt(i)['EntryPoint']);
+      }
+      return listmessage;
+    }else{
+      return listmessage;
+    }
+  }
+}

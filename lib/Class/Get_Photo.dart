@@ -11,11 +11,10 @@ import 'package:photo_view/photo_view.dart';
 
 import 'Constant.dart';
 
-late File path = File("");
 
 class get_photo {
-
-  static Future<String> Upload(File imageFile) async {
+  File path = File("");
+  Future<String> Upload(File imageFile) async {
     if (Validation.isValidnull(imageFile.path)) {
       var secret = Crypt.sha256("put_photo");
       Uri url = Uri(
@@ -60,7 +59,7 @@ class get_photo {
   }
 
   /// Get from gallery
-  static Future<File> _getFromGallery() async {
+  Future<File> _getFromGallery() async {
     XFile? pickedFile = await ImagePicker().pickImage(
         source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -72,7 +71,7 @@ class get_photo {
 
 
   /// Get from camera
-  static Future<File> _getFromCamera() async {
+  Future<File> _getFromCamera() async {
     XFile? pickedFile = await ImagePicker().pickImage(
         source: ImageSource.camera);
     if (pickedFile != null) {
@@ -82,7 +81,7 @@ class get_photo {
     }
   }
 
-  static showSelectionDialog(BuildContext context) {
+  showSelectionDialog(BuildContext context) {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
