@@ -81,7 +81,7 @@ class Messaging {
 class Messaging_PR {
   late int ProgramID;
   late String ProgramType, ProgramLink, ProgramContent;
-  List<Imagen> list_image = [];
+  List<String> list_image = [];
 
   void set setprogramtype(String type){
     this.ProgramType = type;
@@ -89,10 +89,10 @@ class Messaging_PR {
   String get gettype{
     return this.ProgramType;
   }
-  void set setlistimage(List<Imagen> list){
+  void set setlistimage(List<String> list){
     this.list_image = list;
   }
-  List<Imagen> get getlistimage{
+  List<String> get getlistimage{
     return this.list_image;
   }
   void set setlink(String link){
@@ -107,14 +107,19 @@ class Messaging_PR {
   String get getcontent{
     return this.ProgramContent;
   }
+  int get getID{
+    return this.ProgramID;
+  }
+  void set setID(int ID){
+    this.ProgramID = ID;
+  }
 
   Messaging_PR() {
-    this.ProgramID = 1;
+    this.ProgramID = 0;
     this.ProgramType = "0";
-    this.list_image.add(Imagen());
-    this.ProgramLink =
-        "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
-    this.ProgramContent = "ASDFGASASIOURYJKGBFCNAB ";
+    this.list_image.add("");
+    this.ProgramLink = "";
+    this.ProgramContent = "";
   }
 }
 
@@ -574,9 +579,8 @@ class Program_DataBase extends DataBase_Access{
     if(list.isEmpty){
       return false;
     }else {
-      for(int i = 2;i<list.length;i++){
-        list_image_insert.add(list[i]);
-        send_image.Upload(File(list[i]));
+      for(int i = 3;i<list.length;i++){
+        list_image_insert.add(await send_image.Upload(File(list[i])));
       }
       var secret = Crypt.sha256("insert_program");
       Uri url = Uri(
@@ -586,7 +590,7 @@ class Program_DataBase extends DataBase_Access{
         'type': list.elementAt(0),
         'link': list.elementAt(1),
         'text': list.elementAt(2),
-        'name': list_image_insert,
+        'list_image': list_image_insert.toString(),
         'secret': '$secret'
       }
       );
@@ -596,25 +600,27 @@ class Program_DataBase extends DataBase_Access{
 
   @override
   Future<bool> Ubdate(List<String> list)async{
+    List<String> list_image_update = [];
     if(list.isEmpty){
       return false;
     }else {
-      var secret = Crypt.sha256("ubdate_message");
+      for(int i = 4;i<list.length;i++){
+        if(!list[i].contains("http")) {
+          list_image_update.add(await send_image.Upload(File(list[i])));
+        }else{
+          list_image_update.add(list[i]);
+        }
+      }
+      var secret = Crypt.sha256("ubdate_program");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
       var response =
       await http.post(url, body: {
         'id': list.elementAt(0),
         'type': list.elementAt(1),
-        'state': list.elementAt(2),
-        'price': list.elementAt(3),
-        'name': list.elementAt(4),
-        'link': list.elementAt(5),
-        'target1': list.elementAt(6),
-        'target2': list.elementAt(7),
-        'stoploss': list.elementAt(8),
-        'content': list.elementAt(9),
-        'entrypoint': list.elementAt(10),
+        'link': list.elementAt(2),
+        'text': list.elementAt(3),
+        'list_image': list_image_update.toString(),
         'secret': '$secret'
       }
       );
@@ -627,7 +633,7 @@ class Program_DataBase extends DataBase_Access{
     if(id.isEmpty){
       return false;
     }else {
-      var secret = Crypt.sha256("delete_message");
+      var secret = Crypt.sha256("delete_program");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Delete/Delete.php', scheme: scheme);
       var response =
@@ -672,33 +678,27 @@ class Program_DataBase extends DataBase_Access{
     }
   }
   @override
-  Future<List<Messaging>> Select()async{
-    List<Messaging> listmessage = [];
-    var secret = Crypt.sha256("select_message");
+  Future<List<Messaging_PR>> Select({String? type})async{
+    List<Messaging_PR> listmessage = [];
+    var secret = Crypt.sha256("select_program");
     Uri url = Uri(
         host: host,
         path: 'Mailing_API/Select/get_Message.php',
         scheme: scheme);
-    var response = await http.post(url, body: {'secret': '$secret'
+    var response = await http.post(url, body: {'type':type,'secret': '$secret'
     });
     if(await Status(response.statusCode)){
 
       List<dynamic> data = json.decode(response.body);
       for(int i = 0 ;i<data.length;i++){
-        listmessage.add(Messaging());
-        listmessage[i].MessageID =int.parse(data.elementAt(i)['MessageID']);
-        listmessage[i].MessageType = data.elementAt(i)['MessageType'];
-        listmessage[i].MessageState = data.elementAt(i)['MessageState'];
-        listmessage[i].MessageCountView = data.elementAt(i)['MessageCountView'];
-        listmessage[i].MessagePrice =double.parse(data.elementAt(i)['MessagePrice']);
-        listmessage[i].MessageDate = data.elementAt(i)['MessageDate'];
-        listmessage[i].MessageSymbol = data.elementAt(i)['MessageSymbol'];
-        listmessage[i].MessageLink = data.elementAt(i)['MessageLink'];
-        listmessage[i].Target1 = data.elementAt(i)['Target1'];
-        listmessage[i].Target2 = data.elementAt(i)['Target2'];
-        listmessage[i].OrderStopLoss = data.elementAt(i)['OrderStopLoss'];
-        listmessage[i].MessageContent = data.elementAt(i)['MessageContent'];
-        listmessage[i].MessageEntryPoint =double.parse(data.elementAt(i)['EntryPoint']);
+          listmessage.add(Messaging_PR());
+          listmessage[i].setID = int.parse(data.elementAt(i)['ProgramID']);
+          listmessage[i].setprogramtype = data.elementAt(i)['ProgramType'];
+          listmessage[i].setlink = data.elementAt(i)['ProgramLink'];
+          listmessage[i].setcontent = data.elementAt(i)['ProgramText'];
+          if(data.elementAt(i)['ProgramImages'] !=null){
+            listmessage[i].setlistimage = data.elementAt(i)['ProgramImages'].replaceAll('[', "").replaceAll(']', "").split(",");
+          }
       }
       return listmessage;
     }else{

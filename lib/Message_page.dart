@@ -47,7 +47,6 @@ class message_page_state extends State<message_page> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
     if (widget.type_page == "S" || widget.type_page == "SI") {
       this.body_message_contain =
           body_message(message: widget.messaging, type: widget.type_page!);
@@ -57,7 +56,7 @@ class message_page_state extends State<message_page> {
       boxShadowPr = boxShadowUpClick;
     } else if (widget.type_page == "P" || widget.type_page == "PI") {
       this.body_message_contain =
-          body_message_pr(message: program!, type: widget.type_page!);
+          body_message_pr(message: widget.messaging, type: widget.type_page!);
 
       boxShadowPr = boxShadowOnClick;
       boxShadowPu = boxShadowUpClick;
@@ -83,6 +82,7 @@ class message_page_state extends State<message_page> {
       onWillPop: () async {
         get_image_sympole.path = File("");
         set_image_OP.path = File("");
+        list_image = [];
         if(!checkubdate){
           list_image_count = 0;
         }
@@ -225,9 +225,15 @@ class message_page_state extends State<message_page> {
                             boxShadowS = boxShadowUpClick;
                             boxShadowPu = boxShadowUpClick;
                             boxShadowPr = boxShadowOnClick;
-
-                            this.body_message_contain = body_message_pr(
-                                message: program!, type: widget.type_page!);
+                            if(widget.type_page == "P"||widget.type_page == "PI") {
+                              this.body_message_contain = body_message_pr(
+                                  message: widget.messaging,
+                                  type: widget.type_page!);
+                            }else{
+                              this.body_message_contain = body_message_pr(
+                                  message: new Messaging_PR(),
+                                  type: widget.type_page!);
+                            }
                           });
                         },
                         child: Container(
@@ -314,90 +320,141 @@ class message_page_state extends State<message_page> {
   }
 
   Future<void> _hundSendMessage() async {
-    String pathurlimage = "";
-    if (Validation.isValidnull(get_image_sympole.path.path)) {
-      pathurlimage = await get_image_sympole.Upload(get_image_sympole.path);
-    }
-    if (Validation.isValidnull(Message_Sympole_Price.text) &&
-        Validation.isValidnull(Message_Sympole_MEP.text) &&
-        Validation.isValidnull(Message_Sympole_OSL.text) &&
-        Validation.isValidnull(Message_Sympole_Target2.text) &&
-        Validation.isValidnull(Message_Sympole_Target1.text) &&
-        Validation.isValidnull(Message_Sympole_Content.text) &&
-        Validation.isValidnull(Message_Sympole.text)) {
-      List<String> list = [];
-      list.add(numberdropdownValueS!);
-      list.add("0");
-      list.add(Message_Sympole_Price.text);
-      list.add(Message_Sympole.text);
-      list.add(pathurlimage);
-      list.add(Message_Sympole_Target1.text);
-      list.add(Message_Sympole_Target2.text);
-      list.add(Message_Sympole_OSL.text);
-      list.add(Message_Sympole_Content.text);
-      list.add(Message_Sympole_MEP.text);
-      Messsage_DataBase message_database = Messsage_DataBase();
-
-      if (await message_database.Insert(list)) {
-        Message_Sympole_Price.clear();
-        Message_Sympole_MEP.clear();
-        Message_Sympole_OSL.clear();
-        Message_Sympole_Target2.clear();
-        Message_Sympole_Target1.clear();
-        Message_Sympole_Content.clear();
-        Message_Sympole.clear();
-        get_image_sympole.path = File("");
-      } else {
-        showtoast('${getLang(context, "No_Insert")}');
+    if(pagecheck == "SI") {
+      String pathurlimage = "";
+      if (Validation.isValidnull(get_image_sympole.path.path)) {
+        pathurlimage = await get_image_sympole.Upload(get_image_sympole.path);
       }
-    } else {
-      showtoast('${getLang(context, "Field_Empty")}');
+      if (Validation.isValidnull(Message_Sympole_Price.text) &&
+          Validation.isValidnull(Message_Sympole_MEP.text) &&
+          Validation.isValidnull(Message_Sympole_OSL.text) &&
+          Validation.isValidnull(Message_Sympole_Target2.text) &&
+          Validation.isValidnull(Message_Sympole_Target1.text) &&
+          Validation.isValidnull(Message_Sympole_Content.text) &&
+          Validation.isValidnull(Message_Sympole.text)) {
+        List<String> list = [];
+        list.add(numberdropdownValueS!);
+        list.add("0");
+        list.add(Message_Sympole_Price.text);
+        list.add(Message_Sympole.text);
+        list.add(pathurlimage);
+        list.add(Message_Sympole_Target1.text);
+        list.add(Message_Sympole_Target2.text);
+        list.add(Message_Sympole_OSL.text);
+        list.add(Message_Sympole_Content.text);
+        list.add(Message_Sympole_MEP.text);
+        Messsage_DataBase message_database = Messsage_DataBase();
+
+        if (await message_database.Insert(list)) {
+          Message_Sympole_Price.clear();
+          Message_Sympole_MEP.clear();
+          Message_Sympole_OSL.clear();
+          Message_Sympole_Target2.clear();
+          Message_Sympole_Target1.clear();
+          Message_Sympole_Content.clear();
+          Message_Sympole.clear();
+          get_image_sympole.path = File("");
+        } else {
+          showtoast('${getLang(context, "No_Insert")}');
+        }
+      } else {
+        showtoast('${getLang(context, "Field_Empty")}');
+      }
+    }else if(widget.type_page == "PI"){
+      if (Validation.isValidnull(Program_Link.text) &&
+          Validation.isValidnull(Program_Content.text)) {
+        List<String> list = [];
+        list.add(numberdropdownValueP!);
+        list.add(Program_Link.text);
+        list.add(Program_Content.text);
+        if(list_image.isNotEmpty) {
+          list.addAll(list_image);
+        }
+        Program_DataBase program_database = Program_DataBase();
+
+        if (await program_database.Insert(list)) {
+          Program_Link.clear();
+          Program_Content.clear();
+          set_image_OP.path = File("");
+          list_image = [];
+        } else {
+          showtoast('${getLang(context, "No_Insert")}');
+        }
+      } else {
+        showtoast('${getLang(context, "Field_Empty")}');
+      }
     }
   }
 
   Future<void> _hundUbdateMessage() async {
-    String pathurlimage = "";
-    if (Validation.isValidnull(get_image_sympole.path.path)) {
-      pathurlimage = await get_image_sympole.Upload(get_image_sympole.path);
-    } else {
-      pathurlimage = widget.messaging.MessageLink;
-    }
-    if (Validation.isValidnull(Message_Sympole_Price.text) &&
-        Validation.isValidnull(Message_Sympole_MEP.text) &&
-        Validation.isValidnull(Message_Sympole_OSL.text) &&
-        Validation.isValidnull(Message_Sympole_Target2.text) &&
-        Validation.isValidnull(Message_Sympole_Target1.text) &&
-        Validation.isValidnull(Message_Sympole_Content.text) &&
-        Validation.isValidnull(Message_Sympole.text) &&
-        Validation.isValidnull(pathurlimage)) {
-      List<String> list = [];
-      list.add(widget.messaging.MessageID.toString());
-      list.add(numberdropdownValueS!);
-      list.add("0");
-      list.add(Message_Sympole_Price.text);
-      list.add(Message_Sympole.text);
-      list.add(pathurlimage);
-      list.add(Message_Sympole_Target1.text);
-      list.add(Message_Sympole_Target2.text);
-      list.add(Message_Sympole_OSL.text);
-      list.add(Message_Sympole_Content.text);
-      list.add(Message_Sympole_MEP.text);
-      Messsage_DataBase message_database = Messsage_DataBase();
-
-      if (await message_database.Ubdate(list)) {
-        Message_Sympole_Price.clear();
-        Message_Sympole_MEP.clear();
-        Message_Sympole_OSL.clear();
-        Message_Sympole_Target2.clear();
-        Message_Sympole_Target1.clear();
-        Message_Sympole_Content.clear();
-        Message_Sympole.clear();
-        get_image_sympole.path = File("");
+    if (widget.type_page == "S") {
+      String pathurlimage = "";
+      if (Validation.isValidnull(get_image_sympole.path.path)) {
+        pathurlimage = await get_image_sympole.Upload(get_image_sympole.path);
       } else {
-        showtoast('${getLang(context, "No_Ubdate")}');
+        pathurlimage = widget.messaging.MessageLink;
       }
-    } else {
-      showtoast('${getLang(context, "Field_Empty")}');
+      if (Validation.isValidnull(Message_Sympole_Price.text) &&
+          Validation.isValidnull(Message_Sympole_MEP.text) &&
+          Validation.isValidnull(Message_Sympole_OSL.text) &&
+          Validation.isValidnull(Message_Sympole_Target2.text) &&
+          Validation.isValidnull(Message_Sympole_Target1.text) &&
+          Validation.isValidnull(Message_Sympole_Content.text) &&
+          Validation.isValidnull(Message_Sympole.text) &&
+          Validation.isValidnull(pathurlimage)) {
+        List<String> list = [];
+        list.add(widget.messaging.MessageID.toString());
+        list.add(numberdropdownValueS!);
+        list.add("0");
+        list.add(Message_Sympole_Price.text);
+        list.add(Message_Sympole.text);
+        list.add(pathurlimage);
+        list.add(Message_Sympole_Target1.text);
+        list.add(Message_Sympole_Target2.text);
+        list.add(Message_Sympole_OSL.text);
+        list.add(Message_Sympole_Content.text);
+        list.add(Message_Sympole_MEP.text);
+        Messsage_DataBase message_database = Messsage_DataBase();
+
+        if (await message_database.Ubdate(list)) {
+          Message_Sympole_Price.clear();
+          Message_Sympole_MEP.clear();
+          Message_Sympole_OSL.clear();
+          Message_Sympole_Target2.clear();
+          Message_Sympole_Target1.clear();
+          Message_Sympole_Content.clear();
+          Message_Sympole.clear();
+          get_image_sympole.path = File("");
+        } else {
+          showtoast('${getLang(context, "No_Ubdate")}');
+        }
+      } else {
+        showtoast('${getLang(context, "Field_Empty")}');
+      }
+    }else if(widget.type_page == "P"){
+      if (Validation.isValidnull(Program_Link.text) &&
+          Validation.isValidnull(Program_Content.text)) {
+        List<String> list = [];
+        list.add(widget.messaging.ProgramID.toString());
+        list.add(numberdropdownValueP!);
+        list.add(Program_Link.text);
+        list.add(Program_Content.text);
+        if(list_image.isNotEmpty) {
+          list.addAll(list_image);
+        }
+        Program_DataBase program_database = Program_DataBase();
+
+        if (await program_database.Ubdate(list)) {
+          Program_Link.clear();
+          Program_Content.clear();
+          set_image_OP.path = File("");
+          list_image = [];
+        } else {
+          showtoast('${getLang(context, "No_Ubdate")}');
+        }
+      } else {
+        showtoast('${getLang(context, "Field_Empty")}');
+      }
     }
   }
 }
@@ -926,6 +983,8 @@ class body_message_state extends State<body_message> {
   }
 }
 
+late TextEditingController Program_Link, Program_Content;
+
 class body_message_pr extends StatefulWidget {
   const body_message_pr({required this.message, required this.type});
 
@@ -937,7 +996,6 @@ class body_message_pr extends StatefulWidget {
 }
 
 class body_message_pr_state extends State<body_message_pr> {
-  late TextEditingController Program_Link, Program_Content;
   double WidthDevice = 0, HieghDevice = 0;
   late String? dropdownValue = "Partner_Program";
   Map<String, String> Program_type = {
@@ -953,6 +1011,10 @@ class body_message_pr_state extends State<body_message_pr> {
     dropdownValue =
         Program_type.values.elementAt(int.parse(widget.message.gettype));
     numberdropdownValueP = widget.message.gettype;
+    if(widget.message.getlistimage.isNotEmpty) {
+      list_image.addAll(widget.message.getlistimage);
+      list_image_count = list_image.length;
+    }
   }
 
   @override
@@ -963,6 +1025,7 @@ class body_message_pr_state extends State<body_message_pr> {
     if (widget.message != null && widget.type == "P") {
       Program_Link = TextEditingController(text: widget.message.getlink);
       Program_Content = TextEditingController(text: widget.message.getcontent);
+      type_send_program = widget.message.gettype == "1" ? "OP" : "PP";
     } else {
       Program_Link = TextEditingController();
       Program_Content = TextEditingController();
@@ -1037,26 +1100,132 @@ class body_message_pr_state extends State<body_message_pr> {
           height: 100,
           width: 100,
           child: Stack(children: [
-            CachedNetworkImage(
-              imageUrl: widget.message.getlistimage[0].Image_Link,
-              imageBuilder: (context, imageProvider) => Container(
-                decoration: BoxDecoration(
-                  boxShadow: [BoxShadow(color: Colors.black38, blurRadius: 10)],
-                  borderRadius: BorderRadius.circular(50),
-                  image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.fill,
+            GestureDetector(
+                onTap: () {
+                  setState(() {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                            list_image.isNotEmpty && Validation.isValidnull(list_image[0])
+                                ? show_photo(
+                              path: list_image[0],
+                              type: "D",
+                            )
+                                : Validation.isValidnull(
+                                widget.message.getlistimage[0])
+                                ? show_photo(
+                              path:
+                              widget.message.getlistimage[0],
+                              type: "N",
+                            )
+                                : show_photo(
+                              path: "images/Untitled.png",
+                              type: "A",
+                            )));
+                  });
+                },
+                child: !checkubdate
+                    ? list_image.isNotEmpty && list_image[0].isNotEmpty
+                    ? Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: FileImage(File(list_image[0])), fit: BoxFit.fill),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black38, blurRadius: 10)
+                    ],
+                    borderRadius: BorderRadius.circular(50),
+                    border:
+                    Border.all(color: Colors.white, width: 3),
                   ),
-                ),
-              ),
-              placeholder: (context, url) => CircularProgressIndicator(),
-              errorWidget: (context, url, error) => Icon(Icons.error),
-            ),
+                  child: null,
+                )
+                    : Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: AssetImage("images/Untitled.png"),
+                        fit: BoxFit.fill),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black38, blurRadius: 10)
+                    ],
+                    borderRadius: BorderRadius.circular(50),
+                    border:
+                    Border.all(color: Colors.white, width: 3),
+                  ),
+                  child: null,
+                )
+                    : list_image.isNotEmpty && Validation.isValidnull(list_image[0]) && !list_image[0].contains("http")
+                    ? Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: FileImage(File(list_image[0])), fit: BoxFit.fill),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black38, blurRadius: 10)
+                    ],
+                    borderRadius: BorderRadius.circular(50),
+                    border:
+                    Border.all(color: Colors.white, width: 3),
+                  ),
+                  child: null,
+                )
+                    : Validation.isValidnull(widget.message.getlistimage[0])
+                    ? CachedNetworkImage(
+                  imageUrl: widget.message.getlistimage[0],
+                  imageBuilder: (context, imageProvider) =>
+                      Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black38,
+                                blurRadius: 10)
+                          ],
+                          borderRadius: BorderRadius.circular(50),
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.fill,
+                          ),
+                        ),
+                      ),
+                  placeholder: (context, url) =>
+                      CircularProgressIndicator(),
+                  errorWidget: (context, url, error) =>
+                      Icon(Icons.error),
+                )
+                    : Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image:
+                        AssetImage("images/Untitled.png"),
+                        fit: BoxFit.fill),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black38,
+                          blurRadius: 10)
+                    ],
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(
+                        color: Colors.white, width: 3),
+                  ),
+                  child: null,
+                )),
             if (checkadmin)
               Container(
                   margin: EdgeInsets.only(top: 62, left: 62),
                   child: IconButton(
-                    onPressed: () => {},
+                    onPressed: ()async{
+                      await set_image_OP.showSelectionDialog(context);
+                      if(list_image.length == 0) {
+                        list_image.add(set_image_OP.path.path);
+                      }else{
+                        list_image[0] = set_image_OP.path.path;
+                      }
+                      setState(() {
+                        print("Hello");
+                      });
+                    },
                     icon: Icon(
                       Icons.camera_alt,
                       color: Colors.green,
@@ -1071,7 +1240,7 @@ class body_message_pr_state extends State<body_message_pr> {
           child: Row(
             children: [
               Text(
-                '${getLang(context, "Order_Type")}',
+                '${getLang(context, "Program_Type")}',
                 style: TextStyle(
                     color: Colors.black54, fontWeight: FontWeight.w600),
               ),
@@ -1133,11 +1302,16 @@ class body_message_pr_state extends State<body_message_pr> {
           child:ElevatedButton.icon(
             onPressed: ()async{
               await set_image_OP.showSelectionDialog(context);
-              list_image.add(set_image_OP.path.path);
-              setState(() {
-                list_image_count = list_image.length;
-                print("Get Image Saccess");
-              });
+              if(set_image_OP.path.path.isNotEmpty) {
+                if (list_image.length == 0) {
+                  list_image.add("");
+                }
+                list_image.add(set_image_OP.path.path);
+                setState(() {
+                  list_image_count = list_image.length;
+                  print("Get Image Saccess");
+                });
+              }
             },
             icon: Icon(Icons.add_photo_alternate_outlined,size: 60,color: Colors.black45,), label: Text(""),
             style: ButtonStyle(
@@ -1163,13 +1337,13 @@ class body_message_pr_state extends State<body_message_pr> {
               child: ListView.builder(
                 shrinkWrap: true,
                 scrollDirection: Axis.horizontal,
-                itemCount: list_image.length,
+                itemCount: list_image.length-1,
                 itemBuilder: (context,index){
                   return Dismissible(
                     direction: DismissDirection.vertical,
                     key: Key(list_image[index]),
                 child: list_image_count > 0 ?
-                show_photo_list(path: list_image[index], index: index, type: checkubdate ? "N":"D"):SizedBox(),
+                show_photo_list(path: list_image[index+1], index: index, type:checkubdate && list_image[index +1].contains("http") ? "N" : "D"):SizedBox(),
                       onDismissed: (direction){
                         setState(() {
                           list_image.removeAt(index);

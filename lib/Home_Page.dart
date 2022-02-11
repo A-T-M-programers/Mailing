@@ -33,7 +33,7 @@ Map<String, String> Message_type = {
 ScrollController _controller = ScrollController();
 
 late bool checkadmin, endList, showsendmessage;
-int lengthList = 5;
+int lengthList = 5,length_list_program_OP = 5,length_list_program_PP = 5;
 var page;
 String pagecheck = "S";
 List<double> he_wi = [50, 50, 70, 50, 50];
@@ -41,6 +41,7 @@ List<double> sizeicon = [30, 30, 50, 30, 30];
 List<Messaging> messaging = [];
 List<int> countviewint = [];
 Messsage_DataBase messsage_dataBase = Messsage_DataBase();
+Program_DataBase program_dataBase = Program_DataBase();
 Contentviewinfo_DataBase countview = Contentviewinfo_DataBase();
 Widget _dialogContent = CircularProgressIndicator();
 
@@ -56,28 +57,61 @@ class home_page_state extends State<home_page> {
   double WidthDevice = 0, HieghDevice = 0;
 
   Future<void> get_select_message() async {
-    try {
-      messaging = await messsage_dataBase.Select();
-    } catch (ex) {
-      print(ex);
-    }
-    if (!checkadmin) countviewint = await countview.Select();
+    if(pagecheck == "S"||pagecheck == "SI") {
+      try {
+        messaging = await messsage_dataBase.Select();
+      } catch (ex) {
+        print(ex);
+      }
+      if (!checkadmin) countviewint = await countview.Select();
 
-    setState(() {
-      if (messaging.length > 0)
-        page =
-            List.generate(lengthList, (index) => List_messaging(index: index));
-      else
-        return;
-    });
+      setState(() {
+        if (messaging.length > 0)
+          page =
+              List.generate(
+                  lengthList, (index) => List_messaging(index: index));
+        else
+          return;
+      });
 
-    for (int i = 0; i < he_wi.length; i++) {
-      if (i == 2) {
-        he_wi[i] = 60;
-        sizeicon[i] = 40;
-      } else {
-        he_wi[i] = 50;
-        sizeicon[i] = 30;
+      for (int i = 0; i < he_wi.length; i++) {
+        if (i == 2) {
+          he_wi[i] = 60;
+          sizeicon[i] = 40;
+        } else {
+          he_wi[i] = 50;
+          sizeicon[i] = 30;
+        }
+      }
+    }else if(pagecheck == "PR"||pagecheck == "PP"){
+      try {
+        if(pagecheck == "PR") {
+          list_programOP = await program_dataBase.Select(type:"1");
+        }else{
+          list_programPP = await program_dataBase.Select(type: "0");
+        }
+      } catch (ex) {
+        print(ex);
+      }
+      setState(() {
+        if (list_programOP.length > 0 && pagecheck == "PR")
+          page =
+              List.generate(
+                  length_list_program_OP, (index) => List_program(index: index));
+        else if(list_programPP.length > 0 && pagecheck == "PP") page =
+            List.generate(
+                length_list_program_PP, (index) => List_partner(index: index));
+          return;
+      });
+
+      for (int i = 0; i < he_wi.length; i++) {
+        if (i == 3) {
+          he_wi[i] = 60;
+          sizeicon[i] = 40;
+        } else {
+          he_wi[i] = 50;
+          sizeicon[i] = 30;
+        }
       }
     }
   }
@@ -118,17 +152,42 @@ class home_page_state extends State<home_page> {
   _scrollListener() {
     if (_controller.offset >= _controller.position.maxScrollExtent &&
         !_controller.position.outOfRange &&
-        messaging.length > lengthList) {
-      setStatecalback();
+        messaging.length > lengthList && pagecheck == "S") {
+      setStatecalbackmessage();
+    }else if (_controller.offset >= _controller.position.maxScrollExtent &&
+        !_controller.position.outOfRange &&
+        list_programOP.length > length_list_program_OP && pagecheck == "PR") {
+      setStatecalbackprogram();
+    }else if (_controller.offset >= _controller.position.maxScrollExtent &&
+        !_controller.position.outOfRange &&
+        list_programPP.length > length_list_program_PP && pagecheck == "PP") {
+      setStatecalbackpartner();
     }
   }
 
-  void setStatecalback() {
+  void setStatecalbackmessage() {
     if (mounted)
       setState(() {
         lengthList = lengthList + 5;
         page =
             List.generate(lengthList, (index) => List_messaging(index: index));
+      });
+  }
+
+  void setStatecalbackprogram() {
+    if (mounted)
+      setState(() {
+        length_list_program_OP = length_list_program_OP + 5;
+        page =
+            List.generate(length_list_program_OP, (index) => List_program(index: index));
+      });
+  }
+  void setStatecalbackpartner() {
+    if (mounted)
+      setState(() {
+        length_list_program_PP = length_list_program_PP + 5;
+        page =
+            List.generate(length_list_program_PP, (index) => List_partner(index: index));
       });
   }
 
@@ -276,6 +335,7 @@ class home_page_state extends State<home_page> {
                 onRefresh: _hundgetdate,
                 child: (page != null)
                     ? ListView(
+                  physics: AlwaysScrollableScrollPhysics(),
                         controller: _controller,
                         scrollDirection: Axis.vertical,
                         children: page,
@@ -482,76 +542,13 @@ class home_page_state extends State<home_page> {
                               BoxShadow(color: Colors.white, blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: () {
+                          onPressed: ()async {
+                            pagecheck = "PR";
+                            await _hundgetdate();
                             setState(() {
-                              pagecheck = "PR";
-                              showsendmessage = true;
+                              showsendmessage = checkadmin;
                               page = List.generate(
-                                  5, (index) => checkadmin ? SwipeTo(
-                                  offsetDx: 1,
-                                  animationDuration: Duration(milliseconds: 800),
-                                  onLeftSwipe:  () {
-                                    //end to start
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) => MyDialogeHome(
-                                            type: "D",
-                                            onPresed: () async {
-                                              // if (checkadmin) {
-                                              //   if (await messsage_dataBase.Delete(
-                                              //       messaging[widget.index!]
-                                              //           .MessageID
-                                              //           .toString())) {
-                                              //     messaging.removeAt(widget.index!);
-                                              //     setState(() {
-                                              //       showtoast("Delete Seccessfully");
-                                              //     });
-                                              //   } else {
-                                              //     showtoast("Delete Problem");
-                                              //   }
-                                              // }
-                                            }));
-                                  },
-                                  onRightSwipe:  () {
-                                    //start to end
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) => MyDialogeHome(
-                                            type: "U",
-                                            onPresed: () {
-                                              // if (checkadmin) {
-                                              //   checkubdate = true;
-                                              //   Navigator.push(context,
-                                              //       MaterialPageRoute(builder: (context) {
-                                              //         return message_page("S",
-                                              //             messaging.elementAt(widget.index!));
-                                              //       }));
-                                              // }
-                                            }));
-                                  },
-                                  rightSwipeWidget:Container(
-                                      alignment: Alignment.center,
-                                      child: Container(
-                                        margin: EdgeInsets.only(left: 20, right: 20),
-                                        decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(20)),
-                                        child: Icon(
-                                          Icons.edit_outlined,
-                                          size: 50,
-                                        ),
-                                      )),
-                                  leftSwipeWidget: Container(
-                                      margin: EdgeInsets.only(right: 20, left: 20),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(20)),
-                                      child: Icon(
-                                        Icons.delete,
-                                        size: 50,
-                                      )),
-                                  child: List_program(index: index + 1)):List_program(index: index + 1));
+                                  list_programOP.length > 5 ? length_list_program_OP : list_programOP.length, (index) =>  List_program(index: index));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 3) {
                                   he_wi[i] = 60;
@@ -687,78 +684,17 @@ class home_page_state extends State<home_page> {
                   height: HieghDevice / 17,
                   width: WidthDevice / 2,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      pagecheck = "PR";
+                      if(list_programOP.isEmpty) {
+                        await _hundgetdate();
+                      }
                       setState(() {
-                        pagecheck = "PR";
                         boxShadowOP = boxShadowOnClick;
                         boxShadowPP = boxShadowUpClick;
                         showsendmessage = true;
                         page = List.generate(
-                            5, (index) => checkadmin ? SwipeTo(
-                            offsetDx: 1,
-                            animationDuration: Duration(milliseconds: 800),
-                            onLeftSwipe:  () {
-                              //end to start
-                              showDialog(
-                                  context: context,
-                                  builder: (context) => MyDialogeHome(
-                                      type: "D",
-                                      onPresed: () async {
-                                        // if (checkadmin) {
-                                        //   if (await messsage_dataBase.Delete(
-                                        //       messaging[widget.index!]
-                                        //           .MessageID
-                                        //           .toString())) {
-                                        //     messaging.removeAt(widget.index!);
-                                        //     setState(() {
-                                        //       showtoast("Delete Seccessfully");
-                                        //     });
-                                        //   } else {
-                                        //     showtoast("Delete Problem");
-                                        //   }
-                                        // }
-                                      }));
-                            },
-                            onRightSwipe:  () {
-                              //start to end
-                              showDialog(
-                                  context: context,
-                                  builder: (context) => MyDialogeHome(
-                                      type: "U",
-                                      onPresed: () {
-                                        // if (checkadmin) {
-                                        //   checkubdate = true;
-                                        //   Navigator.push(context,
-                                        //       MaterialPageRoute(builder: (context) {
-                                        //         return message_page("S",
-                                        //             messaging.elementAt(widget.index!));
-                                        //       }));
-                                        // }
-                                      }));
-                            },
-                            rightSwipeWidget:Container(
-                                alignment: Alignment.center,
-                                child: Container(
-                                  margin: EdgeInsets.only(left: 20, right: 20),
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20)),
-                                  child: Icon(
-                                    Icons.edit_outlined,
-                                    size: 50,
-                                  ),
-                                )),
-                            leftSwipeWidget: Container(
-                                margin: EdgeInsets.only(right: 20, left: 20),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20)),
-                                child: Icon(
-                                  Icons.delete,
-                                  size: 50,
-                                )),
-                            child: List_program(index: index + 1)):List_program(index: index + 1));
+                            list_programOP.length > 5 ? length_list_program_OP : list_programOP.length, (index) =>  List_program(index: index));
                       });
                     },
                     child: Container(
@@ -781,78 +717,17 @@ class home_page_state extends State<home_page> {
                   height: HieghDevice / 17,
                   width: WidthDevice / 2,
                   child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
+                    onPressed: () async {
                         pagecheck = "PP";
+                        if(list_programPP.isEmpty) {
+                          await _hundgetdate();
+                        }
+                      setState(() {
                         boxShadowPP = boxShadowOnClick;
                         boxShadowOP = boxShadowUpClick;
                         showsendmessage = true;
                         page = List.generate(
-                            5, (index) => checkadmin ? SwipeTo(
-                            offsetDx: 1,
-                            animationDuration: Duration(milliseconds: 800),
-                            onLeftSwipe:  () {
-                              //end to start
-                              showDialog(
-                                  context: context,
-                                  builder: (context) => MyDialogeHome(
-                                      type: "D",
-                                      onPresed: () async {
-                                        // if (checkadmin) {
-                                        //   if (await messsage_dataBase.Delete(
-                                        //       messaging[widget.index!]
-                                        //           .MessageID
-                                        //           .toString())) {
-                                        //     messaging.removeAt(widget.index!);
-                                        //     setState(() {
-                                        //       showtoast("Delete Seccessfully");
-                                        //     });
-                                        //   } else {
-                                        //     showtoast("Delete Problem");
-                                        //   }
-                                        // }
-                                      }));
-                            },
-                            onRightSwipe:  () {
-                              //start to end
-                              showDialog(
-                                  context: context,
-                                  builder: (context) => MyDialogeHome(
-                                      type: "U",
-                                      onPresed: () {
-                                        // if (checkadmin) {
-                                        //   checkubdate = true;
-                                        //   Navigator.push(context,
-                                        //       MaterialPageRoute(builder: (context) {
-                                        //         return message_page("S",
-                                        //             messaging.elementAt(widget.index!));
-                                        //       }));
-                                        // }
-                                      }));
-                            },
-                            rightSwipeWidget:Container(
-                                alignment: Alignment.center,
-                                child: Container(
-                                  margin: EdgeInsets.only(left: 20, right: 20),
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20)),
-                                  child: Icon(
-                                    Icons.edit_outlined,
-                                    size: 50,
-                                  ),
-                                )),
-                            leftSwipeWidget: Container(
-                                margin: EdgeInsets.only(right: 20, left: 20),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20)),
-                                child: Icon(
-                                  Icons.delete,
-                                  size: 50,
-                                )),
-                            child: List_partner(index: index)) : List_partner(index: index));
+                           list_programPP.length > 5 ? length_list_program_PP : list_programPP.length, (index) =>  List_partner(index: index));
                       });
                     },
                     child: Container(
@@ -880,6 +755,17 @@ class home_page_state extends State<home_page> {
   Future<void> _hundgetdate() async {
     if (pagecheck == "S" || pagecheck == "SI") {
       lengthList = 5;
+      try {
+        await get_select_message();
+      } catch (e) {
+        print(e);
+      }
+    }else if (pagecheck == "PR" || pagecheck == "PI" || pagecheck == "PP") {
+      if(pagecheck == "PR"){
+        length_list_program_OP = 5;
+      }else if(pagecheck == "PP"){
+        length_list_program_PP = 5;
+      }
       try {
         await get_select_message();
       } catch (e) {
