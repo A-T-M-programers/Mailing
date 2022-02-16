@@ -8,7 +8,9 @@ import 'package:mailing/main.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../Login_Mailing.dart';
+import '../Validate.dart';
 import 'Constant.dart';
+import 'Notification_OneSignal.dart';
 
 class Notification_Message {
   Messaging? messaging;
@@ -594,6 +596,20 @@ class Program_DataBase extends DataBase_Access{
         'secret': '$secret'
       }
       );
+      if(response.statusCode == 200){
+        if(list_image_insert.isNotEmpty &&Validation.isValidnull(list_image_insert[0])) {
+          await Notification_OneSignal_class.handleSendNotificationWithImage(
+              list_image_insert[0], list
+              .elementAt(2),
+              list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
+        }
+        else {
+          await Notification_OneSignal_class.handleSendNotification(
+              list.elementAt(2),
+              list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
+        }
+        return Status(response.statusCode);
+      }
       return Status(response.statusCode);
     }
   }
@@ -624,6 +640,20 @@ class Program_DataBase extends DataBase_Access{
         'secret': '$secret'
       }
       );
+      if(response.statusCode == 200){
+        if(list_image_update.isNotEmpty &&Validation.isValidnull(list_image_update[0])) {
+          await Notification_OneSignal_class.handleSendNotificationWithImage(
+              list_image_update[0], list
+              .elementAt(2),
+              list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
+        }
+        else {
+          await Notification_OneSignal_class.handleSendNotification(
+              list.elementAt(2),
+              list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
+        }
+        return Status(response.statusCode);
+      }
       return Status(response.statusCode);
     }
   }

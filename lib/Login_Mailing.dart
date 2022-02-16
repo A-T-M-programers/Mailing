@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mailing/Class/Notification_OneSignal.dart';
 import 'package:mailing/Validate.dart';
 import 'package:rolling_switch/rolling_switch.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';

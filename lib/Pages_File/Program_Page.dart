@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:http/http.dart';
 import 'package:mailing/Class/Class_database.dart';
+import 'package:mailing/Class/Get_Photo.dart';
 import 'package:mailing/Validate.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:swipe_to/swipe_to.dart';
 import '../Home_Page.dart';
 import '../Login_Mailing.dart';
@@ -153,7 +155,16 @@ class _List_progrmam_state extends State<List_program> {
                           ),
                           child: Validation.isValidnull(
                               list_programOP[widget.index!].getlistimage[0])
-                              ? CachedNetworkImage(
+                              ? GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                      builder: (context) => show_photo(path: list_programOP[widget.index!].getlistimage[0].trim(), type: "N")));
+                                });
+                              },
+                              child: CachedNetworkImage(
                             imageUrl: list_programOP[widget.index!]
                                 .getlistimage[0].trim(),
                             imageBuilder: (context, imageProvider) =>
@@ -170,8 +181,17 @@ class _List_progrmam_state extends State<List_program> {
                                 CircularProgressIndicator(),
                             errorWidget: (context, url, error) =>
                                 Icon(Icons.error),
-                          )
-                              : Container(
+                          ))
+                              : GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => show_photo(path: "", type: "")));
+                                });
+                              },
+                              child: Container(
                             decoration: BoxDecoration(
                               image: DecorationImage(
                                   image: AssetImage(
@@ -181,7 +201,7 @@ class _List_progrmam_state extends State<List_program> {
                               BorderRadius.circular(20),
                             ),
                             child: null,
-                          ))),
+                          )))),
                   Container(
                       alignment: Alignment.topRight,
                       child: Container(
@@ -244,7 +264,7 @@ class _List_progrmam_state extends State<List_program> {
                                               width: 0.2)))),
                               onPressed: () async {
                                 if (Validation.isValidnull(
-                                    messaging[widget.index!].MessageLink)) {
+                                    list_programOP[widget.index!].getlistimage[0])) {
                                   await shareFile();
                                 } else {
                                   await share();
@@ -295,35 +315,15 @@ class _List_progrmam_state extends State<List_program> {
   }
 
   Future<void> shareFile() async {
-    final response = await get(Uri.parse(messaging[widget.index!].MessageLink));
+    final response = await get(Uri.parse(list_programOP[widget.index!].getlistimage[0]));
     final bytes = response.bodyBytes;
     final Directory? temp = await getExternalStorageDirectory();
-    final File imageFile = File('${temp!.path}/tempImage.png');
+    final File imageFile = File('${temp!.path}/Image.png');
     imageFile.writeAsBytesSync(bytes);
 
     await FlutterShare.shareFile(
-      title: Message_type.values.elementAt(
-          int.parse(messaging
-              .elementAt(widget.index!)
-              .MessageType)) +
-          " " +
-          messaging[widget.index!].MessageSymbol +
-          " AT: " +
-          messaging[widget.index!].MessageEntryPoint.toString(),
-      text: messaging[widget.index!].MessageContent +
-          "\n" +
-          "TD1 :" +
-          messaging[widget.index!].Target1 +
-          " " +
-          "TD2 :" +
-          messaging[widget.index!].Target2 +
-          "\n" +
-          "SL :" +
-          messaging[widget.index!].OrderStopLoss +
-          "\n" +
-          messaging[widget.index!].MessageDate +
-          "\n" +
-          "https://www.youtube.com/",
+      title: "Our Product",
+      text: list_programOP[widget.index!].getcontent + "\n " + list_programOP[widget.index!].getlink,
       filePath: imageFile.path,
     );
   }
@@ -357,7 +357,16 @@ class show_photo_list_state extends State<show_photo_list> {
 
     return Row(children: [
       (widget.type == "N")
-          ? Container(
+          ? GestureDetector(
+          onTap: (){
+            setState(() {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => show_photo(path: widget.path.trim(), type: "N")));
+            });
+          },
+          child: Container(
           width: 100,
           height: 140,
           decoration: BoxDecoration(
@@ -367,9 +376,18 @@ class show_photo_list_state extends State<show_photo_list> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(color: Colors.black12, blurRadius: 20)
-              ]))
+              ])))
           : (widget.type == "D")
-          ? Container(
+          ? GestureDetector(
+          onTap: (){
+            setState(() {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => show_photo(path: widget.path, type: "D")));
+            });
+          },
+          child: Container(
         width: 100,
         height: 140,
         child:
@@ -381,8 +399,17 @@ class show_photo_list_state extends State<show_photo_list> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(color: Colors.black12, blurRadius: 20)
-                ])),)
-          : Container(
+                ])),))
+          : GestureDetector(
+        onTap: (){
+          setState(() {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => show_photo(path: "", type: "")));
+          });
+        },
+        child: Container(
           width: 100,
           height: 140,
           decoration: BoxDecoration(
@@ -392,7 +419,7 @@ class show_photo_list_state extends State<show_photo_list> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(color: Colors.black12, blurRadius: 20)
-              ])),
+              ]))),
       SizedBox(
         width: 20,
       )
@@ -535,7 +562,19 @@ class _List_Partner_state extends State<List_partner> {
                                       blurRadius: 20)
                                 ],
                               ),
-                              child: CachedNetworkImage(
+                              child: Validation.isValidnull(
+                                  list_programPP[widget.index!].getlistimage[0])
+                                  ? GestureDetector(
+                                  onTap: (){
+                                    setState(() {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => show_photo(path: list_programPP[widget.index!]
+                                                  .getlistimage[0], type: "N")));
+                                    });
+                                  },
+                                  child: CachedNetworkImage(
                                 imageUrl: list_programPP[widget.index!]
                                     .getlistimage[0],
                                 imageBuilder: (context, imageProvider) =>
@@ -552,7 +591,26 @@ class _List_Partner_state extends State<List_partner> {
                                     CircularProgressIndicator(),
                                 errorWidget: (context, url, error) =>
                                     Icon(Icons.error),
-                              ))),
+                              )) : GestureDetector(
+                              onTap: (){
+                        setState(() {
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (context) => show_photo(path: "", type: "")));
+                        });
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                                image: AssetImage(
+                                    "images/Untitled.png"),
+                                fit: BoxFit.fill),
+                            borderRadius:
+                            BorderRadius.circular(20),
+                          ),
+                          child: null,
+                        )))),
                       Container(
                           alignment: Alignment.topCenter,
                           child: Container(
@@ -631,63 +689,22 @@ class _List_Partner_state extends State<List_partner> {
 
   Future<void> share() async {
     await FlutterShare.share(
-        title: messaging[widget.index!].MessageSymbol,
-        text: Message_type.values.elementAt(
-            int.parse(messaging
-                .elementAt(widget.index!)
-                .MessageType)) +
-            "   " +
-            messaging[widget.index!].MessageSymbol +
-            "   AT: " +
-            messaging[widget.index!].MessageEntryPoint.toString() +
-            "\n" +
-            messaging[widget.index!].MessageContent +
-            "\n" +
-            "TD1 :" +
-            messaging[widget.index!].Target1 +
-            "   " +
-            "TD2 :" +
-            messaging[widget.index!].Target2 +
-            "\n" +
-            "SL :" +
-            messaging[widget.index!].OrderStopLoss +
-            "\n" +
-            messaging[widget.index!].MessageDate +
-            "\n",
-        linkUrl: "https://www.youtube.com/",
+        title: "Partner Program",
+        text: list_programPP[widget.index!].getcontent,
+        linkUrl: list_programPP[widget.index!].getlink,
         chooserTitle: 'Example Chooser Title');
   }
 
   Future<void> shareFile() async {
-    final response = await get(Uri.parse(messaging[widget.index!].MessageLink));
+    final response = await get(Uri.parse(list_programPP[widget.index!].getlistimage[0]));
     final bytes = response.bodyBytes;
     final Directory? temp = await getExternalStorageDirectory();
-    final File imageFile = File('${temp!.path}/tempImage.png');
+    final File imageFile = File('${temp!.path}/Image.png');
     imageFile.writeAsBytesSync(bytes);
 
     await FlutterShare.shareFile(
-      title: Message_type.values.elementAt(
-          int.parse(messaging
-              .elementAt(widget.index!)
-              .MessageType)) +
-          " " +
-          messaging[widget.index!].MessageSymbol +
-          " AT: " +
-          messaging[widget.index!].MessageEntryPoint.toString(),
-      text: messaging[widget.index!].MessageContent +
-          "\n" +
-          "TD1 :" +
-          messaging[widget.index!].Target1 +
-          " " +
-          "TD2 :" +
-          messaging[widget.index!].Target2 +
-          "\n" +
-          "SL :" +
-          messaging[widget.index!].OrderStopLoss +
-          "\n" +
-          messaging[widget.index!].MessageDate +
-          "\n" +
-          "https://www.youtube.com/",
+      title: "Partner Program",
+      text: list_programPP[widget.index!].getcontent + "\n " +list_programPP[widget.index!].getlink,
       filePath: imageFile.path,
     );
   }

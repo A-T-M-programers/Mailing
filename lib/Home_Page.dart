@@ -1228,7 +1228,7 @@ class _List_messaging extends State<List_messaging> {
                           width: WidthDevice,
                           margin:
                               EdgeInsets.only(left: WidthDevice / 10, top: 170),
-                          child: pay_or_not || checkadmin
+                          child: pay_complate || checkadmin
                               ? Text(
                                   "SL : " +
                                       messaging

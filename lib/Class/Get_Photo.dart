@@ -138,7 +138,7 @@ class show_photo_state extends State<show_photo> {
             child: (widget.type == "N") ?
             PhotoView(imageProvider: NetworkImage(widget.path)) :
                 (widget.type == "D") ?
-            PhotoView(imageProvider: FileImage(File(widget.path))) :
+            PhotoView(imageProvider: FileImage(File(widget.path)),) :
             PhotoView(imageProvider: AssetImage("images/Untitled.png")
     )
     ,

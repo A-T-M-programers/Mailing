@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:mailing/Home_Page.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import 'Class/Class_database.dart';
+import 'Class/Notification_OneSignal.dart';
 import 'Login_Mailing.dart';
 import 'l10n/applocal.dart';
 
@@ -30,13 +32,37 @@ void main()async {
   } on SocketException catch (_) {
     showtoast("Check Internet");
   }
-  
-  
+}
+class MyApp extends StatefulWidget{
+  const MyApp({Key? key}) : super(key: key);
+
+  MyAppstate createState() => MyAppstate();
 }
 
-class MyApp extends StatelessWidget {
+class MyAppstate extends State<MyApp> {
+  static final String AppIdOneSignal ="cc6f0e3f-bea7-478c-a743-230d2640c689";
   // This widget is the root of your application.
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    configOneSignel();
+  }
 
+  Future<void> configOneSignel()async
+  {
+    //Remove this method to stop OneSignal Debugging
+    OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+
+   OneSignal.shared.setAppId(AppIdOneSignal);
+    // The promptForPushNotificationsWithUserResponse function will show the iOS push notification prompt. We recommend removing the following code and instead using an In-App Message to prompt for notification permission
+    OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
+      print("Accepted permission: $accepted");
+      });
+    Notification_OneSignal_class.callback_before_notifi();
+    Notification_OneSignal_class.open_notifi();
+
+  }
 
   @override
   Widget build(BuildContext context) {

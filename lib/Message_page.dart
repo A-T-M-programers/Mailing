@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mailing/Class/Get_Photo.dart';
+import 'package:mailing/Class/Notification_OneSignal.dart';
 import 'package:mailing/Login_Mailing.dart';
 import 'package:mailing/Pages_File/Notif_Page.dart';
 import 'package:mailing/Pages_File/Program_Page.dart';
@@ -25,6 +26,7 @@ late int list_image_count = 0;
 get_photo get_image_sympole = get_photo();
 get_photo set_image_OP = get_photo();
 late List<String> list_image = [] ;
+String page_now = "";
 
 class message_page extends StatefulWidget {
   message_page(String type_page, var messaging) {
@@ -48,6 +50,7 @@ class message_page_state extends State<message_page> {
     // TODO: implement initState
     super.initState();
     if (widget.type_page == "S" || widget.type_page == "SI") {
+      page_now = widget.type_page!;
       this.body_message_contain =
           body_message(message: widget.messaging, type: widget.type_page!);
 
@@ -55,6 +58,7 @@ class message_page_state extends State<message_page> {
       boxShadowPu = boxShadowUpClick;
       boxShadowPr = boxShadowUpClick;
     } else if (widget.type_page == "P" || widget.type_page == "PI") {
+      page_now = widget.type_page!;
       this.body_message_contain =
           body_message_pr(message: widget.messaging, type: widget.type_page!);
 
@@ -62,6 +66,7 @@ class message_page_state extends State<message_page> {
       boxShadowPu = boxShadowUpClick;
       boxShadowS = boxShadowUpClick;
     } else if (widget.type_page == "N" || widget.type_page == "NI") {
+      page_now = widget.type_page!;
       this.body_message_contain = body_message_pu(
           messaging_pu: messaging_pu, typepage: widget.type_page!);
 
@@ -160,9 +165,18 @@ class message_page_state extends State<message_page> {
                             boxShadowPu = boxShadowOnClick;
                             boxShadowPr = boxShadowUpClick;
 
-                            this.body_message_contain = body_message_pu(
-                                messaging_pu: messaging_pu!,
-                                typepage: widget.type_page!);
+                            if(widget.type_page == "N"||widget.type_page == "NI") {
+                              page_now = widget.type_page!;
+                              this.body_message_contain = body_message_pu(
+                                  messaging_pu: new Messaging_PU(),
+                                  typepage: widget.type_page!);
+
+                            }else {
+                              page_now = "NI";
+                              this.body_message_contain = body_message_pu(
+                                  messaging_pu: new Messaging_PU(),
+                                  typepage: page_now);
+                            }
                           });
                         },
                         child: Container(
@@ -191,13 +205,15 @@ class message_page_state extends State<message_page> {
                             boxShadowPu = boxShadowUpClick;
                             boxShadowPr = boxShadowUpClick;
                             if(widget.type_page == "S"||widget.type_page == "SI") {
+                              page_now = widget.type_page!;
                               this.body_message_contain = body_message(
                                   message: widget.messaging,
                                   type: widget.type_page!);
                             }else{
+                              page_now = "SI";
                               this.body_message_contain = body_message(
                                   message: new Messaging(),
-                                  type: widget.type_page!);
+                                  type: page_now);
                             }
                           });
                         },
@@ -226,13 +242,15 @@ class message_page_state extends State<message_page> {
                             boxShadowPu = boxShadowUpClick;
                             boxShadowPr = boxShadowOnClick;
                             if(widget.type_page == "P"||widget.type_page == "PI") {
+                              page_now = widget.type_page!;
                               this.body_message_contain = body_message_pr(
                                   message: widget.messaging,
                                   type: widget.type_page!);
                             }else{
+                              page_now = "PI";
                               this.body_message_contain = body_message_pr(
                                   message: new Messaging_PR(),
-                                  type: widget.type_page!);
+                                  type: page_now);
                             }
                           });
                         },
@@ -320,7 +338,7 @@ class message_page_state extends State<message_page> {
   }
 
   Future<void> _hundSendMessage() async {
-    if(pagecheck == "SI") {
+    if (page_now == "SI") {
       String pathurlimage = "";
       if (Validation.isValidnull(get_image_sympole.path.path)) {
         pathurlimage = await get_image_sympole.Upload(get_image_sympole.path);
@@ -346,6 +364,7 @@ class message_page_state extends State<message_page> {
         Messsage_DataBase message_database = Messsage_DataBase();
 
         if (await message_database.Insert(list)) {
+          await Notification_OneSignal_class.handleSendNotification(Message_Sympole_Content.text,"Signal on " + Message_Sympole.text);
           Message_Sympole_Price.clear();
           Message_Sympole_MEP.clear();
           Message_Sympole_OSL.clear();
@@ -360,14 +379,14 @@ class message_page_state extends State<message_page> {
       } else {
         showtoast('${getLang(context, "Field_Empty")}');
       }
-    }else if(widget.type_page == "PI"){
+    } else if (page_now == "PI") {
       if (Validation.isValidnull(Program_Link.text) &&
           Validation.isValidnull(Program_Content.text)) {
         List<String> list = [];
         list.add(numberdropdownValueP!);
         list.add(Program_Link.text);
         list.add(Program_Content.text);
-        if(list_image.isNotEmpty) {
+        if (list_image.isNotEmpty) {
           list.addAll(list_image);
         }
         Program_DataBase program_database = Program_DataBase();
@@ -382,6 +401,27 @@ class message_page_state extends State<message_page> {
         }
       } else {
         showtoast('${getLang(context, "Field_Empty")}');
+      }
+    } else if (page_now == "NI") {
+      if (Validation.isValidnull(Public_Title.text) &&
+          Validation.isValidnull(Public_Content.text)) {
+        List<String> list = [];
+        list.add(Public_Title.text);
+        list.add(Public_Content.text);
+        await Notification_OneSignal_class.handleSendNotification(list[1], list[0]);
+        Program_DataBase program_database = Program_DataBase();
+        list = [];
+        //   if (await program_database.Insert(list)) {
+        //     Program_Link.clear();
+        //     Program_Content.clear();
+        //     set_image_OP.path = File("");
+        //     list_image = [];
+        //   } else {
+        //     showtoast('${getLang(context, "No_Insert")}');
+        //   }
+        // } else {
+        //   showtoast('${getLang(context, "Field_Empty")}');
+        // }
       }
     }
   }
@@ -417,6 +457,7 @@ class message_page_state extends State<message_page> {
         Messsage_DataBase message_database = Messsage_DataBase();
 
         if (await message_database.Ubdate(list)) {
+          await Notification_OneSignal_class.handleSendNotification(Message_Sympole_Content.text,"Signal on " + Message_Sympole.text);
           Message_Sympole_Price.clear();
           Message_Sympole_MEP.clear();
           Message_Sympole_OSL.clear();
@@ -1337,7 +1378,7 @@ class body_message_pr_state extends State<body_message_pr> {
               child: ListView.builder(
                 shrinkWrap: true,
                 scrollDirection: Axis.horizontal,
-                itemCount: list_image.length-1,
+                itemCount: list_image.length > 0 ? list_image.length-1 :list_image.length,
                 itemBuilder: (context,index){
                   return Dismissible(
                     direction: DismissDirection.vertical,
@@ -1367,9 +1408,9 @@ class body_message_pu extends StatefulWidget {
   final String typepage;
   final Messaging_PU? messaging_pu;
 }
-
+late TextEditingController Public_Content, Public_Title;
 class body_message_pu_state extends State<body_message_pu> {
-  late TextEditingController Public_Content, Public_Title;
+
   double WidthDevice = 0, HieghDevice = 0;
 
   @override
