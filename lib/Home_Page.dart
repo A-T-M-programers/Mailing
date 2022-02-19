@@ -32,16 +32,18 @@ Map<String, String> Message_type = {
 };
 ScrollController _controller = ScrollController();
 
-late bool checkadmin, endList, showsendmessage;
-int lengthList = 5,length_list_program_OP = 5,length_list_program_PP = 5;
+late bool checkadmin,showsendmessage;
+int lengthList = 5,length_list_program_OP = 5,length_list_program_PP = 5,length_list_notification = 5,count_notification_view = 0;
 var page;
 String pagecheck = "S";
 List<double> he_wi = [50, 50, 70, 50, 50];
 List<double> sizeicon = [30, 30, 50, 30, 30];
 List<Messaging> messaging = [];
+List<Notification_Message> notification_message = [];
 List<int> countviewint = [];
 Messsage_DataBase messsage_dataBase = Messsage_DataBase();
 Program_DataBase program_dataBase = Program_DataBase();
+Public_DataBase public_dataBase = Public_DataBase();
 Contentviewinfo_DataBase countview = Contentviewinfo_DataBase();
 Widget _dialogContent = CircularProgressIndicator();
 
@@ -57,6 +59,19 @@ class home_page_state extends State<home_page> {
   double WidthDevice = 0, HieghDevice = 0;
 
   Future<void> get_select_message() async {
+
+    try{
+      notification_message = await public_dataBase.Select(email: member.Email);
+      count_notification_view = 0;
+      for(int i = 0 ; i <  notification_message.length;i++){
+        if(notification_message[i].getNotifiState){
+          count_notification_view++;
+        }
+      }
+    }catch(ex){
+      print(ex);
+    }
+
     if(pagecheck == "S"||pagecheck == "SI") {
       try {
         messaging = await messsage_dataBase.Select();
@@ -69,7 +84,7 @@ class home_page_state extends State<home_page> {
         if (messaging.length > 0)
           page =
               List.generate(
-                  lengthList, (index) => List_messaging(index: index));
+                  lengthList, (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
         else
           return;
       });
@@ -97,11 +112,10 @@ class home_page_state extends State<home_page> {
         if (list_programOP.length > 0 && pagecheck == "PR")
           page =
               List.generate(
-                  length_list_program_OP, (index) => List_program(index: index));
+                  length_list_program_OP, (index) => List_program(messaging_pr: index >= list_programOP.length ? Messaging_PR() : list_programOP[index]));
         else if(list_programPP.length > 0 && pagecheck == "PP") page =
             List.generate(
-                length_list_program_PP, (index) => List_partner(index: index));
-          return;
+                length_list_program_PP, (index) => List_partner(messaging_pp: index >= list_programPP.length ? Messaging_PR() : list_programPP[index]));
       });
 
       for (int i = 0; i < he_wi.length; i++) {
@@ -162,6 +176,10 @@ class home_page_state extends State<home_page> {
         !_controller.position.outOfRange &&
         list_programPP.length > length_list_program_PP && pagecheck == "PP") {
       setStatecalbackpartner();
+    }else if (_controller.offset >= _controller.position.maxScrollExtent &&
+        !_controller.position.outOfRange &&
+        notification_message.length > length_list_notification && pagecheck == "N") {
+      setStatecalbacknotification();
     }
   }
 
@@ -170,7 +188,7 @@ class home_page_state extends State<home_page> {
       setState(() {
         lengthList = lengthList + 5;
         page =
-            List.generate(lengthList, (index) => List_messaging(index: index));
+            List.generate(lengthList, (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
       });
   }
 
@@ -179,7 +197,7 @@ class home_page_state extends State<home_page> {
       setState(() {
         length_list_program_OP = length_list_program_OP + 5;
         page =
-            List.generate(length_list_program_OP, (index) => List_program(index: index));
+            List.generate(length_list_program_OP, (index) => List_program(messaging_pr: index >= list_programOP.length ? Messaging_PR() : list_programOP[index]));
       });
   }
   void setStatecalbackpartner() {
@@ -187,7 +205,15 @@ class home_page_state extends State<home_page> {
       setState(() {
         length_list_program_PP = length_list_program_PP + 5;
         page =
-            List.generate(length_list_program_PP, (index) => List_partner(index: index));
+            List.generate(length_list_program_PP, (index) => List_partner(messaging_pp: index >= list_programPP.length ? Messaging_PR() : list_programPP[index]));
+      });
+  }
+  void setStatecalbacknotification() {
+    if (mounted)
+      setState(() {
+        length_list_notification = length_list_notification + 5;
+        page =
+            List.generate(length_list_notification, (index) => List_Notif(index: index));
       });
   }
 
@@ -253,27 +279,30 @@ class home_page_state extends State<home_page> {
                         switch (newValue) {
                           case "View":
                             {
+                              SortByView();
+                              page = List.generate(lengthList,
+                                      (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
                               break;
                             }
                           case "Name":
                             {
                               SortByName();
                               page = List.generate(lengthList,
-                                  (index) => List_messaging(index: index));
+                                  (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
                               break;
                             }
                           case "Price":
                             {
                               SortByPrice();
                               page = List.generate(lengthList,
-                                  (index) => List_messaging(index: index));
+                                  (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
                               break;
                             }
                           default:
                             {
                               SortByDate();
                               page = List.generate(lengthList,
-                                  (index) => List_messaging(index: index));
+                                  (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
                               break;
                             }
                         }
@@ -339,6 +368,7 @@ class home_page_state extends State<home_page> {
                         controller: _controller,
                         scrollDirection: Axis.vertical,
                         children: page,
+                  padding: EdgeInsetsDirectional.only(bottom: (HieghDevice / 5.5) + 60),
                       )
                     : Container(
                         margin: EdgeInsets.only(bottom: HieghDevice / 3),
@@ -498,7 +528,7 @@ class home_page_state extends State<home_page> {
                               pagecheck = "S";
                               showsendmessage = true;
                               page = List.generate(lengthList,
-                                  (index) => List_messaging(index: index));
+                                  (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 2) {
                                   he_wi[i] = 60;
@@ -548,7 +578,7 @@ class home_page_state extends State<home_page> {
                             setState(() {
                               showsendmessage = checkadmin;
                               page = List.generate(
-                                  list_programOP.length > 5 ? length_list_program_OP : list_programOP.length, (index) =>  List_program(index: index));
+                                  list_programOP.length > 5 ? length_list_program_OP : list_programOP.length, (index) =>  List_program(messaging_pr: index >= list_programOP.length ? Messaging_PR() : list_programOP[index]));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 3) {
                                   he_wi[i] = 60;
@@ -592,12 +622,13 @@ class home_page_state extends State<home_page> {
                               BoxShadow(color: Colors.white, blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: () {
+                          onPressed: ()async {
+                            pagecheck = "N";
+                            await _hundgetdate();
                             setState(() {
-                              pagecheck = "N";
-                              showsendmessage = true;
+                              showsendmessage = checkadmin;
                               page = List.generate(
-                                  5, (index) => List_Notif(index: index + 1));
+                                  notification_message.length > 5 ? length_list_notification : notification_message.length, (index) =>  List_Notif(index: index));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 4) {
                                   he_wi[i] = 60;
@@ -621,16 +652,16 @@ class home_page_state extends State<home_page> {
                           '${getLang(context, "Notificat")}',
                           style: TextStyle(color: Colors.white),
                         )),
-                    Container(
+                    notification_message.length > 0 && notification_message.length != count_notification_view ? Container(
                       margin: EdgeInsets.only(left: 38),
-                      width: 20,
-                      height: 20,
+                      width: 25,
+                      height: 25,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                           color: Colors.red,
                           borderRadius: BorderRadius.circular(30)),
-                      child: Text("3"),
-                    ),
+                      child: Text(notification_message.length > 99 ? "99+": (notification_message.length - count_notification_view).toString(),style: TextStyle(fontSize: 11),),
+                    ):SizedBox(),
                   ],
                 )),
           ],
@@ -694,7 +725,7 @@ class home_page_state extends State<home_page> {
                         boxShadowPP = boxShadowUpClick;
                         showsendmessage = true;
                         page = List.generate(
-                            list_programOP.length > 5 ? length_list_program_OP : list_programOP.length, (index) =>  List_program(index: index));
+                            list_programOP.length > 5 ? length_list_program_OP : list_programOP.length, (index) =>  List_program(messaging_pr: index >= list_programOP.length ? Messaging_PR() : list_programOP[index]));
                       });
                     },
                     child: Container(
@@ -727,7 +758,7 @@ class home_page_state extends State<home_page> {
                         boxShadowOP = boxShadowUpClick;
                         showsendmessage = true;
                         page = List.generate(
-                           list_programPP.length > 5 ? length_list_program_PP : list_programPP.length, (index) =>  List_partner(index: index));
+                           list_programPP.length > 5 ? length_list_program_PP : list_programPP.length, (index) =>  List_partner(messaging_pp: index >= list_programPP.length ? Messaging_PR() : list_programPP[index]));
                       });
                     },
                     child: Container(
@@ -772,6 +803,14 @@ class home_page_state extends State<home_page> {
         print(e);
       }
     }
+    else if (pagecheck == "N" || pagecheck == "NI") {
+      length_list_notification = 5;
+      try {
+        await get_select_message();
+      } catch (e) {
+        print(e);
+      }
+    }
   }
 }
 
@@ -779,9 +818,9 @@ class List_messaging extends StatefulWidget {
   @override
   _List_messaging createState() => _List_messaging();
 
-  List_messaging({Key? key, this.index, this.onPress}) : super(key: key);
+  List_messaging({Key? key, this.message, this.onPress}) : super(key: key);
 
-  final int? index;
+  final Messaging? message;
   final Function? onPress;
 }
 
@@ -800,17 +839,15 @@ class _List_messaging extends State<List_messaging> {
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
 
-    if (messaging.length > widget.index!) {
-      endList = ((lengthList - 1) == widget.index) ? true : false;
-      pay_or_not = ((messaging[widget.index!].MessagePrice) > 0) ? false : true;
-      for (int i = 0; i < countviewint.length; i++) {
-        if (messaging[widget.index!].MessageID == countviewint[i]) {
-          pay_complate = true;
-          break;
-        }
+      pay_or_not = ((widget.message!.MessagePrice) > 0) ? false : true;
+
+      if (countviewint.contains(widget.message!.MessageID)) {
+        pay_complate = true;
+      }else{
+        pay_complate = false;
       }
 
-      return messaging.length > 0
+      return widget.message!.MessageID != 0
           ? SwipeTo(
         offsetDx: 1,
               animationDuration: Duration(milliseconds: 800),
@@ -824,10 +861,10 @@ class _List_messaging extends State<List_messaging> {
                               onPresed: () async {
                                 if (checkadmin) {
                                   if (await messsage_dataBase.Delete(
-                                      messaging[widget.index!]
+                                      widget.message!
                                           .MessageID
                                           .toString())) {
-                                    messaging.removeAt(widget.index!);
+                                    messaging.remove(widget.message!);
                                     setState(() {
                                       showtoast("Delete Seccessfully");
                                     });
@@ -840,7 +877,7 @@ class _List_messaging extends State<List_messaging> {
                   : () async {
                       if (pay_or_not) {
                         if (Validation.isValidnull(
-                            messaging[widget.index!].MessageLink)) {
+                            widget.message!.MessageLink)) {
                           await shareFile();
                         } else {
                           await share();
@@ -860,7 +897,7 @@ class _List_messaging extends State<List_messaging> {
                                   Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     return message_page("S",
-                                        messaging.elementAt(widget.index!));
+                                        widget.message!);
                                   }));
                                 }
                               }));
@@ -868,7 +905,7 @@ class _List_messaging extends State<List_messaging> {
                   : () async {
                       if (pay_or_not) {
                         if (Validation.isValidnull(
-                            messaging[widget.index!].MessageLink)) {
+                            widget.message!.MessageLink)) {
                           await shareFile();
                         } else {
                           await share();
@@ -943,7 +980,7 @@ class _List_messaging extends State<List_messaging> {
                         alignment: Alignment.topLeft,
                         child: pay_complate || checkadmin
                             ? Text(
-                                messaging.elementAt(widget.index!).MessageDate,
+                          widget.message!.MessageDate,
                                 style: TextStyle(
                                     color: Colors.black38,
                                     fontSize: (HieghDevice / 180) *
@@ -955,8 +992,7 @@ class _List_messaging extends State<List_messaging> {
                                   sigmaY: 3,
                                 ),
                                 child: Text(
-                                  messaging
-                                      .elementAt(widget.index!)
+                                  widget.message!
                                       .MessageDate,
                                   style: TextStyle(
                                       color: Colors.black38,
@@ -979,12 +1015,10 @@ class _List_messaging extends State<List_messaging> {
                                           color: Colors.black38, blurRadius: 20)
                                     ],
                                   ),
-                                  child: Validation.isValidnull(messaging
-                                          .elementAt(widget.index!)
+                                  child: Validation.isValidnull(widget.message!
                                           .MessageLink)
                                       ? CachedNetworkImage(
-                                          imageUrl: messaging
-                                              .elementAt(widget.index!)
+                                          imageUrl: widget.message!
                                               .MessageLink,
                                           imageBuilder:
                                               (context, imageProvider) =>
@@ -1033,8 +1067,7 @@ class _List_messaging extends State<List_messaging> {
                                         ],
                                       ),
                                       child: CachedNetworkImage(
-                                        imageUrl: messaging
-                                            .elementAt(widget.index!)
+                                        imageUrl: widget.message!
                                             .MessageLink,
                                         imageBuilder:
                                             (context, imageProvider) =>
@@ -1063,12 +1096,10 @@ class _List_messaging extends State<List_messaging> {
                               child: pay_complate || checkadmin
                                   ? Text(
                                       Message_type.values.elementAt(int.parse(
-                                          messaging
-                                              .elementAt(widget.index!)
+                                          widget.message!
                                               .MessageType)),
                                       style: TextStyle(
-                                          color: (int.parse(messaging
-                                                      .elementAt(widget.index!)
+                                          color: (int.parse(widget.message!
                                                       .MessageType) <
                                                   3)
                                               ? Colors.blue
@@ -1082,13 +1113,10 @@ class _List_messaging extends State<List_messaging> {
                                           sigmaX: 5, sigmaY: 5),
                                       child: Text(
                                         Message_type.values.elementAt(int.parse(
-                                            messaging
-                                                .elementAt(widget.index!)
+                                            widget.message!
                                                 .MessageType)),
                                         style: TextStyle(
-                                            color: (int.parse(messaging
-                                                        .elementAt(
-                                                            widget.index!)
+                                            color: (int.parse(widget.message!
                                                         .MessageType) <
                                                     3)
                                                 ? Colors.blue
@@ -1100,11 +1128,10 @@ class _List_messaging extends State<List_messaging> {
                                     )),
                           Container(
                               child: Text(
-                            "  " +
-                                messaging
-                                    .elementAt(widget.index!)
+                            " " +
+                                widget.message!
                                     .MessageSymbol +
-                                "  ",
+                                " ",
                             style: TextStyle(
                                 color: pay_complate
                                     ? Colors.black54
@@ -1119,9 +1146,8 @@ class _List_messaging extends State<List_messaging> {
                           Container(
                               child: pay_complate || checkadmin
                                   ? Text(
-                                      "AT: " +
-                                          messaging
-                                              .elementAt(widget.index!)
+                                      "AT:" +
+                                          widget.message!
                                               .MessageEntryPoint
                                               .toString(),
                                       style: TextStyle(
@@ -1135,8 +1161,7 @@ class _List_messaging extends State<List_messaging> {
                                           sigmaY: 3, sigmaX: 3),
                                       child: Text(
                                         "AT: " +
-                                            messaging
-                                                .elementAt(widget.index!)
+                                            widget.message!
                                                 .MessageEntryPoint
                                                 .toString(),
                                         style: TextStyle(
@@ -1163,10 +1188,11 @@ class _List_messaging extends State<List_messaging> {
                                     width: 7,
                                   ),
                                   Text(
-                                    messaging
-                                        .elementAt(widget.index!)
+                                    widget.message!
                                         .MessageCountView,
-                                    style: TextStyle(color: Colors.black54),
+                                    style: TextStyle(color: Colors.black54,fontSize: (HieghDevice / 180) *
+                                        (WidthDevice / 180) +
+                                        5),
                                   )
                                 ],
                               )
@@ -1184,10 +1210,11 @@ class _List_messaging extends State<List_messaging> {
                                       width: 7,
                                     ),
                                     Text(
-                                      messaging
-                                          .elementAt(widget.index!)
+                                      widget.message!
                                           .MessageCountView,
-                                      style: TextStyle(color: Colors.black54),
+                                      style: TextStyle(color: Colors.black54,fontSize: (HieghDevice / 180) *
+                                          (WidthDevice / 180) +
+                                          5),
                                     )
                                   ],
                                 ),
@@ -1203,10 +1230,11 @@ class _List_messaging extends State<List_messaging> {
                                 height: 70,
                                 width: WidthDevice / 3,
                                 child: Text(
-                                  messaging
-                                      .elementAt(widget.index!)
+                                  widget.message!
                                       .MessageContent,
-                                  style: TextStyle(color: Colors.black38),
+                                  style: TextStyle(color: Colors.black38,fontSize: (HieghDevice / 180) *
+                                      (WidthDevice / 180) +
+                                      5),
                                   maxLines: 4,
                                 ))
                             : ImageFiltered(
@@ -1216,10 +1244,11 @@ class _List_messaging extends State<List_messaging> {
                                     height: 70,
                                     width: WidthDevice / 3,
                                     child: Text(
-                                      messaging
-                                          .elementAt(widget.index!)
+                                      widget.message!
                                           .MessageContent,
-                                      style: TextStyle(color: Colors.black38),
+                                      style: TextStyle(color: Colors.black38,fontSize: (HieghDevice / 180) *
+                                          (WidthDevice / 180) +
+                                          5),
                                       maxLines: 4,
                                     )),
                               ),
@@ -1231,8 +1260,7 @@ class _List_messaging extends State<List_messaging> {
                           child: pay_complate || checkadmin
                               ? Text(
                                   "SL : " +
-                                      messaging
-                                          .elementAt(widget.index!)
+                                      widget.message!
                                           .OrderStopLoss,
                                   style: TextStyle(
                                       color: Color.fromARGB(500, 200, 10, 10),
@@ -1246,8 +1274,7 @@ class _List_messaging extends State<List_messaging> {
                                       ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                                   child: Text(
                                     "SL : " +
-                                        messaging
-                                            .elementAt(widget.index!)
+                                        widget.message!
                                             .OrderStopLoss,
                                     style: TextStyle(
                                         color: Color.fromARGB(500, 200, 10, 10),
@@ -1268,8 +1295,7 @@ class _List_messaging extends State<List_messaging> {
                                       width: WidthDevice,
                                       child: Text(
                                         "TD1 : " +
-                                            messaging
-                                                .elementAt(widget.index!)
+                                            widget.message!
                                                 .Target1,
                                         style: TextStyle(
                                             color: Colors.green,
@@ -1285,8 +1311,7 @@ class _List_messaging extends State<List_messaging> {
                                       width: WidthDevice,
                                       child: Text(
                                         "TD2 : " +
-                                            messaging
-                                                .elementAt(widget.index!)
+                                            widget.message!
                                                 .Target2,
                                         style: TextStyle(
                                             color: Colors.green,
@@ -1307,8 +1332,7 @@ class _List_messaging extends State<List_messaging> {
                                         width: WidthDevice,
                                         child: Text(
                                           "TD1 : " +
-                                              messaging
-                                                  .elementAt(widget.index!)
+                                              widget.message!
                                                   .Target1,
                                           style: TextStyle(
                                               color: Colors.green,
@@ -1324,8 +1348,7 @@ class _List_messaging extends State<List_messaging> {
                                         width: WidthDevice,
                                         child: Text(
                                           "TD2 : " +
-                                              messaging
-                                                  .elementAt(widget.index!)
+                                              widget.message!
                                                   .Target2,
                                           style: TextStyle(
                                               color: Colors.green,
@@ -1352,15 +1375,18 @@ class _List_messaging extends State<List_messaging> {
                             if (pay_or_not && !pay_complate) {
                               List<String> list = [];
                               list.add(member.getEmail);
-                              list.add(messaging[widget.index!]
+                              list.add(widget.message!
                                   .MessageID
                                   .toString());
                               list.add("F");
                               if (await countview.Insert(list)) {
+                                pay_complate = true;
                                 setState(() {
-                                  messaging[widget.index!].MessageCountView =
+                                  if(!countviewint.contains(widget.message!.MessageID)){
+                                    countviewint.add(widget.message!.MessageID);
+                                  }
+                                  widget.message!.MessageCountView =
                                       countview.countview!;
-                                  pay_complate = true;
                                 });
                               }
                             }
@@ -1372,12 +1398,11 @@ class _List_messaging extends State<List_messaging> {
                                   size: 40,
                                 )
                               : Text(
-                                  (messaging
-                                              .elementAt(widget.index!)
+                                  (widget.message!
                                               .MessagePrice >
                                           0.0)
                                       ? '${getLang(context, "Pay")}' +
-                                          " : ${messaging.elementAt(widget.index!).MessagePrice}" +
+                                          " : ${widget.message!.MessagePrice}" +
                                           r"$"
                                       : "Free",
                                   style: TextStyle(color: Colors.black38),
@@ -1401,53 +1426,40 @@ class _List_messaging extends State<List_messaging> {
                                           color: Colors.black38, width: 0.2)))),
                         ),
                       ),
-                    ]))),
-                if (endList)
-                  Container(
-                    height: (HieghDevice / 5.5) + 60,
-                  )
+                    ])))
               ]))
-          : Center(child: CircularProgressIndicator());
-    } else {
-      if (lengthList - 1 == widget.index!) {
-        return Container(
-          height: (HieghDevice / 5.5) + 60,
-        );
-      } else {
-        return SizedBox();
-      }
-    }
+          : SizedBox();
   }
 
   Future<void> share() async {
     await FlutterShare.share(
-        title: messaging[widget.index!].MessageSymbol,
+        title: widget.message!.MessageSymbol,
         text: Message_type.values.elementAt(
-                int.parse(messaging.elementAt(widget.index!).MessageType)) +
+                int.parse(widget.message!.MessageType)) +
             "   " +
-            messaging[widget.index!].MessageSymbol +
+            widget.message!.MessageSymbol +
             "   AT: " +
-            messaging[widget.index!].MessageEntryPoint.toString() +
+            widget.message!.MessageEntryPoint.toString() +
             "\n" +
-            messaging[widget.index!].MessageContent +
+            widget.message!.MessageContent +
             "\n" +
             "TD1 :" +
-            messaging[widget.index!].Target1 +
+            widget.message!.Target1 +
             "   " +
             "TD2 :" +
-            messaging[widget.index!].Target2 +
+            widget.message!.Target2 +
             "\n" +
             "SL :" +
-            messaging[widget.index!].OrderStopLoss +
+            widget.message!.OrderStopLoss +
             "\n" +
-            messaging[widget.index!].MessageDate +
+            widget.message!.MessageDate +
             "\n",
         linkUrl: "https://www.youtube.com/",
         chooserTitle: 'Example Chooser Title');
   }
 
   Future<void> shareFile() async {
-    final response = await get(Uri.parse(messaging[widget.index!].MessageLink));
+    final response = await get(Uri.parse(widget.message!.MessageLink));
     final bytes = response.bodyBytes;
     final Directory? temp = await getExternalStorageDirectory();
     final File imageFile = File('${temp!.path}/tempImage.png');
@@ -1455,23 +1467,23 @@ class _List_messaging extends State<List_messaging> {
 
     await FlutterShare.shareFile(
       title: Message_type.values.elementAt(
-              int.parse(messaging.elementAt(widget.index!).MessageType)) +
+              int.parse(widget.message!.MessageType)) +
           " " +
-          messaging[widget.index!].MessageSymbol +
+          widget.message!.MessageSymbol +
           " AT: " +
-          messaging[widget.index!].MessageEntryPoint.toString(),
-      text: messaging[widget.index!].MessageContent +
+          widget.message!.MessageEntryPoint.toString(),
+      text: widget.message!.MessageContent +
           "\n" +
           "TD1 :" +
-          messaging[widget.index!].Target1 +
+          widget.message!.Target1 +
           " " +
           "TD2 :" +
-          messaging[widget.index!].Target2 +
+          widget.message!.Target2 +
           "\n" +
           "SL :" +
-          messaging[widget.index!].OrderStopLoss +
+          widget.message!.OrderStopLoss +
           "\n" +
-          messaging[widget.index!].MessageDate +
+          widget.message!.MessageDate +
           "\n" +
           "https://www.youtube.com/",
       filePath: imageFile.path,
@@ -1495,8 +1507,7 @@ void SortByDate() {
 void SortByView() {
   for (int i = 0; i < messaging.length; i++) {
     for (int j = i + 1; j < messaging.length; j++) {
-      if (DateTime.parse(messaging[i].MessageDate)
-          .isBefore(DateTime.parse(messaging[j].MessageDate))) {
+      if (int.parse(messaging[i].MessageCountView) < int.parse(messaging[j].MessageCountView)) {
         Messaging item = messaging[i];
         messaging[i] = messaging[j];
         messaging[j] = item;

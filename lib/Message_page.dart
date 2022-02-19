@@ -13,8 +13,9 @@ import 'package:mailing/main.dart';
 import 'Class/Class_database.dart';
 import 'Home_Page.dart';
 import 'l10n/applocal.dart';
+import 'package:mailing/Home_Page.dart' as home;
 
-late bool checkadmin, checkubdate = true;
+late bool checkubdate = true;
 BoxShadow? boxShadowOnClick =
         BoxShadow(color: Colors.white, spreadRadius: 10, blurRadius: 40),
     boxShadowS,
@@ -408,21 +409,17 @@ class message_page_state extends State<message_page> {
         List<String> list = [];
         list.add(Public_Title.text);
         list.add(Public_Content.text);
-        await Notification_OneSignal_class.handleSendNotification(list[1], list[0]);
-        Program_DataBase program_database = Program_DataBase();
-        list = [];
-        //   if (await program_database.Insert(list)) {
-        //     Program_Link.clear();
-        //     Program_Content.clear();
-        //     set_image_OP.path = File("");
-        //     list_image = [];
-        //   } else {
-        //     showtoast('${getLang(context, "No_Insert")}');
-        //   }
-        // } else {
-        //   showtoast('${getLang(context, "Field_Empty")}');
-        // }
-      }
+        Public_DataBase public_dataBase = Public_DataBase();
+        if(await public_dataBase.Insert(list)) {
+          await Notification_OneSignal_class.handleSendNotification(
+              list[1], list[0]);
+          list = [];
+        } else {
+            showtoast('${getLang(context, "No_Insert")}');
+          }
+        } else {
+          showtoast('${getLang(context, "Field_Empty")}');
+        }
     }
   }
 

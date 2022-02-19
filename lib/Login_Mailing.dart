@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mailing/Class/Notification_OneSignal.dart';
 import 'package:mailing/Validate.dart';
 import 'package:rolling_switch/rolling_switch.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
@@ -217,6 +216,7 @@ class Login_state extends State<LoginPage> {
                           m.trim();
                           p.trim();
                           if (m != '' && p != '') {
+                            pagecheck = "S";
                             if(m == "admin@gmail.com" && p == "123456"){
                               member.setEmail = m;
                               member.setPassword = p;
@@ -350,6 +350,7 @@ class Login_state extends State<LoginPage> {
         switch (status) {
           case 200:
             {
+              pagecheck = "S";
               email.text = _currentUser!.email;
               member.setEmail = _currentUser!.email;
               if (_currentUser!.photoUrl != null &&
@@ -361,6 +362,7 @@ class Login_state extends State<LoginPage> {
             }
           case 400:
             {
+              pagecheck = "S";
               email.text = _currentUser!.email;
               member.setEmail = _currentUser!.email;
               if (_currentUser!.photoUrl != null &&
@@ -491,6 +493,7 @@ void _handleSignUp(BuildContext buildContext,String type) async {
             if (checkbox_check) {
               member.writeFileLogIn();
             }
+            pagecheck = "S";
             Navigator.pushAndRemoveUntil(
                 buildContext,
                 MaterialPageRoute(builder: (context) => home_page()),

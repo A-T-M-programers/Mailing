@@ -13,36 +13,47 @@ import 'Constant.dart';
 import 'Notification_OneSignal.dart';
 
 class Notification_Message {
-  Messaging? messaging;
-  Member? member;
+  int? messaging_id;
+  String? member,type,content,title,date;
   bool? Notifi_State;
 
-  void set setmessaging(Messaging messaging){
-    this.messaging = messaging;
+  void set setmessaging(int? messaging_id) {
+    this.messaging_id = messaging_id;
   }
-  Messaging get getmessaging{
-    return this.messaging!;
+
+  int? get getmessaging_id {
+    return this.messaging_id!;
   }
-  void set setmember(Member member){
+
+  void set setmember(String? member) {
     this.member = member;
   }
-  Member get getmember{
+
+  String? get getmember {
     return this.member!;
   }
-  void set setNotifiState(bool state){
+  String? get gettitle {
+    return this.title!;
+  }
+
+  void set setNotifiState(bool state) {
     this.Notifi_State = state;
   }
-  bool get getNotifiState{
+
+  bool get getNotifiState {
     return this.Notifi_State!;
   }
 
-  Notification_Message(){
-    this.member = Member();
-    this.messaging = Messaging();
+  Notification_Message() {
+    this.member = "";
+    this.messaging_id = 0;
     this.Notifi_State = true;
+    this.content = "";
+    this.type = "";
+    this.title = "";
+    this.date = "";
+  }
 }
-}
-
 
 class Messaging {
   late int MessageID;
@@ -53,19 +64,22 @@ class Messaging {
       Target1,
       Target2,
       OrderStopLoss,
-      MessageContent,MessageDate,MessageCountView;
+      MessageContent,
+      MessageDate,
+      MessageCountView;
   late double MessagePrice, MessageEntryPoint;
 
-  void set setMessagePrice(double data){
+  void set setMessagePrice(double data) {
     this.MessagePrice = data;
   }
-  double get getmessageprice{
+
+  double get getmessageprice {
     return this.MessagePrice;
   }
 
   Messaging() {
     this.MessageCountView = "0";
-    this.MessageID = 1;
+    this.MessageID = 0;
     this.MessageType = "5";
     this.MessageDate = "";
     this.MessageLink = "";
@@ -85,34 +99,43 @@ class Messaging_PR {
   late String ProgramType, ProgramLink, ProgramContent;
   List<String> list_image = [];
 
-  void set setprogramtype(String type){
+  void set setprogramtype(String type) {
     this.ProgramType = type;
   }
-  String get gettype{
+
+  String get gettype {
     return this.ProgramType;
   }
-  void set setlistimage(List<String> list){
+
+  void set setlistimage(List<String> list) {
     this.list_image = list;
   }
-  List<String> get getlistimage{
+
+  List<String> get getlistimage {
     return this.list_image;
   }
-  void set setlink(String link){
+
+  void set setlink(String link) {
     this.ProgramLink = link;
   }
-  String get getlink{
+
+  String get getlink {
     return this.ProgramLink;
   }
-  void set setcontent(String content){
+
+  void set setcontent(String content) {
     this.ProgramContent = content;
   }
-  String get getcontent{
+
+  String get getcontent {
     return this.ProgramContent;
   }
-  int get getID{
+
+  int get getID {
     return this.ProgramID;
   }
-  void set setID(int ID){
+
+  void set setID(int ID) {
     this.ProgramID = ID;
   }
 
@@ -127,33 +150,38 @@ class Messaging_PR {
 
 class Messaging_PU {
   late int PublicID;
-  late String PublicContent,Title,DatePu;
+  late String PublicContent, Title, DatePu;
   late bool PublicType;
 
-  void set setdatepu(String date){
+  void set setdatepu(String date) {
     this.DatePu = date;
   }
-  String get getdatepu{
+
+  String get getdatepu {
     return this.DatePu;
   }
 
-  void set setTitle(String title){
+  void set setTitle(String title) {
     this.Title = title;
   }
-  String get gettitle{
+
+  String get gettitle {
     return this.Title;
   }
 
-  void set setpublictype(bool type){
+  void set setpublictype(bool type) {
     this.PublicType = type;
   }
-  bool get gettype{
+
+  bool get gettype {
     return this.PublicType;
   }
-  void set setcontent(String content){
+
+  void set setcontent(String content) {
     this.PublicContent = content;
   }
-  String get getcontent{
+
+  String get getcontent {
     return this.PublicContent;
   }
 
@@ -166,17 +194,19 @@ class Messaging_PU {
   }
 }
 
-class Imagen{
+class Imagen {
   late String Id;
   late String Image_Link;
-  Imagen(){
+
+  Imagen() {
     this.Id = "1";
-    this.Image_Link = "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
+    this.Image_Link =
+        "https://cdn.pixabay.com/photo/2017/10/17/16/10/fantasy-2861107_960_720.jpg";
   }
 }
 
 class Member {
-  String? Email, Image , Password;
+  String? Email, Image, Password;
   bool? checkemailfound;
 
   String get getEmail {
@@ -205,23 +235,22 @@ class Member {
 
   Member({Email, Image}) {
     this.Email = Email;
-    if(Image!=null && Image!=""){
+    if (Image != null && Image != "") {
       this.Image = Image;
-    }else {
-      this.Image = "https://jabbareh.files.wordpress.com/2011/12/personal-information.png";
+    } else {
+      this.Image =
+          "https://jabbareh.files.wordpress.com/2011/12/personal-information.png";
     }
     this.Password = "";
   }
 
-  factory Member.fromJson(Map<String,dynamic> json)=>Member(
-    Email: json['email'],
-    Image: json['picture']['data']['url']
-  );
+  factory Member.fromJson(Map<String, dynamic> json) =>
+      Member(Email: json['email'], Image: json['picture']['data']['url']);
 
-   static Future<String> _localPath()async {
-     Directory? directory = Platform.isAndroid
-         ? await getExternalStorageDirectory()
-         : await getApplicationSupportDirectory();
+  static Future<String> _localPath() async {
+    Directory? directory = Platform.isAndroid
+        ? await getExternalStorageDirectory()
+        : await getApplicationSupportDirectory();
 
     // if(!Directory("/storage/emulated/0/Android/data/com.example.mailing/files").existsSync()) {
     //   Directory("/storage/emulated/0/Android/data/com.example.mailing/files").createSync();
@@ -233,7 +262,7 @@ class Member {
 
   static Future<File> _localFile() async {
     String path = await _localPath();
-    if(!File('$path/InfoLogIn.txt').existsSync()){
+    if (!File('$path/InfoLogIn.txt').existsSync()) {
       File("${path}/Info_LogIn.txt").create();
     }
     return File("${path}/Info_LogIn.txt");
@@ -245,14 +274,15 @@ class Member {
 
     file.openWrite(mode: FileMode.write).write('${this.Email},${this.Image}');
   }
-  deletefile() async{
+
+  deletefile() async {
     File file = await _localFile();
-    if(file.existsSync()) {
+    if (file.existsSync()) {
       await file.delete();
     }
   }
 
-  Future<bool> readFileLogIn()async {
+  Future<bool> readFileLogIn() async {
     try {
       File file = await _localFile();
       if (file.existsSync()) {
@@ -272,10 +302,10 @@ class Member {
     return false;
   }
 
-  Future<bool> checkemail(String m)async{
+  Future<bool> checkemail(String m) async {
     var secret = Crypt.sha256("mailing_validemail");
     Uri url =
-    Uri(host: host, path: 'Mailing_API/validemail.php', scheme: scheme);
+        Uri(host: host, path: 'Mailing_API/validemail.php', scheme: scheme);
     var response =
         await http.post(url, body: {'email': m, 'secret': '$secret'});
     int status = response.statusCode;
@@ -290,12 +320,13 @@ class Member {
         }
     }
   }
-
 }
+
 abstract class DataBase_Access {
   Future<bool> Insert(List<String> list);
 
   Future<bool> Ubdate(List<String> list);
+
   Future<bool> Delete(String id);
 
   Future<List<dynamic>> Select();
@@ -303,18 +334,16 @@ abstract class DataBase_Access {
   Future<bool> Status(int codestate);
 }
 
-class Messsage_DataBase extends DataBase_Access{
-
+class Messsage_DataBase extends DataBase_Access {
   @override
-  Future<bool> Insert(List<String> list)async{
-    if(list.isEmpty){
+  Future<bool> Insert(List<String> list) async {
+    if (list.isEmpty) {
       return false;
-    }else {
+    } else {
       var secret = Crypt.sha256("insert_message");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Insert/Insert.php', scheme: scheme);
-      var response =
-      await http.post(url, body: {
+      var response = await http.post(url, body: {
         'type': list.elementAt(0),
         'state': list.elementAt(1),
         'price': list.elementAt(2),
@@ -326,22 +355,20 @@ class Messsage_DataBase extends DataBase_Access{
         'content': list.elementAt(8),
         'entrypoint': list.elementAt(9),
         'secret': '$secret'
-      }
-      );
+      });
       return Status(response.statusCode);
     }
   }
 
   @override
-  Future<bool> Ubdate(List<String> list)async{
-    if(list.isEmpty){
+  Future<bool> Ubdate(List<String> list) async {
+    if (list.isEmpty) {
       return false;
-    }else {
+    } else {
       var secret = Crypt.sha256("ubdate_message");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
-      var response =
-      await http.post(url, body: {
+      var response = await http.post(url, body: {
         'id': list.elementAt(0),
         'type': list.elementAt(1),
         'state': list.elementAt(2),
@@ -354,32 +381,27 @@ class Messsage_DataBase extends DataBase_Access{
         'content': list.elementAt(9),
         'entrypoint': list.elementAt(10),
         'secret': '$secret'
-      }
-      );
+      });
       return Status(response.statusCode);
     }
   }
 
   @override
-  Future<bool> Delete(String id)async{
-    if(id.isEmpty){
+  Future<bool> Delete(String id) async {
+    if (id.isEmpty) {
       return false;
-    }else {
+    } else {
       var secret = Crypt.sha256("delete_message");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Delete/Delete.php', scheme: scheme);
       var response =
-      await http.post(url, body: {
-        'id': id,
-        'secret': '$secret'
-      }
-      );
+          await http.post(url, body: {'id': id, 'secret': '$secret'});
       return Status(response.statusCode);
     }
   }
 
   @override
-  Future<bool> Status(int codestate)async{
+  Future<bool> Status(int codestate) async {
     String errorMsg = '';
     switch (codestate) {
       case 200:
@@ -402,33 +424,30 @@ class Messsage_DataBase extends DataBase_Access{
         }
       default:
         {
-          errorMsg =
-          'Please check your internet connection and try again';
+          errorMsg = 'Please check your internet connection and try again';
           showtoast(errorMsg);
-          return  false;
+          return false;
         }
     }
   }
+
   @override
-  Future<List<Messaging>> Select()async{
+  Future<List<Messaging>> Select() async {
     List<Messaging> listmessage = [];
     var secret = Crypt.sha256("select_message");
     Uri url = Uri(
-        host: host,
-        path: 'Mailing_API/Select/get_Message.php',
-        scheme: scheme);
-    var response = await http.post(url, body: {'secret': '$secret'
-    });
-    if(await Status(response.statusCode)){
-
+        host: host, path: 'Mailing_API/Select/get_Message.php', scheme: scheme);
+    var response = await http.post(url, body: {'secret': '$secret'});
+    if (await Status(response.statusCode)) {
       List<dynamic> data = json.decode(response.body);
-      for(int i = 0 ;i<data.length;i++){
+      for (int i = 0; i < data.length; i++) {
         listmessage.add(Messaging());
-        listmessage[i].MessageID =int.parse(data.elementAt(i)['MessageID']);
+        listmessage[i].MessageID = int.parse(data.elementAt(i)['MessageID']);
         listmessage[i].MessageType = data.elementAt(i)['MessageType'];
         listmessage[i].MessageState = data.elementAt(i)['MessageState'];
         listmessage[i].MessageCountView = data.elementAt(i)['MessageCountView'];
-        listmessage[i].MessagePrice =double.parse(data.elementAt(i)['MessagePrice']);
+        listmessage[i].MessagePrice =
+            double.parse(data.elementAt(i)['MessagePrice']);
         listmessage[i].MessageDate = data.elementAt(i)['MessageDate'];
         listmessage[i].MessageSymbol = data.elementAt(i)['MessageSymbol'];
         listmessage[i].MessageLink = data.elementAt(i)['MessageLink'];
@@ -436,53 +455,51 @@ class Messsage_DataBase extends DataBase_Access{
         listmessage[i].Target2 = data.elementAt(i)['Target2'];
         listmessage[i].OrderStopLoss = data.elementAt(i)['OrderStopLoss'];
         listmessage[i].MessageContent = data.elementAt(i)['MessageContent'];
-        listmessage[i].MessageEntryPoint =double.parse(data.elementAt(i)['EntryPoint']);
+        listmessage[i].MessageEntryPoint =
+            double.parse(data.elementAt(i)['EntryPoint']);
       }
       return listmessage;
-    }else{
+    } else {
       return listmessage;
     }
   }
 }
-class Contentviewinfo_DataBase extends DataBase_Access{
 
+class Contentviewinfo_DataBase extends DataBase_Access {
   String? countview = "";
 
   @override
-  Future<bool> Insert(List<String> list)async{
-    if(list.isEmpty){
+  Future<bool> Insert(List<String> list) async {
+    if (list.isEmpty) {
       return false;
-    }else {
+    } else {
       var secret = Crypt.sha256("insert_contentviewinfo");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Insert/Insert.php', scheme: scheme);
-      var response =
-      await http.post(url, body: {
+      var response = await http.post(url, body: {
         'email_member': list.elementAt(0),
         'id_message': list.elementAt(1),
         'paymethod': list.elementAt(2),
         'secret': '$secret'
-      }
-      );
-      if(await Status(response.statusCode)){
+      });
+      if (await Status(response.statusCode)) {
         countview = response.reasonPhrase;
         return true;
-      }else{
+      } else {
         return false;
       }
     }
   }
 
   @override
-  Future<bool> Ubdate(List<String> list)async{
-    if(list.isEmpty){
+  Future<bool> Ubdate(List<String> list) async {
+    if (list.isEmpty) {
       return false;
-    }else {
+    } else {
       var secret = Crypt.sha256("ubdate_message");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
-      var response =
-      await http.post(url, body: {
+      var response = await http.post(url, body: {
         'id': list.elementAt(0),
         'type': list.elementAt(1),
         'state': list.elementAt(2),
@@ -495,32 +512,27 @@ class Contentviewinfo_DataBase extends DataBase_Access{
         'content': list.elementAt(9),
         'entrypoint': list.elementAt(10),
         'secret': '$secret'
-      }
-      );
+      });
       return Status(response.statusCode);
     }
   }
 
   @override
-  Future<bool> Delete(String id)async{
-    if(id.isEmpty){
+  Future<bool> Delete(String id) async {
+    if (id.isEmpty) {
       return false;
-    }else {
+    } else {
       var secret = Crypt.sha256("delete_message");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Delete/Delete.php', scheme: scheme);
       var response =
-      await http.post(url, body: {
-        'id': id,
-        'secret': '$secret'
-      }
-      );
+          await http.post(url, body: {'id': id, 'secret': '$secret'});
       return Status(response.statusCode);
     }
   }
 
   @override
-  Future<bool> Status(int codestate)async{
+  Future<bool> Status(int codestate) async {
     String errorMsg = '';
     switch (codestate) {
       case 200:
@@ -543,67 +555,162 @@ class Contentviewinfo_DataBase extends DataBase_Access{
         }
       default:
         {
-          errorMsg =
-          'Please check your internet connection and try again';
+          errorMsg = 'Please check your internet connection and try again';
           showtoast(errorMsg);
-          return  false;
+          return false;
         }
     }
   }
+
   @override
-  Future<List<int>> Select()async{
+  Future<List<int>> Select() async {
     List<int> listmessage = [];
     var secret = Crypt.sha256("select_contentview");
     Uri url = Uri(
-        host: host,
-        path: 'Mailing_API/Select/get_Message.php',
-        scheme: scheme);
-    var response = await http.post(url, body: {'email': member.getEmail,'secret': '$secret'
-    });
-    if(await Status(response.statusCode)){
-
+        host: host, path: 'Mailing_API/Select/get_Message.php', scheme: scheme);
+    var response = await http
+        .post(url, body: {'email': member.getEmail, 'secret': '$secret'});
+    if (await Status(response.statusCode)) {
       List<dynamic> data = json.decode(response.body);
-      for(int i = 0 ;i<data.length;i++){
+      for (int i = 0; i < data.length; i++) {
         listmessage.add(int.parse(data.elementAt(i)['MessageID']));
       }
       return listmessage;
-    }else{
+    } else {
       return listmessage;
     }
   }
 }
-class Program_DataBase extends DataBase_Access{
+
+class Public_DataBase extends DataBase_Access {
+  @override
+  Future<bool> Insert(List<String> list) async {
+    var secret = Crypt.sha256("insert_public");
+    Uri url =
+        Uri(host: host, path: 'Mailing_API/Insert/Insert.php', scheme: scheme);
+    var response = await http.post(url, body: {
+      'title': list.elementAt(0),
+      'content': list.elementAt(1),
+      'secret': '$secret'
+    });
+    return Status(response.statusCode);
+  }
+
+  @override
+  Future<bool> Ubdate(List<String> list) async {
+      var secret = Crypt.sha256("ubdate_public");
+      Uri url = Uri(
+          host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
+      var response = await http.post(url, body: {
+        'title': list.elementAt(0),
+        'content': list.elementAt(1),
+        'secret': '$secret'
+      });
+      return Status(response.statusCode);
+  }
+
+  @override
+  Future<bool> Delete(String id) async {
+    if (id.isEmpty) {
+      return false;
+    } else {
+      var secret = Crypt.sha256("delete_program");
+      Uri url = Uri(
+          host: host, path: 'Mailing_API/Delete/Delete.php', scheme: scheme);
+      var response =
+          await http.post(url, body: {'id': id, 'secret': '$secret'});
+      return Status(response.statusCode);
+    }
+  }
+
+  @override
+  Future<bool> Status(int codestate) async {
+    String errorMsg = '';
+    switch (codestate) {
+      case 200:
+        {
+          errorMsg = 'Successfully';
+          showtoast(errorMsg);
+          return true;
+        }
+      case 400:
+        {
+          errorMsg = 'Please check your data and try again';
+          showtoast(errorMsg);
+          return false;
+        }
+      case 500:
+        {
+          errorMsg = 'Something went wrong! please try again later';
+          showtoast(errorMsg);
+          return false;
+        }
+      default:
+        {
+          errorMsg = 'Please check your internet connection and try again';
+          showtoast(errorMsg);
+          return false;
+        }
+    }
+  }
+
+  @override
+  Future<List<Notification_Message>> Select({String? email}) async {
+    List<Notification_Message> list =[];
+    var secret = Crypt.sha256("select_notifi");
+    Uri url = Uri(
+        host: host, path: 'Mailing_API/Select/get_Message.php', scheme: scheme);
+    var response =
+        await http.post(url, body: {'email':email,'secret': '$secret'});
+    if (await Status(response.statusCode)) {
+      List<dynamic> data = json.decode(response.body);
+      for (int i = 0; i < data.length; i++) {
+        list.add(Notification_Message());
+        list[i].messaging_id = int.parse(data.elementAt(i)['MessageID']);
+        list[i].title = data.elementAt(i)['Title_Notifi'] == null ?"Null" : data.elementAt(i)['Title_Notifi'];
+        list[i].content = data.elementAt(i)['Content_Notifi'] == null ? "Null":data.elementAt(i)['Content_Notifi'];
+        list[i].date = data.elementAt(i)['Date_Notifi'];
+        list[i].Notifi_State = data.elementAt(i)['notificationStatus'] == "0" ? false:true;
+        list[i].type = data.elementAt(i)['Type_Notifi'];
+
+      }
+      return list;
+    } else {
+      return list;
+    }
+  }
+}
+
+class Program_DataBase extends DataBase_Access {
   get_photo send_image = get_photo();
 
   @override
-  Future<bool> Insert(List<String> list)async{
+  Future<bool> Insert(List<String> list) async {
     List<String> list_image_insert = [];
-    if(list.isEmpty){
+    if (list.isEmpty) {
       return false;
-    }else {
-      for(int i = 3;i<list.length;i++){
+    } else {
+      for (int i = 3; i < list.length; i++) {
         list_image_insert.add(await send_image.Upload(File(list[i])));
       }
       var secret = Crypt.sha256("insert_program");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Insert/Insert.php', scheme: scheme);
-      var response =
-      await http.post(url, body: {
+      var response = await http.post(url, body: {
         'type': list.elementAt(0),
         'link': list.elementAt(1),
         'text': list.elementAt(2),
         'list_image': list_image_insert.toString(),
         'secret': '$secret'
-      }
-      );
-      if(response.statusCode == 200){
-        if(list_image_insert.isNotEmpty &&Validation.isValidnull(list_image_insert[0])) {
+      });
+      if (response.statusCode == 200) {
+        if (list_image_insert.isNotEmpty &&
+            Validation.isValidnull(list_image_insert[0])) {
           await Notification_OneSignal_class.handleSendNotificationWithImage(
-              list_image_insert[0], list
-              .elementAt(2),
+              list_image_insert[0],
+              list.elementAt(2),
               list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
-        }
-        else {
+        } else {
           await Notification_OneSignal_class.handleSendNotification(
               list.elementAt(2),
               list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
@@ -615,39 +722,37 @@ class Program_DataBase extends DataBase_Access{
   }
 
   @override
-  Future<bool> Ubdate(List<String> list)async{
+  Future<bool> Ubdate(List<String> list) async {
     List<String> list_image_update = [];
-    if(list.isEmpty){
+    if (list.isEmpty) {
       return false;
-    }else {
-      for(int i = 4;i<list.length;i++){
-        if(!list[i].contains("http")) {
+    } else {
+      for (int i = 4; i < list.length; i++) {
+        if (!list[i].contains("http")) {
           list_image_update.add(await send_image.Upload(File(list[i])));
-        }else{
+        } else {
           list_image_update.add(list[i]);
         }
       }
       var secret = Crypt.sha256("ubdate_program");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
-      var response =
-      await http.post(url, body: {
+      var response = await http.post(url, body: {
         'id': list.elementAt(0),
         'type': list.elementAt(1),
         'link': list.elementAt(2),
         'text': list.elementAt(3),
         'list_image': list_image_update.toString(),
         'secret': '$secret'
-      }
-      );
-      if(response.statusCode == 200){
-        if(list_image_update.isNotEmpty &&Validation.isValidnull(list_image_update[0])) {
+      });
+      if (response.statusCode == 200) {
+        if (list_image_update.isNotEmpty &&
+            Validation.isValidnull(list_image_update[0])) {
           await Notification_OneSignal_class.handleSendNotificationWithImage(
-              list_image_update[0], list
-              .elementAt(2),
+              list_image_update[0],
+              list.elementAt(2),
               list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
-        }
-        else {
+        } else {
           await Notification_OneSignal_class.handleSendNotification(
               list.elementAt(2),
               list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
@@ -659,25 +764,21 @@ class Program_DataBase extends DataBase_Access{
   }
 
   @override
-  Future<bool> Delete(String id)async{
-    if(id.isEmpty){
+  Future<bool> Delete(String id) async {
+    if (id.isEmpty) {
       return false;
-    }else {
+    } else {
       var secret = Crypt.sha256("delete_program");
       Uri url = Uri(
           host: host, path: 'Mailing_API/Delete/Delete.php', scheme: scheme);
       var response =
-      await http.post(url, body: {
-        'id': id,
-        'secret': '$secret'
-      }
-      );
+          await http.post(url, body: {'id': id, 'secret': '$secret'});
       return Status(response.statusCode);
     }
   }
 
   @override
-  Future<bool> Status(int codestate)async{
+  Future<bool> Status(int codestate) async {
     String errorMsg = '';
     switch (codestate) {
       case 200:
@@ -700,38 +801,39 @@ class Program_DataBase extends DataBase_Access{
         }
       default:
         {
-          errorMsg =
-          'Please check your internet connection and try again';
+          errorMsg = 'Please check your internet connection and try again';
           showtoast(errorMsg);
-          return  false;
+          return false;
         }
     }
   }
+
   @override
-  Future<List<Messaging_PR>> Select({String? type})async{
+  Future<List<Messaging_PR>> Select({String? type}) async {
     List<Messaging_PR> listmessage = [];
     var secret = Crypt.sha256("select_program");
     Uri url = Uri(
-        host: host,
-        path: 'Mailing_API/Select/get_Message.php',
-        scheme: scheme);
-    var response = await http.post(url, body: {'type':type,'secret': '$secret'
-    });
-    if(await Status(response.statusCode)){
-
+        host: host, path: 'Mailing_API/Select/get_Message.php', scheme: scheme);
+    var response =
+        await http.post(url, body: {'type': type, 'secret': '$secret'});
+    if (await Status(response.statusCode)) {
       List<dynamic> data = json.decode(response.body);
-      for(int i = 0 ;i<data.length;i++){
-          listmessage.add(Messaging_PR());
-          listmessage[i].setID = int.parse(data.elementAt(i)['ProgramID']);
-          listmessage[i].setprogramtype = data.elementAt(i)['ProgramType'];
-          listmessage[i].setlink = data.elementAt(i)['ProgramLink'];
-          listmessage[i].setcontent = data.elementAt(i)['ProgramText'];
-          if(data.elementAt(i)['ProgramImages'] !=null){
-            listmessage[i].setlistimage = data.elementAt(i)['ProgramImages'].replaceAll('[', "").replaceAll(']', "").split(",");
-          }
+      for (int i = 0; i < data.length; i++) {
+        listmessage.add(Messaging_PR());
+        listmessage[i].setID = int.parse(data.elementAt(i)['ProgramID']);
+        listmessage[i].setprogramtype = data.elementAt(i)['ProgramType'];
+        listmessage[i].setlink = data.elementAt(i)['ProgramLink'];
+        listmessage[i].setcontent = data.elementAt(i)['ProgramText'];
+        if (data.elementAt(i)['ProgramImages'] != null) {
+          listmessage[i].setlistimage = data
+              .elementAt(i)['ProgramImages']
+              .replaceAll('[', "")
+              .replaceAll(']', "")
+              .split(",");
+        }
       }
       return listmessage;
-    }else{
+    } else {
       return listmessage;
     }
   }

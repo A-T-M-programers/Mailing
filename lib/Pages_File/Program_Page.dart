@@ -9,13 +9,12 @@ import 'package:mailing/Class/Class_database.dart';
 import 'package:mailing/Class/Get_Photo.dart';
 import 'package:mailing/Validate.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:swipe_to/swipe_to.dart';
 import '../Home_Page.dart';
 import '../Login_Mailing.dart';
 import '../Message_page.dart';
+import 'package:mailing/Home_Page.dart' as home;
 
-late bool checkadmin, endListOP, endListPP;
 BoxShadow? boxShadowPP, boxShadowOP;
 List<Messaging_PR> list_programPP = [];
 List<Messaging_PR> list_programOP = [];
@@ -24,9 +23,9 @@ class List_program extends StatefulWidget {
   @override
   _List_progrmam_state createState() => _List_progrmam_state();
 
-  List_program({this.index, this.onPress});
+  List_program({this.messaging_pr, this.onPress});
 
-  final int? index;
+  final Messaging_PR? messaging_pr;
   final Function? onPress;
 }
 
@@ -38,7 +37,6 @@ class _List_progrmam_state extends State<List_program> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    checkadmin = true;
   }
 
   @override
@@ -51,9 +49,6 @@ class _List_progrmam_state extends State<List_program> {
       boxShadowPP = boxShadowUpClick;
     }
 
-    endListOP =
-    ((list_programOP.length > 5 ? length_list_program_OP : list_programOP
-        .length) - 1 == widget.index) ? true : false;
     WidthDevice = MediaQuery
         .of(context)
         .size
@@ -63,11 +58,10 @@ class _List_progrmam_state extends State<List_program> {
         .size
         .height;
 
-    if (list_programOP.length > widget.index!) {
-      return list_programOP.length > 0 ? SwipeTo(
+      return widget.messaging_pr!.getID != 0 ? SwipeTo(
           offsetDx: 1,
           animationDuration: Duration(milliseconds: 800),
-          onLeftSwipe: checkadmin ? () {
+          onLeftSwipe: home.checkadmin ? () {
             //end to start
             showDialog(
                 context: context,
@@ -75,12 +69,12 @@ class _List_progrmam_state extends State<List_program> {
                     MyDialogeHome(
                         type: "D",
                         onPresed: () async {
-                          if (checkadmin) {
+                          if (home.checkadmin) {
                             if (await program_dataBase.Delete(
-                                list_programOP[widget.index!]
+                                widget.messaging_pr!
                                     .getID
                                     .toString())) {
-                              list_programOP.removeAt(widget.index!);
+                              list_programOP.remove(widget.messaging_pr!);
                               setState(() {
                                 showtoast("Delete Seccessfully");
                               });
@@ -90,7 +84,7 @@ class _List_progrmam_state extends State<List_program> {
                           }
                         }));
           } : () {},
-          onRightSwipe: checkadmin ? () {
+          onRightSwipe: home.checkadmin ? () {
             //start to end
             showDialog(
                 context: context,
@@ -98,17 +92,17 @@ class _List_progrmam_state extends State<List_program> {
                     MyDialogeHome(
                         type: "U",
                         onPresed: () {
-                          if (checkadmin) {
+                          if (home.checkadmin) {
                             checkubdate = true;
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                                   return message_page("P",
-                                      list_programOP.elementAt(widget.index!));
+                                      widget.messaging_pr!);
                                 }));
                           }
                         }));
           } : () {},
-          rightSwipeWidget: checkadmin ? Container(
+          rightSwipeWidget: home.checkadmin ? Container(
               alignment: Alignment.center,
               child: Container(
                 margin: EdgeInsets.only(left: 20, right: 20),
@@ -120,7 +114,7 @@ class _List_progrmam_state extends State<List_program> {
                   size: 50,
                 ),
               )) : SizedBox(),
-          leftSwipeWidget: checkadmin ? Container(
+          leftSwipeWidget: home.checkadmin ? Container(
               margin: EdgeInsets.only(right: 20, left: 20),
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -154,18 +148,18 @@ class _List_progrmam_state extends State<List_program> {
                             ],
                           ),
                           child: Validation.isValidnull(
-                              list_programOP[widget.index!].getlistimage[0])
+                              widget.messaging_pr!.getlistimage[0])
                               ? GestureDetector(
                               onTap: (){
                                 setState(() {
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                      builder: (context) => show_photo(path: list_programOP[widget.index!].getlistimage[0].trim(), type: "N")));
+                                      builder: (context) => show_photo(path: widget.messaging_pr!.getlistimage[0].trim(), type: "N")));
                                 });
                               },
                               child: CachedNetworkImage(
-                            imageUrl: list_programOP[widget.index!]
+                            imageUrl: widget.messaging_pr!
                                 .getlistimage[0].trim(),
                             imageBuilder: (context, imageProvider) =>
                                 Container(
@@ -209,8 +203,10 @@ class _List_progrmam_state extends State<List_program> {
                           height: HieghDevice / 8,
                           width: WidthDevice / 2,
                           child: Text(
-                            list_programOP[widget.index!].getcontent,
-                            style: TextStyle(color: Colors.black54),
+                            widget.messaging_pr!.getcontent,
+                            style: TextStyle(color: Colors.black54,fontSize: (HieghDevice / 180) *
+                                (WidthDevice / 180) +
+                                5),
                             maxLines: 5,
                           ))),
                   Container(
@@ -221,14 +217,14 @@ class _List_progrmam_state extends State<List_program> {
                           width: WidthDevice,
                           child: ListView(
                             scrollDirection: Axis.horizontal,
-                            children: list_programOP[widget.index!].getlistimage
+                            children: widget.messaging_pr!.getlistimage
                                 .length > 1
                                 ? List.generate(
-                                list_programOP[widget.index!].getlistimage
+                                widget.messaging_pr!.getlistimage
                                     .length - 1,
                                     (index) =>
                                     show_photo_list(
-                                        path: list_programOP[widget.index!]
+                                        path: widget.messaging_pr!
                                             .getlistimage.elementAt(index + 1)
                                             .trim(),
                                         type: "N",
@@ -264,7 +260,7 @@ class _List_progrmam_state extends State<List_program> {
                                               width: 0.2)))),
                               onPressed: () async {
                                 if (Validation.isValidnull(
-                                    list_programOP[widget.index!].getlistimage[0])) {
+                                    widget.messaging_pr!.getlistimage[0])) {
                                   await shareFile();
                                 } else {
                                   await share();
@@ -285,37 +281,24 @@ class _List_progrmam_state extends State<List_program> {
                               children: [
                                 Container(
                                     child: Text(
-                                        "My Page Link : ${list_programOP[widget
-                                            .index!].getlink}")),
+                                        "My Page Link : ${widget.messaging_pr!.getlink}",style: TextStyle(fontSize: (HieghDevice / 180) *
+                                        (WidthDevice / 180) +
+                                        5),)),
                               ])))
                 ]))
-            ,
-            if (endListOP)
-              Container(
-                height: (HieghDevice / 5.5) + 60,
-              )
-          ])) : Center(child: CircularProgressIndicator());
-    } else {
-      if (length_list_program_OP - 1 == widget.index!) {
-        return Container(
-          height: (HieghDevice / 5.5) + 60,
-        );
-      } else {
-        return SizedBox();
-      }
-    }
+          ])) : SizedBox();
   }
 
   Future<void> share() async {
     await FlutterShare.share(
         title: "Our Product",
-        text: list_programOP[widget.index!].getcontent,
-        linkUrl: list_programOP[widget.index!].getlink,
+        text: widget.messaging_pr!.getcontent,
+        linkUrl: widget.messaging_pr!.getlink,
         chooserTitle: 'Example Chooser Title');
   }
 
   Future<void> shareFile() async {
-    final response = await get(Uri.parse(list_programOP[widget.index!].getlistimage[0]));
+    final response = await get(Uri.parse(widget.messaging_pr!.getlistimage[0]));
     final bytes = response.bodyBytes;
     final Directory? temp = await getExternalStorageDirectory();
     final File imageFile = File('${temp!.path}/Image.png');
@@ -323,7 +306,7 @@ class _List_progrmam_state extends State<List_program> {
 
     await FlutterShare.shareFile(
       title: "Our Product",
-      text: list_programOP[widget.index!].getcontent + "\n " + list_programOP[widget.index!].getlink,
+      text: widget.messaging_pr!.getcontent + "\n " + widget.messaging_pr!.getlink,
       filePath: imageFile.path,
     );
   }
@@ -431,9 +414,9 @@ class List_partner extends StatefulWidget {
   @override
   _List_Partner_state createState() => _List_Partner_state();
 
-  List_partner({this.index, this.onPress});
+  List_partner({this.messaging_pp, this.onPress});
 
-  final int? index;
+  final Messaging_PR? messaging_pp;
   final Function? onPress;
 }
 
@@ -445,7 +428,6 @@ class _List_Partner_state extends State<List_partner> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    checkadmin = true;
   }
 
   @override
@@ -457,10 +439,6 @@ class _List_Partner_state extends State<List_partner> {
       boxShadowOP = boxShadowOnClick;
       boxShadowPP = boxShadowUpClick;
     }
-
-    endListPP =
-    ((list_programPP.length > 5 ? length_list_program_PP : list_programPP
-        .length) - 1 == widget.index) ? true : false;
     WidthDevice = MediaQuery
         .of(context)
         .size
@@ -470,11 +448,10 @@ class _List_Partner_state extends State<List_partner> {
         .size
         .height;
 
-    if (list_programPP.length > widget.index!) {
-      return list_programPP.length > 0 ? SwipeTo(
+      return widget.messaging_pp!.getID != 0 ? SwipeTo(
           offsetDx: 1,
           animationDuration: Duration(milliseconds: 800),
-          onLeftSwipe: checkadmin ? () {
+          onLeftSwipe: home.checkadmin ? () {
             //end to start
             showDialog(
                 context: context,
@@ -482,12 +459,12 @@ class _List_Partner_state extends State<List_partner> {
                     MyDialogeHome(
                         type: "D",
                         onPresed: () async {
-                          if (checkadmin) {
+                          if (home.checkadmin) {
                             if (await program_dataBase.Delete(
-                                list_programPP[widget.index!]
+                                widget.messaging_pp!
                                     .getID
                                     .toString())) {
-                              list_programPP.removeAt(widget.index!);
+                              list_programPP.remove(widget.messaging_pp!);
                               setState(() {
                                 showtoast("Delete Seccessfully");
                               });
@@ -497,7 +474,7 @@ class _List_Partner_state extends State<List_partner> {
                           }
                         }));
           } : () {},
-          onRightSwipe: checkadmin ? () {
+          onRightSwipe: home.checkadmin ? () {
             //start to end
             showDialog(
                 context: context,
@@ -505,17 +482,17 @@ class _List_Partner_state extends State<List_partner> {
                     MyDialogeHome(
                         type: "U",
                         onPresed: () {
-                          if (checkadmin) {
+                          if (home.checkadmin) {
                             checkubdate = true;
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                                   return message_page("P",
-                                      list_programPP.elementAt(widget.index!));
+                                      widget.messaging_pp!);
                                 }));
                           }
                         }));
           } : () {},
-          rightSwipeWidget: checkadmin ? Container(
+          rightSwipeWidget: home.checkadmin ? Container(
               alignment: Alignment.center,
               child: Container(
                 margin: EdgeInsets.only(left: 20, right: 20),
@@ -527,7 +504,7 @@ class _List_Partner_state extends State<List_partner> {
                   size: 50,
                 ),
               )) : SizedBox(),
-          leftSwipeWidget: checkadmin ? Container(
+          leftSwipeWidget: home.checkadmin ? Container(
               margin: EdgeInsets.only(right: 20, left: 20),
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -563,19 +540,19 @@ class _List_Partner_state extends State<List_partner> {
                                 ],
                               ),
                               child: Validation.isValidnull(
-                                  list_programPP[widget.index!].getlistimage[0])
+                                  widget.messaging_pp!.getlistimage[0])
                                   ? GestureDetector(
                                   onTap: (){
                                     setState(() {
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (context) => show_photo(path: list_programPP[widget.index!]
+                                              builder: (context) => show_photo(path: widget.messaging_pp!
                                                   .getlistimage[0], type: "N")));
                                     });
                                   },
                                   child: CachedNetworkImage(
-                                imageUrl: list_programPP[widget.index!]
+                                imageUrl: widget.messaging_pp!
                                     .getlistimage[0],
                                 imageBuilder: (context, imageProvider) =>
                                     Container(
@@ -619,8 +596,10 @@ class _List_Partner_state extends State<List_partner> {
                               height: 70,
                               width: WidthDevice,
                               child: Text(
-                                list_programPP[widget.index!].getcontent,
-                                style: TextStyle(color: Colors.black54),
+                                widget.messaging_pp!.getcontent,
+                                style: TextStyle(color: Colors.black54,fontSize: (HieghDevice / 180) *
+                                    (WidthDevice / 180) +
+                                    5),
                                 maxLines: 4,
                               ))),
                       Container(
@@ -650,7 +629,7 @@ class _List_Partner_state extends State<List_partner> {
                                                   width: 0.2)))),
                                   onPressed: () async {
                                     if (Validation.isValidnull(
-                                        messaging[widget.index!].MessageLink)) {
+                                        widget.messaging_pp!.getlistimage[0])) {
                                       await shareFile();
                                     } else {
                                       await share();
@@ -667,36 +646,25 @@ class _List_Partner_state extends State<List_partner> {
                             margin: EdgeInsets.all(10),
                             height: 50,
                             child: Text(
-                                "App Link : ${list_programPP[widget.index!]
-                                    .getlink}")),
+                                "App Link : ${widget.messaging_pp!
+                                    .getlink}",style: TextStyle(fontSize: (HieghDevice / 180) *
+                                (WidthDevice / 180) +
+                                5),)),
                       )
                     ])),
-                if (endListPP)
-                  Container(
-                    height: (HieghDevice / 5.5) + 60,
-                  )
-              ])) : Center(child: CircularProgressIndicator());
-    } else {
-      if (length_list_program_PP - 1 == widget.index!) {
-        return Container(
-          height: (HieghDevice / 5.5) + 60,
-        );
-      } else {
-        return SizedBox();
-      }
-    }
+              ])) : SizedBox();
   }
 
   Future<void> share() async {
     await FlutterShare.share(
         title: "Partner Program",
-        text: list_programPP[widget.index!].getcontent,
-        linkUrl: list_programPP[widget.index!].getlink,
+        text: widget.messaging_pp!.getcontent,
+        linkUrl: widget.messaging_pp!.getlink,
         chooserTitle: 'Example Chooser Title');
   }
 
   Future<void> shareFile() async {
-    final response = await get(Uri.parse(list_programPP[widget.index!].getlistimage[0]));
+    final response = await get(Uri.parse(widget.messaging_pp!.getlistimage[0]));
     final bytes = response.bodyBytes;
     final Directory? temp = await getExternalStorageDirectory();
     final File imageFile = File('${temp!.path}/Image.png');
@@ -704,7 +672,7 @@ class _List_Partner_state extends State<List_partner> {
 
     await FlutterShare.shareFile(
       title: "Partner Program",
-      text: list_programPP[widget.index!].getcontent + "\n " +list_programPP[widget.index!].getlink,
+      text: widget.messaging_pp!.getcontent + "\n " +widget.messaging_pp!.getlink,
       filePath: imageFile.path,
     );
   }

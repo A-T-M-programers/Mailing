@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:mailing/Validate.dart';
 import 'package:mailing/main.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
@@ -68,6 +67,7 @@ class Notification_OneSignal_class {
     OneSignal.shared.setNotificationWillShowInForegroundHandler(
         (OSNotificationReceivedEvent event) {
       // Display Notification, send null to not display, send notification to display
+          print(event.notification.sound);
       event.complete(event.notification);
     });
   }
