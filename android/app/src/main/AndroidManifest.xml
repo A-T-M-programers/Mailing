@@ -11,8 +11,10 @@
 
    <application
         android:requestLegacyExternalStorage="true"
-        android:label="mailing"
-        android:icon="@mipmap/ic_launcher">
+        android:label="Shepherd FX"
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true"
+       tools:targetApi="m">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
@@ -21,7 +23,10 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="MissingClass"
-            android:exported="true">
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:exported="true"
+            >
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues
@@ -49,6 +54,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+       <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
+       <meta-data
+           android:name="com.google.android.gms.ads.APPLICATION_ID"
+           android:value="ca-app-pub-4118903766826893~2588167569"/>
 
        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
        <activity
@@ -79,4 +89,10 @@
        </provider>
 
    </application>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
 </manifest>

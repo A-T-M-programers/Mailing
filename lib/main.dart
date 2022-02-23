@@ -3,13 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:mailing/Class/Theme_Dark_and_Light.dart';
 import 'package:mailing/Home_Page.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
 
 import 'Class/Class_database.dart';
 import 'Class/Notification_OneSignal.dart';
 import 'Login_Mailing.dart';
 import 'l10n/applocal.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 
 Member member = new Member();
@@ -17,9 +21,12 @@ Member member = new Member();
 String en_ar = "en";
 bool notife = false;
 late final checksignin;
+late final PackageInfo packageInfo;
 
 void main()async {
   WidgetsFlutterBinding.ensureInitialized();
+  packageInfo = await PackageInfo.fromPlatform();
+  await MobileAds.instance.initialize();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
       overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
 
@@ -47,6 +54,7 @@ class MyAppstate extends State<MyApp> {
     // TODO: implement initState
     super.initState();
     configOneSignel();
+
   }
 
   Future<void> configOneSignel()async
@@ -65,14 +73,21 @@ class MyAppstate extends State<MyApp> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ChangeNotifierProvider(create: (context) =>
+          ThemeProvider(),
+  builder: (context, _)
+  {
     return FutureBuilder(
         future: Init.instance.initialize(),
     builder: (context, AsyncSnapshot snapshot) {
       // Show splash screen while waiting for app resources to load:
       if (snapshot.connectionState == ConnectionState.waiting) {
+        final themeProvider = Provider.of<ThemeProvider>(context);
         return MaterialApp(
-
+          themeMode: themeProvider.themeMode,
+          theme: MyThemesApp.lightTheme,
+          darkTheme: MyThemesApp.darkTheame,
           localizationsDelegates: [
             AppLocale.delegate,
             GlobalMaterialLocalizations.delegate,
@@ -98,7 +113,11 @@ class MyAppstate extends State<MyApp> {
           home: Splash(),
         );
       } else {
+        final themeProvider = Provider.of<ThemeProvider>(context);
         return MaterialApp(
+          themeMode: themeProvider.themeMode,
+          theme: MyThemesApp.lightTheme,
+          darkTheme: MyThemesApp.darkTheame,
 
           localizationsDelegates: [
             AppLocale.delegate,
@@ -127,7 +146,7 @@ class MyAppstate extends State<MyApp> {
       }
     }
     );
-  }
+  });
 }
 
 class Splash extends StatelessWidget {

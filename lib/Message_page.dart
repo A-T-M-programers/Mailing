@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:mailing/Class/Get_Photo.dart';
 import 'package:mailing/Class/Notification_OneSignal.dart';
 import 'package:mailing/Login_Mailing.dart';
-import 'package:mailing/Pages_File/Notif_Page.dart';
 import 'package:mailing/Pages_File/Program_Page.dart';
 import 'package:mailing/Validate.dart';
 import 'package:mailing/main.dart';
@@ -13,16 +12,15 @@ import 'package:mailing/main.dart';
 import 'Class/Class_database.dart';
 import 'Home_Page.dart';
 import 'l10n/applocal.dart';
-import 'package:mailing/Home_Page.dart' as home;
 
 late bool checkubdate = true;
 BoxShadow? boxShadowOnClick =
-        BoxShadow(color: Colors.white, spreadRadius: 10, blurRadius: 40),
+        BoxShadow(spreadRadius: 10, blurRadius: 50),
     boxShadowS,
     boxShadowPu,
     boxShadowPr,
     boxShadowUpClick =
-        BoxShadow(color: Color.fromARGB(500, 12, 0, 74), blurRadius: 10);
+        BoxShadow(blurRadius: 500,spreadRadius: 0);
 late int list_image_count = 0;
 get_photo get_image_sympole = get_photo();
 get_photo set_image_OP = get_photo();
@@ -69,7 +67,7 @@ class message_page_state extends State<message_page> {
     } else if (widget.type_page == "N" || widget.type_page == "NI") {
       page_now = widget.type_page!;
       this.body_message_contain = body_message_pu(
-          messaging_pu: messaging_pu, typepage: widget.type_page!);
+          messaging_pu: widget.messaging, typepage: widget.type_page!);
 
       boxShadowPu = boxShadowOnClick;
       boxShadowPr = boxShadowUpClick;
@@ -95,34 +93,38 @@ class message_page_state extends State<message_page> {
         return true;
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
           titleSpacing: WidthDevice / 3,
-          title: Text(
-            "${getLang(context, "Mailing")}",
-          ),
-          elevation: 10,
+          actions:[ Container(
+            alignment: Alignment.center,
+            margin: EdgeInsets.only(top: 0,left:100,right: 100 ),
+            child: Text(
+              "${getLang(context, "Mailing")}",
+              style: TextStyle(fontSize: HieghDevice / 30,color: Theme.of(context).textTheme.headline1!.color),
+              textAlign: TextAlign.center,
+            ),
+          ),],
+          elevation: 0,
           toolbarHeight: HieghDevice / 12,
-          backgroundColor: Color.fromARGB(500, 12, 0, 74),
+          backgroundColor: Theme.of(context).shadowColor,
         ),
         body: Stack(
           children: [
             Container(
                 margin: EdgeInsets.only(top: checkadmin ? HieghDevice / 17 : 0),
-                color: Color.fromARGB(500, 12, 0, 74),
+                color: Theme.of(context).shadowColor,
                 child: Container(
                   decoration: BoxDecoration(
                       boxShadow: [
-                        BoxShadow(color: Colors.white),
-                        BoxShadow(color: Colors.white),
-                        BoxShadow(color: Colors.white),
-                        BoxShadow(color: Colors.white),
-                        BoxShadow(color: Colors.white),
-                        BoxShadow(color: Colors.white),
-                        BoxShadow(color: Colors.white),
+                        BoxShadow(color: Theme.of(context).primaryColor),
+                        BoxShadow(color: Theme.of(context).primaryColor),
+                        BoxShadow(color: Theme.of(context).primaryColor),
+                        BoxShadow(color: Theme.of(context).primaryColor),
+                        BoxShadow(color: Theme.of(context).primaryColor),
+                        BoxShadow(color: Theme.of(context).primaryColor),
+                        BoxShadow(color: Theme.of(context).primaryColor),
                       ],
-                      border: Border.all(color: Colors.white, width: 10),
-                      color: Colors.white,
+                      color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(50),
                           topRight: Radius.circular(50))),
@@ -136,9 +138,9 @@ class message_page_state extends State<message_page> {
                         borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(100),
                             bottomRight: Radius.circular(100)),
-                        color: Colors.white70,
+                        color: Theme.of(context).primaryColor,
                         boxShadow: [
-                          BoxShadow(color: Colors.black38, blurRadius: 10)
+                          BoxShadow(color: Theme.of(context).shadowColor, blurRadius: 10)
                         ]),
                     width: WidthDevice,
                     height: (HieghDevice -
@@ -169,13 +171,13 @@ class message_page_state extends State<message_page> {
                             if(widget.type_page == "N"||widget.type_page == "NI") {
                               page_now = widget.type_page!;
                               this.body_message_contain = body_message_pu(
-                                  messaging_pu: new Messaging_PU(),
+                                  messaging_pu: widget.messaging,
                                   typepage: widget.type_page!);
 
                             }else {
                               page_now = "NI";
                               this.body_message_contain = body_message_pu(
-                                  messaging_pu: new Messaging_PU(),
+                                  messaging_pu: new Notification_Message(),
                                   typepage: page_now);
                             }
                           });
@@ -184,10 +186,11 @@ class message_page_state extends State<message_page> {
                             decoration:
                                 BoxDecoration(boxShadow: [boxShadowPu!]),
                             child:
-                                Text('${getLang(context, "Message_Public")}')),
+                                Text('${getLang(context, "Message_Public")}',style: TextStyle(color:Theme.of(context).textTheme.headline1!.color,))),
                         style: ButtonStyle(
+                          elevation: MaterialStateProperty.all(0),
                             backgroundColor: MaterialStateProperty.all(
-                              Color.fromARGB(500, 12, 0, 74),
+                              Theme.of(context).shadowColor,
                             ),
                             shape: MaterialStateProperty.all<
                                     RoundedRectangleBorder>(
@@ -221,11 +224,12 @@ class message_page_state extends State<message_page> {
                         child: Container(
                             decoration: BoxDecoration(boxShadow: [boxShadowS!]),
                             child:
-                                Text('${getLang(context, "Message_Sympole")}')),
+                                Text('${getLang(context, "Message_Sympole")}',style: TextStyle(color:Theme.of(context).textTheme.headline1!.color,))),
                         style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(0),
                             //elevation: MaterialStateProperty.all(5),
                             backgroundColor: MaterialStateProperty.all(
-                                Color.fromARGB(500, 12, 0, 74)),
+                                Theme.of(context).shadowColor),
                             shape: MaterialStateProperty.all<
                                     RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
@@ -259,10 +263,11 @@ class message_page_state extends State<message_page> {
                             decoration:
                                 BoxDecoration(boxShadow: [boxShadowPr!]),
                             child: Text(
-                                '${getLang(context, "Message_Programing")}')),
+                                '${getLang(context, "Message_Programing")}',style: TextStyle(color:Theme.of(context).textTheme.headline1!.color,))),
                         style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(0),
                             backgroundColor: MaterialStateProperty.all(
-                              Color.fromARGB(500, 12, 0, 74),
+                              Theme.of(context).shadowColor,
                             ),
                             shape: MaterialStateProperty.all<
                                     RoundedRectangleBorder>(
@@ -365,7 +370,13 @@ class message_page_state extends State<message_page> {
         Messsage_DataBase message_database = Messsage_DataBase();
 
         if (await message_database.Insert(list)) {
-          await Notification_OneSignal_class.handleSendNotification(Message_Sympole_Content.text,"Signal on " + Message_Sympole.text);
+          try {
+            await Notification_OneSignal_class.handleSendNotification(
+                Message_Sympole_Content.text,
+                "Signal on " + Message_Sympole.text);
+          }catch(ex){
+            showtoast(getLang(context,"local"));
+          }
           Message_Sympole_Price.clear();
           Message_Sympole_MEP.clear();
           Message_Sympole_OSL.clear();
@@ -411,9 +422,13 @@ class message_page_state extends State<message_page> {
         list.add(Public_Content.text);
         Public_DataBase public_dataBase = Public_DataBase();
         if(await public_dataBase.Insert(list)) {
-          await Notification_OneSignal_class.handleSendNotification(
-              list[1], list[0]);
+          try{
+            await Notification_OneSignal_class.handleSendNotification(list[1], list[0]);
+          }catch(e){
+            showtoast(getLang(context,"local"));
+          }
           list = [];
+          Public_Content.text = Public_Title.text = "";
         } else {
             showtoast('${getLang(context, "No_Insert")}');
           }
@@ -487,6 +502,29 @@ class message_page_state extends State<message_page> {
           Program_Content.clear();
           set_image_OP.path = File("");
           list_image = [];
+        } else {
+          showtoast('${getLang(context, "No_Ubdate")}');
+        }
+      } else {
+        showtoast('${getLang(context, "Field_Empty")}');
+      }
+    }else if (page_now == "N") {
+      if (Validation.isValidnull(Public_Title.text) &&
+          Validation.isValidnull(Public_Content.text)) {
+        List<String> list = [];
+        list.add(Public_Title.text);
+        list.add(Public_Content.text);
+        list.add(widget.messaging.messaging_id.toString());
+        list.add(widget.messaging.type);
+        Public_DataBase public_dataBase = Public_DataBase();
+        if(await public_dataBase.Ubdate(list)) {
+          try{
+            await Notification_OneSignal_class.handleSendNotification(list[1], list[0]);
+          }catch(e){
+            showtoast(getLang(context,"local"));
+          }
+          list = [];
+          Public_Content.text = Public_Title.text = "";
         } else {
           showtoast('${getLang(context, "No_Ubdate")}');
         }
@@ -574,8 +612,7 @@ class body_message_state extends State<body_message> {
                 children: [
                   Text(
                     "${getLang(context, "Price")} :",
-                    style: TextStyle(
-                        color: Colors.black54, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
                     width: 20,
@@ -585,14 +622,13 @@ class body_message_state extends State<body_message> {
                       child: TextFormField(
                         controller: Message_Sympole_Price,
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelStyle: TextStyle(color: Colors.cyan),
                           labelText: "${getLang(context, "Enter_Price")}",
                           enabledBorder: UnderlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide:
-                                BorderSide(color: Colors.black54, width: 5),
+                                BorderSide(color: Theme.of(context).shadowColor, width: 5),
                           ),
                         ),
                         keyboardType: TextInputType.number,
@@ -612,8 +648,7 @@ class body_message_state extends State<body_message> {
                 children: [
                   Text(
                     '${getLang(context, "Order_Type")}',
-                    style: TextStyle(
-                        color: Colors.black54, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
                     width: 20,
@@ -621,7 +656,6 @@ class body_message_state extends State<body_message> {
                   Container(
                       width: WidthDevice / 2.5,
                       child: DropdownButton<String>(
-                        dropdownColor: Colors.white,
                         value: dropdownValue,
                         icon: const Icon(Icons.filter_list_rounded),
                         elevation: 16,
@@ -667,8 +701,7 @@ class body_message_state extends State<body_message> {
                 children: [
                   Text(
                     '${getLang(context, "Entry_Point")}',
-                    style: TextStyle(
-                        color: Colors.black54, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
                     width: 20,
@@ -678,22 +711,21 @@ class body_message_state extends State<body_message> {
                       child: TextFormField(
                         controller: Message_Sympole_MEP,
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelStyle: TextStyle(color: Colors.cyan),
                           labelText: '${getLang(context, "Enter_Entry_Point")}',
                           enabledBorder: UnderlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide:
-                                BorderSide(color: Colors.black54, width: 5),
+                                BorderSide(color: Theme.of(context).shadowColor, width: 5),
                           ),
                         ),
                         keyboardType: TextInputType.number,
-                        validator: (value) => Validation.isValidnull(value!)
+                        validator: (value) => Validation.isValidnull(value!.trim())
                             ? null
                             : '${getLang(context, "ValidContent")}',
                         onSaved: (val) =>
-                            widget.message.MessageEntryPoint = val! as double,
+                            widget.message.MessageEntryPoint = val!.trim() as double,
                       ))
                 ],
               ),
@@ -705,8 +737,7 @@ class body_message_state extends State<body_message> {
                 children: [
                   Text(
                     '${getLang(context, "Stop_Loss")}',
-                    style: TextStyle(
-                        color: Colors.black54, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
                     width: 20,
@@ -716,21 +747,20 @@ class body_message_state extends State<body_message> {
                       child: TextFormField(
                         controller: Message_Sympole_OSL,
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelStyle: TextStyle(color: Colors.cyan),
                           labelText: '${getLang(context, "Enter_Stop_Loss")}',
                           enabledBorder: UnderlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide:
-                                BorderSide(color: Colors.black54, width: 5),
+                                BorderSide(color: Theme.of(context).shadowColor, width: 5),
                           ),
                         ),
                         keyboardType: TextInputType.number,
-                        validator: (value) => Validation.isValidnull(value!)
+                        validator: (value) => Validation.isValidnull(value!.trim())
                             ? null
                             : '${getLang(context, "ValidContent")}',
-                        onSaved: (val) => widget.message.OrderStopLoss = val!,
+                        onSaved: (val) => widget.message.OrderStopLoss = val!.trim(),
                       ))
                 ],
               ),
@@ -742,8 +772,7 @@ class body_message_state extends State<body_message> {
                 children: [
                   Text(
                     '${getLang(context, "Target2")}',
-                    style: TextStyle(
-                        color: Colors.black54, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
                     width: 20,
@@ -753,21 +782,20 @@ class body_message_state extends State<body_message> {
                       child: TextFormField(
                         controller: Message_Sympole_Target2,
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelStyle: TextStyle(color: Colors.cyan),
                           labelText: '${getLang(context, "Enter_Target2")}',
                           enabledBorder: UnderlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide:
-                                BorderSide(color: Colors.black54, width: 5),
+                                BorderSide(color: Theme.of(context).shadowColor, width: 5),
                           ),
                         ),
                         keyboardType: TextInputType.number,
-                        validator: (value) => Validation.isValidnull(value!)
+                        validator: (value) => Validation.isValidnull(value!.trim())
                             ? null
                             : '${getLang(context, "ValidContent")}',
-                        onSaved: (val) => widget.message.Target2 = val!,
+                        onSaved: (val) => widget.message.Target2 = val!.trim(),
                       ))
                 ],
               ),
@@ -779,8 +807,7 @@ class body_message_state extends State<body_message> {
                 children: [
                   Text(
                     '${getLang(context, "Target1")}',
-                    style: TextStyle(
-                        color: Colors.black54, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
                     width: 20,
@@ -790,21 +817,20 @@ class body_message_state extends State<body_message> {
                       child: TextFormField(
                         controller: Message_Sympole_Target1,
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelStyle: TextStyle(color: Colors.cyan),
                           labelText: '${getLang(context, "Enter_Target1")}',
                           enabledBorder: UnderlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide:
-                                BorderSide(color: Colors.black54, width: 5),
+                                BorderSide(color: Theme.of(context).shadowColor, width: 5),
                           ),
                         ),
                         keyboardType: TextInputType.number,
-                        validator: (value) => Validation.isValidnull(value!)
+                        validator: (value) => Validation.isValidnull(value!.trim())
                             ? null
                             : '${getLang(context, "ValidContent")}',
-                        onSaved: (val) => widget.message.Target1 = val!,
+                        onSaved: (val) => widget.message.Target1 = val!.trim(),
                       ))
                 ],
               ),
@@ -816,8 +842,7 @@ class body_message_state extends State<body_message> {
                 children: [
                   Text(
                     '${getLang(context, "Order_Content")}',
-                    style: TextStyle(
-                        color: Colors.black54, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
                     width: 20,
@@ -827,21 +852,20 @@ class body_message_state extends State<body_message> {
                       child: TextFormField(
                         controller: Message_Sympole_Content,
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelStyle: TextStyle(color: Colors.cyan),
                           labelText: '${getLang(context, "Enter_Content")}',
                           enabledBorder: UnderlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide:
-                                BorderSide(color: Colors.black54, width: 5),
+                                BorderSide(color: Theme.of(context).shadowColor, width: 5),
                           ),
                         ),
                         keyboardType: TextInputType.text,
-                        validator: (value) => Validation.isValidnull(value!)
+                        validator: (value) => Validation.isValidnull(value!.trim())
                             ? null
                             : '${getLang(context, "ValidContent")}',
-                        onSaved: (val) => widget.message.MessageContent = val!,
+                        onSaved: (val) => widget.message.MessageContent = val!.trim(),
                       ))
                 ],
               ),
@@ -853,8 +877,7 @@ class body_message_state extends State<body_message> {
                 children: [
                   Text(
                     '${getLang(context, "Sympole_Name")}',
-                    style: TextStyle(
-                        color: Colors.black54, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
                     width: 20,
@@ -864,21 +887,20 @@ class body_message_state extends State<body_message> {
                       child: TextFormField(
                         controller: Message_Sympole,
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelStyle: TextStyle(color: Colors.cyan),
                           labelText: '${getLang(context, "Enter_Sympole")}',
                           enabledBorder: UnderlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide:
-                                BorderSide(color: Colors.black54, width: 5),
+                                BorderSide(color:Theme.of(context).shadowColor, width: 5),
                           ),
                         ),
                         keyboardType: TextInputType.text,
-                        validator: (value) => Validation.isValidnull(value!)
+                        validator: (value) => Validation.isValidnull(value!.trim())
                             ? null
                             : '${getLang(context, "ValidContent")}',
-                        onSaved: (val) => widget.message.MessageSymbol = val!,
+                        onSaved: (val) => widget.message.MessageSymbol = val!.trim(),
                       ))
                 ],
               ),
@@ -920,7 +942,7 @@ class body_message_state extends State<body_message> {
                                       image: FileImage(get_image_sympole.path), fit: BoxFit.fill),
                                   boxShadow: [
                                     BoxShadow(
-                                        color: Colors.black38, blurRadius: 10)
+                                        color: Theme.of(context).shadowColor, blurRadius: 10)
                                   ],
                                   borderRadius: BorderRadius.circular(50),
                                   border:
@@ -935,7 +957,7 @@ class body_message_state extends State<body_message> {
                                       fit: BoxFit.fill),
                                   boxShadow: [
                                     BoxShadow(
-                                        color: Colors.black38, blurRadius: 10)
+                                        color: Theme.of(context).shadowColor, blurRadius: 10)
                                   ],
                                   borderRadius: BorderRadius.circular(50),
                                   border:
@@ -950,7 +972,7 @@ class body_message_state extends State<body_message> {
                                       image: FileImage(get_image_sympole.path), fit: BoxFit.fill),
                                   boxShadow: [
                                     BoxShadow(
-                                        color: Colors.black38, blurRadius: 10)
+                                        color: Theme.of(context).shadowColor, blurRadius: 10)
                                   ],
                                   borderRadius: BorderRadius.circular(50),
                                   border:
@@ -966,7 +988,7 @@ class body_message_state extends State<body_message> {
                                       decoration: BoxDecoration(
                                         boxShadow: [
                                           BoxShadow(
-                                              color: Colors.black38,
+                                              color: Theme.of(context).shadowColor,
                                               blurRadius: 10)
                                         ],
                                         borderRadius: BorderRadius.circular(50),
@@ -989,7 +1011,7 @@ class body_message_state extends State<body_message> {
                                           fit: BoxFit.fill),
                                       boxShadow: [
                                         BoxShadow(
-                                            color: Colors.black38,
+                                            color: Theme.of(context).shadowColor,
                                             blurRadius: 10)
                                       ],
                                       borderRadius: BorderRadius.circular(50),
@@ -1080,25 +1102,29 @@ class body_message_pr_state extends State<body_message_pr> {
               Text(
                 '${getLang(context, "Program_Content")}',
                 style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
+                    color: Theme.of(context).textTheme.headline1!.color, fontWeight: FontWeight.w600),
               ),
               SizedBox(
                 width: 20,
               ),
               Container(
                   width: WidthDevice / 2.5,
-                  child: TextField(
+                  child: TextFormField(
                     controller: Program_Content,
                     textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelStyle: TextStyle(color: Colors.cyan),
                       labelText: '${getLang(context, "Enter_Content")}',
                       enabledBorder: UnderlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
+                        borderSide: BorderSide(color: Theme.of(context).shadowColor, width: 5),
                       ),
                     ),
+                    keyboardType: TextInputType.text,
+                    validator: (value) => Validation.isValidnull(value!.trim())
+                        ? null
+                        : '${getLang(context, "ValidContent")}',
+                    onSaved: (val) => widget.message.setcontent = val!.trim(),
                   ))
             ],
           ),
@@ -1111,25 +1137,29 @@ class body_message_pr_state extends State<body_message_pr> {
               Text(
                 '${getLang(context, "Program_Link")}',
                 style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
+                    color: Theme.of(context).textTheme.headline1!.color, fontWeight: FontWeight.w600),
               ),
               SizedBox(
                 width: 20,
               ),
               Container(
                   width: WidthDevice / 2.5,
-                  child: TextField(
+                  child: TextFormField(
                     controller: Program_Link,
                     textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelStyle: TextStyle(color: Colors.cyan),
                       labelText: '${getLang(context, "Link")}',
                       enabledBorder: UnderlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
+                        borderSide: BorderSide(color: Theme.of(context).shadowColor, width: 5),
                       ),
                     ),
+                    keyboardType: TextInputType.text,
+                    validator: (value) => Validation.isValidnull(value!.trim())
+                        ? null
+                        : '${getLang(context, "ValidContent")}',
+                    onSaved: (val) => widget.message.setlink = val!.trim(),
                   ))
             ],
           ),
@@ -1171,7 +1201,7 @@ class body_message_pr_state extends State<body_message_pr> {
                         image: FileImage(File(list_image[0])), fit: BoxFit.fill),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black38, blurRadius: 10)
+                          color: Theme.of(context).shadowColor, blurRadius: 10)
                     ],
                     borderRadius: BorderRadius.circular(50),
                     border:
@@ -1186,7 +1216,7 @@ class body_message_pr_state extends State<body_message_pr> {
                         fit: BoxFit.fill),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black38, blurRadius: 10)
+                          color: Theme.of(context).shadowColor, blurRadius: 10)
                     ],
                     borderRadius: BorderRadius.circular(50),
                     border:
@@ -1201,7 +1231,7 @@ class body_message_pr_state extends State<body_message_pr> {
                         image: FileImage(File(list_image[0])), fit: BoxFit.fill),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black38, blurRadius: 10)
+                          color: Theme.of(context).shadowColor, blurRadius: 10)
                     ],
                     borderRadius: BorderRadius.circular(50),
                     border:
@@ -1217,7 +1247,7 @@ class body_message_pr_state extends State<body_message_pr> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black38,
+                                color: Theme.of(context).shadowColor,
                                 blurRadius: 10)
                           ],
                           borderRadius: BorderRadius.circular(50),
@@ -1240,7 +1270,7 @@ class body_message_pr_state extends State<body_message_pr> {
                         fit: BoxFit.fill),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black38,
+                          color: Theme.of(context).shadowColor,
                           blurRadius: 10)
                     ],
                     borderRadius: BorderRadius.circular(50),
@@ -1280,7 +1310,7 @@ class body_message_pr_state extends State<body_message_pr> {
               Text(
                 '${getLang(context, "Program_Type")}',
                 style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
+                    color: Theme.of(context).textTheme.headline1!.color, fontWeight: FontWeight.w600),
               ),
               SizedBox(
                 width: 20,
@@ -1288,12 +1318,11 @@ class body_message_pr_state extends State<body_message_pr> {
               Container(
                   width: WidthDevice / 2.5,
                   child: DropdownButton<String>(
-                    dropdownColor: Colors.white,
                     value: dropdownValue,
                     icon: const Icon(Icons.filter_list_rounded),
                     elevation: 16,
                     style: TextStyle(
-                        color: Colors.black54),
+                        color: Theme.of(context).textTheme.headline1!.color),
                     underline: Container(
                       height: 2,
                     ),
@@ -1321,7 +1350,7 @@ class body_message_pr_state extends State<body_message_pr> {
                         child: Text(
                           Program_type.values.elementAt(int.parse(value)),
                           style: TextStyle(
-                              color: Colors.black54),
+                              color: Theme.of(context).textTheme.headline1!.color),
                         ),
                       );
                     }).toList(),
@@ -1351,19 +1380,19 @@ class body_message_pr_state extends State<body_message_pr> {
                 });
               }
             },
-            icon: Icon(Icons.add_photo_alternate_outlined,size: 60,color: Colors.black45,), label: Text(""),
+            icon: Icon(Icons.add_photo_alternate_outlined,size: 60), label: Text(""),
             style: ButtonStyle(
                 padding:
                 MaterialStateProperty.all(EdgeInsets.all(5)),
                 elevation: MaterialStateProperty.all(20),
                 backgroundColor: MaterialStateProperty.all(
-                    Colors.white54),
+                    Theme.of(context).textTheme.headline2!.color),
                 shape: MaterialStateProperty.all<
                     RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(20)),
                         side: BorderSide(
-                            color: Colors.black38, width: 0.2)
+                            color:Theme.of(context).shadowColor, width: 0.2)
                     )
                 ),fixedSize: MaterialStateProperty.all<Size>(Size(110,150))
             ),
@@ -1403,7 +1432,7 @@ class body_message_pu extends StatefulWidget {
   body_message_pu({required this.typepage, required this.messaging_pu});
 
   final String typepage;
-  final Messaging_PU? messaging_pu;
+  final Notification_Message? messaging_pu;
 }
 late TextEditingController Public_Content, Public_Title;
 class body_message_pu_state extends State<body_message_pu> {
@@ -1423,7 +1452,7 @@ class body_message_pu_state extends State<body_message_pu> {
 
     if (widget.messaging_pu != null && widget.typepage == "N") {
       Public_Content =
-          TextEditingController(text: widget.messaging_pu!.getcontent);
+          TextEditingController(text: widget.messaging_pu!.content);
       Public_Title = TextEditingController(text: widget.messaging_pu!.gettitle);
     } else {
       Public_Content = TextEditingController();
@@ -1441,25 +1470,29 @@ class body_message_pu_state extends State<body_message_pu> {
               Text(
                 '${getLang(context, "Public_Title")}',
                 style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
+                    color: Theme.of(context).textTheme.headline1!.color, fontWeight: FontWeight.w600),
               ),
               SizedBox(
                 width: 20,
               ),
               Container(
                   width: WidthDevice / 1.15,
-                  child: TextField(
+                  child: TextFormField(
                     controller: Public_Title,
                     textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelStyle: TextStyle(color: Colors.cyan),
                       labelText: '${getLang(context, "Enter_Content")}',
                       enabledBorder: UnderlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
+                        borderSide: BorderSide(color: Theme.of(context).shadowColor, width: 5),
                       ),
                     ),
+                    keyboardType: TextInputType.text,
+                    validator: (value) => Validation.isValidnull(value!.trim())
+                        ? null
+                        : '${getLang(context, "ValidContent")}',
+                    onSaved: (val) => widget.messaging_pu!.title = val!.trim(),
                   )),
               SizedBox(
                 height: 40,
@@ -1467,25 +1500,29 @@ class body_message_pu_state extends State<body_message_pu> {
               Text(
                 '${getLang(context, "Public_Content")}',
                 style: TextStyle(
-                    color: Colors.black54, fontWeight: FontWeight.w600),
+                    color: Theme.of(context).textTheme.headline1!.color, fontWeight: FontWeight.w600),
               ),
               SizedBox(
                 width: 20,
               ),
               Container(
                   width: WidthDevice / 1.15,
-                  child: TextField(
+                  child: TextFormField(
                     controller: Public_Content,
                     textAlign: TextAlign.start,
-                    style: TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelStyle: TextStyle(color: Colors.cyan),
                       labelText: '${getLang(context, "Enter_Content")}',
                       enabledBorder: UnderlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.black54, width: 5),
+                        borderSide: BorderSide(color: Theme.of(context).shadowColor, width: 5),
                       ),
                     ),
+                    keyboardType: TextInputType.text,
+                    validator: (value) => Validation.isValidnull(value!.trim())
+                        ? null
+                        : '${getLang(context, "ValidContent")}',
+                    onSaved: (val) => widget.messaging_pu!.content = val!.trim(),
                   ))
             ],
           ),

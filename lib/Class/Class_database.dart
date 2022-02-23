@@ -4,6 +4,7 @@ import 'package:crypt/crypt.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:mailing/Class/Get_Photo.dart';
+import 'package:mailing/Home_Page.dart';
 import 'package:mailing/main.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -272,7 +273,7 @@ class Member {
     // Write the file
     File file = await _localFile();
 
-    file.openWrite(mode: FileMode.write).write('${this.Email},${this.Image}');
+    file.openWrite(mode: FileMode.write).write('${this.Email},${this.Image},${checkadmin ? 1 : 0}');
   }
 
   deletefile() async {
@@ -290,7 +291,8 @@ class Member {
         var string = file.readAsStringSync();
         List<String> profile = string.split(",");
         this.Email = profile[0];
-        this.Image = profile[1];
+        this.Image = profile[1] == null ||profile[1] == "" ? this.Image : profile[1] ;
+        checkadmin = profile[2] == "1" ? true : false;
         return await checkemail(this.Email!);
       } else {
         return false;
@@ -604,6 +606,8 @@ class Public_DataBase extends DataBase_Access {
       var response = await http.post(url, body: {
         'title': list.elementAt(0),
         'content': list.elementAt(1),
+        'id': list.elementAt(2),
+        'type': list.elementAt(3),
         'secret': '$secret'
       });
       return Status(response.statusCode);
@@ -670,7 +674,12 @@ class Public_DataBase extends DataBase_Access {
         list[i].title = data.elementAt(i)['Title_Notifi'] == null ?"Null" : data.elementAt(i)['Title_Notifi'];
         list[i].content = data.elementAt(i)['Content_Notifi'] == null ? "Null":data.elementAt(i)['Content_Notifi'];
         list[i].date = data.elementAt(i)['Date_Notifi'];
-        list[i].Notifi_State = data.elementAt(i)['notificationStatus'] == "0" ? false:true;
+        if(checkadmin){
+          list[i].Notifi_State = checkadmin;
+        }else {
+          list[i].Notifi_State =
+          data.elementAt(i)['notificationStatus'] == "0" ? false : true;
+        }
         list[i].type = data.elementAt(i)['Type_Notifi'];
 
       }
@@ -711,9 +720,13 @@ class Program_DataBase extends DataBase_Access {
               list.elementAt(2),
               list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
         } else {
-          await Notification_OneSignal_class.handleSendNotification(
-              list.elementAt(2),
-              list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
+          try {
+            await Notification_OneSignal_class.handleSendNotification(
+                list.elementAt(2),
+                list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
+          }catch(ex){
+            showtoast("Valid Local To Send Notification Trying");
+          }
         }
         return Status(response.statusCode);
       }

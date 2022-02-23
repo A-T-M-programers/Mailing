@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:http/http.dart';
+import 'package:mailing/Class/Admob.dart';
 import 'package:mailing/Login_Mailing.dart';
 import 'package:mailing/Pages_File/Notif_Page.dart';
 import 'package:mailing/Pages_File/Profile_Page.dart';
@@ -47,6 +48,8 @@ Public_DataBase public_dataBase = Public_DataBase();
 Contentviewinfo_DataBase countview = Contentviewinfo_DataBase();
 Widget _dialogContent = CircularProgressIndicator();
 
+
+
 class home_page extends StatefulWidget {
   const home_page({Key? key}) : super(key: key);
 
@@ -60,17 +63,7 @@ class home_page_state extends State<home_page> {
 
   Future<void> get_select_message() async {
 
-    try{
-      notification_message = await public_dataBase.Select(email: member.Email);
-      count_notification_view = 0;
-      for(int i = 0 ; i <  notification_message.length;i++){
-        if(notification_message[i].getNotifiState){
-          count_notification_view++;
-        }
-      }
-    }catch(ex){
-      print(ex);
-    }
+    notification_message = await public_dataBase.Select(email: member.Email);
 
     if(pagecheck == "S"||pagecheck == "SI") {
       try {
@@ -78,7 +71,19 @@ class home_page_state extends State<home_page> {
       } catch (ex) {
         print(ex);
       }
-      if (!checkadmin) countviewint = await countview.Select();
+      try{
+        count_notification_view = 0;
+        for(int i = 0 ; i <  notification_message.length;i++){
+          if(notification_message[i].getNotifiState){
+            count_notification_view++;
+          }
+        }
+      }catch(ex){
+        print(ex);
+      }
+      if (!checkadmin){
+        countviewint = await countview.Select();
+      }
 
       setState(() {
         if (messaging.length > 0)
@@ -128,11 +133,16 @@ class home_page_state extends State<home_page> {
         }
       }
     }
+    setState(() {
+
+    });
   }
 
   @override
   void initState() {
     super.initState();
+    loadAd();
+
     get_select_message().whenComplete(() => this.setState(() {
           print("Complate");
         }));
@@ -151,8 +161,8 @@ class home_page_state extends State<home_page> {
               IconButton(
                   onPressed: _hundgetdate,
                   icon: Icon(Icons.settings_backup_restore,
-                      size: 70, color: Colors.black54))),
-                  Icon(Icons.wifi,color: Colors.black45,size: 80,),
+                      size: 70))),
+                  Icon(Icons.wifi,size: 80,),
               Text('${getLang(context, "Check_Your_Internet")}'),
 
             ]));
@@ -161,6 +171,7 @@ class home_page_state extends State<home_page> {
         });
       });
     });
+    showAd();
   }
 
   _scrollListener() {
@@ -216,8 +227,7 @@ class home_page_state extends State<home_page> {
             List.generate(length_list_notification, (index) => List_Notif(index: index));
       });
   }
-
-  @override
+   @override
   Widget build(BuildContext context) {
 
     if (pagecheck == "OP") {
@@ -232,44 +242,44 @@ class home_page_state extends State<home_page> {
     HieghDevice = MediaQuery.of(context).size.height;
     return SafeArea(
         child: Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        elevation: 10,
+        elevation: 0,
         toolbarHeight: HieghDevice / 12,
-        backgroundColor: Color.fromARGB(500, 12, 0, 74),
+        backgroundColor: Theme.of(context).primaryColor,
         actions: [
-          Stack(alignment: AlignmentDirectional.topCenter, children: [
+          Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
-              margin: EdgeInsets.only(top: 0, right: WidthDevice / 4,left:WidthDevice / 4 ),
+              alignment: Alignment.center,
+              margin: EdgeInsets.only(top: 10),
               child: Text(
                 "${getLang(context, "Mailing")}",
-                style: TextStyle(fontSize: HieghDevice / 18),
+                style: TextStyle(fontSize: HieghDevice / 30,color: Theme.of(context).textTheme.headline1!.color),
                 textAlign: TextAlign.center,
               ),
             ),
+            SizedBox(width: 40,),
             if (showsendmessage && pagecheck == "S")
               Container(
+                  margin: EdgeInsets.only(top: 10),
                   alignment: Alignment.center,
                   padding: EdgeInsets.only(left: 5),
                   decoration: BoxDecoration(
-                      border: Border.all(width: 0),
+                      border: Border.all(color: Theme.of(context).shadowColor,width: 0),
                       boxShadow: [
-                        BoxShadow(
-                            color: Colors.white24,
-                            blurRadius: 20,
-                            spreadRadius: 10),
+                        BoxShadow(color: Theme.of(context).shadowColor,
+                            blurRadius: 10,
+                            spreadRadius: 2),
                       ],
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                  color: Theme.of(context).primaryColor),
                   height: HieghDevice / 18,
                   width: 100,
-                  margin: EdgeInsets.only(
-                      left: WidthDevice - 120, top: 4, right: 10),
                   child: DropdownButton<String>(
-                    hint: Text('${getLang(context, dropdownValue!)}'),
+                    hint: Text('${getLang(context, dropdownValue!)}',style: TextStyle(color: Theme.of(context).textTheme.headline1!.color),),
                     icon: const Icon(Icons.filter_list_rounded),
                     elevation: 16,
-                    style: const TextStyle(color: Colors.white),
                     underline: Container(
                       height: 0,
                     ),
@@ -314,48 +324,24 @@ class home_page_state extends State<home_page> {
                         value: value,
                         child: Text(
                           '${getLang(context, value)}',
-                          style: TextStyle(color: Colors.black54),
                         ),
                       );
                     }).toList(),
                   )),
+            SizedBox(width: 20,)
           ])
         ],
       ),
       body: Stack(children: [
         Container(
-          margin: pagecheck == "PR"||pagecheck == "PP" ? EdgeInsets.only(top: HieghDevice / 17):EdgeInsets.only(top: 0),
-            color: Color.fromARGB(500, 12, 0, 74),
-            child: Container(
-              decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.white24,
-                        blurRadius: 20,
-                        spreadRadius: 10,
-                        offset: Offset(40, 3)),
-                    BoxShadow(color: Colors.white),
-                    BoxShadow(color: Colors.white),
-                    BoxShadow(color: Colors.white),
-                    BoxShadow(color: Colors.white),
-                    BoxShadow(color: Colors.white),
-                    BoxShadow(color: Colors.white),
-                    BoxShadow(color: Colors.white),
-                  ],
-                  border: Border.all(color: Colors.white, width: 10),
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(50),
-                      topRight: Radius.circular(50))),
-              width: WidthDevice,
-              height: HieghDevice / 14,
-              child: null,
-            )),
+          color:Theme.of(context).primaryColor,
+        ),
         Container(
-          margin: pagecheck == "PR"||pagecheck == "PP" ? EdgeInsets.only(top: HieghDevice / 17):EdgeInsets.only(top: 0),
+          margin: pagecheck == "PR"||pagecheck == "PP" ? EdgeInsets.only(top: (HieghDevice / 17)+10):EdgeInsets.only(top: 10),
             decoration: BoxDecoration(
+     color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(50),
-              color: Colors.white,
+              boxShadow: [BoxShadow(color:Theme.of(context).shadowColor ,blurRadius: 5)]
             ),
             height: HieghDevice,
             width: WidthDevice,
@@ -371,6 +357,7 @@ class home_page_state extends State<home_page> {
                   padding: EdgeInsetsDirectional.only(bottom: (HieghDevice / 5.5) + 60),
                       )
                     : Container(
+                    color: Theme.of(context).cardColor,
                         margin: EdgeInsets.only(bottom: HieghDevice / 3),
                         alignment: Alignment.center,
                         child: _dialogContent))),
@@ -387,11 +374,11 @@ class home_page_state extends State<home_page> {
                         arcType: ArcType.CONVEX,
                         edge: Edge.TOP,
                         height: HieghDevice / 6.5,
-                        clipShadows: [ClipShadow(color: Colors.black)],
+                        clipShadows: [ClipShadow(color: Colors.white)],
                         child: new Container(
                           height: HieghDevice / 5.5,
                           width: MediaQuery.of(context).size.width,
-                          color: Color.fromARGB(200, 12, 0, 74),
+                          color: Theme.of(context).primaryColor,
                         ),
                       ),
                     ),
@@ -412,12 +399,13 @@ class home_page_state extends State<home_page> {
                         height: he_wi[0],
                         width: he_wi[0],
                         decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
                             border:
-                                Border.all(color: Colors.black12, width: 0.3),
+                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Colors.white, blurRadius: 5),
-                              BoxShadow(color: Colors.white, blurRadius: 5)
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
                             ]),
                         child: IconButton(
                           onPressed: () {
@@ -441,11 +429,9 @@ class home_page_state extends State<home_page> {
                             Icons.settings_outlined,
                             size: sizeicon[0],
                           ),
-                          color: Colors.black,
                         )),
                     Text(
                       '${getLang(context, "Setting")}',
-                      style: TextStyle(color: Colors.white),
                     )
                   ],
                 )),
@@ -463,12 +449,13 @@ class home_page_state extends State<home_page> {
                         width: he_wi[1],
                         height: he_wi[1],
                         decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
                             border:
-                                Border.all(color: Colors.black12, width: 0.3),
+                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Colors.white, blurRadius: 5),
-                              BoxShadow(color: Colors.white, blurRadius: 5)
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
                             ]),
                         child: IconButton(
                           onPressed: () {
@@ -494,11 +481,9 @@ class home_page_state extends State<home_page> {
                             Icons.people_outline,
                             size: sizeicon[1],
                           ),
-                          color: Colors.black,
                         )),
                     Text(
                       '${getLang(context, "Profile")}',
-                      style: TextStyle(color: Colors.white),
                     )
                   ],
                 )),
@@ -515,12 +500,13 @@ class home_page_state extends State<home_page> {
                         width: he_wi[2],
                         height: he_wi[2],
                         decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
                             border:
-                                Border.all(color: Colors.black12, width: 0.3),
+                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
                             borderRadius: BorderRadius.circular(70),
                             boxShadow: [
-                              BoxShadow(color: Colors.white, blurRadius: 5),
-                              BoxShadow(color: Colors.white, blurRadius: 5)
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
                             ]),
                         child: IconButton(
                           onPressed: () {
@@ -544,11 +530,9 @@ class home_page_state extends State<home_page> {
                             Icons.home_outlined,
                             size: sizeicon[2],
                           ),
-                          color: Colors.black,
                         )),
                     Text(
                       '${getLang(context, "Home")}',
-                      style: TextStyle(color: Colors.white),
                     )
                   ],
                 )),
@@ -564,17 +548,21 @@ class home_page_state extends State<home_page> {
                         width: he_wi[3],
                         height: he_wi[3],
                         decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
                             border:
-                                Border.all(color: Colors.black12, width: 0.3),
+                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Colors.white, blurRadius: 5),
-                              BoxShadow(color: Colors.white, blurRadius: 5)
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
                             ]),
                         child: IconButton(
                           onPressed: ()async {
                             pagecheck = "PR";
-                            await _hundgetdate();
+                            if(list_programOP.isEmpty) {
+                              await _hundgetdate();
+                            }
+
                             setState(() {
                               showsendmessage = checkadmin;
                               page = List.generate(
@@ -594,11 +582,9 @@ class home_page_state extends State<home_page> {
                             Icons.filter_drama,
                             size: sizeicon[3],
                           ),
-                          color: Colors.black,
                         )),
                     Text(
                       '${getLang(context, "Program")}',
-                      style: TextStyle(color: Colors.white),
                     )
                   ],
                 )),
@@ -614,12 +600,13 @@ class home_page_state extends State<home_page> {
                         height: he_wi[4],
                         width: he_wi[4],
                         decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
                             border:
-                                Border.all(color: Colors.black12, width: 0.3),
+                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Colors.white, blurRadius: 5),
-                              BoxShadow(color: Colors.white, blurRadius: 5)
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
+                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
                             ]),
                         child: IconButton(
                           onPressed: ()async {
@@ -644,13 +631,11 @@ class home_page_state extends State<home_page> {
                             Icons.notifications_active_outlined,
                             size: sizeicon[4],
                           ),
-                          color: Colors.black,
                         )),
                     Container(
                         margin: EdgeInsets.only(bottom: 3, top: he_wi[4]),
                         child: Text(
                           '${getLang(context, "Notificat")}',
-                          style: TextStyle(color: Colors.white),
                         )),
                     notification_message.length > 0 && notification_message.length != count_notification_view ? Container(
                       margin: EdgeInsets.only(left: 38),
@@ -673,12 +658,11 @@ class home_page_state extends State<home_page> {
                   left: WidthDevice / 1.19,
                   top: (HieghDevice / 1.55) - (HieghDevice / 12)),
               decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black38, width: 0.3),
-                  color: Colors.greenAccent,
+                  color: Colors.lightGreen,
+                  border: Border.all(color: Theme.of(context).shadowColor,width: 0.3),
                   borderRadius: BorderRadius.circular(50),
                   boxShadow: [
-                    BoxShadow(
-                        color: Colors.black38, blurRadius: 10, spreadRadius: 10)
+                    BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 10, spreadRadius: 10)
                   ]),
               child: IconButton(
                   onPressed: () {
@@ -697,17 +681,17 @@ class home_page_state extends State<home_page> {
                       } else if (he_wi[4] == 60) {
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
-                          return message_page("NI", new Messaging_PU());
+                          return message_page("NI", new Notification_Message());
                         }));
                       }
                     });
                   },
                   icon: Icon(
                     Icons.message_outlined,
-                    color: Colors.black,
                     size: 35,
                   ))),
         if (pagecheck == "PR"||pagecheck == "PP") Container(
+            color: Theme.of(context).cardColor,
             margin: EdgeInsets.only(),
             child: Row(
               children: [
@@ -732,11 +716,9 @@ class home_page_state extends State<home_page> {
                         decoration:
                         BoxDecoration(boxShadow: [boxShadowOP!]),
                         child:
-                        Text('${getLang(context, "Our_Product")}')),
+                        Text('${getLang(context, "Our_Product")}',style: TextStyle(color:Theme.of(context).textTheme.headline1!.color,),)),
                     style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(
-                          Color.fromARGB(500, 12, 0, 74),
-                        ),
+                      backgroundColor: MaterialStateProperty.all(Theme.of(context).primaryColor,),
                         shape: MaterialStateProperty.all<
                             RoundedRectangleBorder>(
                             RoundedRectangleBorder(
@@ -765,11 +747,9 @@ class home_page_state extends State<home_page> {
                         decoration:
                         BoxDecoration(boxShadow: [boxShadowPP!]),
                         child: Text(
-                            '${getLang(context, "Partner_Programs")}')),
+                            '${getLang(context, "Partner_Programs")}',style: TextStyle(color:Theme.of(context).textTheme.headline1!.color,),)),
                     style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(
-                          Color.fromARGB(500, 12, 0, 74),
-                        ),
+                        backgroundColor: MaterialStateProperty.all(Theme.of(context).primaryColor,),
                         shape: MaterialStateProperty.all<
                             RoundedRectangleBorder>(
                             RoundedRectangleBorder(
@@ -918,7 +898,6 @@ class _List_messaging extends State<List_messaging> {
                   child: Container(
                       margin: EdgeInsets.only(left: 20, right: 20),
                       decoration: BoxDecoration(
-                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20)),
                       child: Icon(
                         Icons.edit_outlined,
@@ -943,7 +922,6 @@ class _List_messaging extends State<List_messaging> {
                       margin: EdgeInsets.only(right: 20, left: 20),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20)),
                       child: Icon(
                         Icons.delete,
@@ -965,7 +943,7 @@ class _List_messaging extends State<List_messaging> {
                     margin: EdgeInsets.only(top: 20),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(40),
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         boxShadow: [
                           BoxShadow(color: Colors.black12, blurRadius: 5)
                         ]),
@@ -982,7 +960,6 @@ class _List_messaging extends State<List_messaging> {
                             ? Text(
                           widget.message!.MessageDate,
                                 style: TextStyle(
-                                    color: Colors.black38,
                                     fontSize: (HieghDevice / 180) *
                                         (WidthDevice / 180)),
                               )
@@ -995,7 +972,6 @@ class _List_messaging extends State<List_messaging> {
                                   widget.message!
                                       .MessageDate,
                                   style: TextStyle(
-                                      color: Colors.black38,
                                       fontSize: (HieghDevice / 180) *
                                           (WidthDevice / 180)),
                                 )),
@@ -1012,7 +988,7 @@ class _List_messaging extends State<List_messaging> {
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                          color: Colors.black38, blurRadius: 20)
+                                          color: Theme.of(context).shadowColor, blurRadius: 20)
                                     ],
                                   ),
                                   child: Validation.isValidnull(widget.message!
@@ -1062,7 +1038,7 @@ class _List_messaging extends State<List_messaging> {
                                         borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
                                           BoxShadow(
-                                              color: Colors.black38,
+                                              color: Theme.of(context).shadowColor,
                                               blurRadius: 20)
                                         ],
                                       ),
@@ -1134,8 +1110,8 @@ class _List_messaging extends State<List_messaging> {
                                 " ",
                             style: TextStyle(
                                 color: pay_complate
-                                    ? Colors.black54
-                                    : Colors.black,
+                                    ? Theme.of(context).textTheme.headline2!.color
+                                    : Theme.of(context).textTheme.headline1!.color,
                                 fontSize:
                                     (HieghDevice / 180) * (WidthDevice / 180) +
                                         5,
@@ -1182,7 +1158,6 @@ class _List_messaging extends State<List_messaging> {
                                 children: [
                                   Icon(
                                     Icons.visibility_outlined,
-                                    color: Colors.black,
                                   ),
                                   SizedBox(
                                     width: 7,
@@ -1190,7 +1165,7 @@ class _List_messaging extends State<List_messaging> {
                                   Text(
                                     widget.message!
                                         .MessageCountView,
-                                    style: TextStyle(color: Colors.black54,fontSize: (HieghDevice / 180) *
+                                    style: TextStyle(color: Theme.of(context).textTheme.headline2!.color,fontSize: (HieghDevice / 180) *
                                         (WidthDevice / 180) +
                                         5),
                                   )
@@ -1204,7 +1179,6 @@ class _List_messaging extends State<List_messaging> {
                                   children: [
                                     Icon(
                                       Icons.visibility_outlined,
-                                      color: Colors.black,
                                     ),
                                     SizedBox(
                                       width: 7,
@@ -1212,7 +1186,7 @@ class _List_messaging extends State<List_messaging> {
                                     Text(
                                       widget.message!
                                           .MessageCountView,
-                                      style: TextStyle(color: Colors.black54,fontSize: (HieghDevice / 180) *
+                                      style: TextStyle(color: Theme.of(context).textTheme.headline2!.color,fontSize: (HieghDevice / 180) *
                                           (WidthDevice / 180) +
                                           5),
                                     )
@@ -1232,7 +1206,7 @@ class _List_messaging extends State<List_messaging> {
                                 child: Text(
                                   widget.message!
                                       .MessageContent,
-                                  style: TextStyle(color: Colors.black38,fontSize: (HieghDevice / 180) *
+                                  style: TextStyle(color: Theme.of(context).textTheme.headline2!.color,fontSize: (HieghDevice / 180) *
                                       (WidthDevice / 180) +
                                       5),
                                   maxLines: 4,
@@ -1246,7 +1220,7 @@ class _List_messaging extends State<List_messaging> {
                                     child: Text(
                                       widget.message!
                                           .MessageContent,
-                                      style: TextStyle(color: Colors.black38,fontSize: (HieghDevice / 180) *
+                                      style: TextStyle(color: Theme.of(context).textTheme.headline2!.color,fontSize: (HieghDevice / 180) *
                                           (WidthDevice / 180) +
                                           5),
                                       maxLines: 4,

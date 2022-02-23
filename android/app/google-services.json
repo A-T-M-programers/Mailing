@@ -12,12 +12,7 @@
           "package_name": "com.example.mailing"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "216551021171-6uiqq1ob0m0ir656s34gmh5te8o5gmvh.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyBGsOuVVio1nYAfoLL25LuYAX8n-JZ_r_I"

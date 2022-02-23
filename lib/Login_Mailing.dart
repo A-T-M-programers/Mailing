@@ -22,8 +22,6 @@ GoogleSignIn googleSignIn = GoogleSignIn();
 
 GoogleSignInAccount? _currentUser;
 
-
-
 bool switch_check = true, checkbox_check = false;
 
 String sendnumber = "";
@@ -43,7 +41,6 @@ enum SingingCharacter { lafayette, jefferson }
 
 class Login_state extends State<LoginPage> {
   double WidthDevice = 0, HieghDevice = 0;
-
 
   @override
   Widget build(BuildContext context) {
@@ -99,15 +96,18 @@ class Login_state extends State<LoginPage> {
                   ),
                 ),
                 Container(
+                  margin: EdgeInsets.all(20),
                   alignment: Alignment.topLeft,
                   child: Container(
-                    height: 150,
-                    width: 150,
+                    height: 75,
+                    width: 75,
                     decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white70, width: 3),
+                        borderRadius: BorderRadius.circular(15),
                         image: DecorationImage(
-                      image: AssetImage("images/Snapshot.png"),
-                      fit: BoxFit.contain,
-                    )),
+                          image: AssetImage("images/logo.png"),
+                          fit: BoxFit.contain,
+                        )),
                     child: null,
                   ),
                 ),
@@ -118,7 +118,7 @@ class Login_state extends State<LoginPage> {
                   ),
                   Text(
                     "${getLang(context, "Mailing")}",
-                    style: TextStyle(fontSize: 30),
+                    style: TextStyle(fontSize: 25),
                   ),
                   SizedBox(
                     height: 30,
@@ -189,7 +189,7 @@ class Login_state extends State<LoginPage> {
                                       "${getLang(context, "Forgate_Password")}",
                                       style:
                                           TextStyle(color: Colors.blueAccent)),
-                                  onPressed: ()=>SendEmail(context),
+                                  onPressed: () => SendEmail(context),
                                 ),
                               ),
                             ]))),
@@ -197,7 +197,7 @@ class Login_state extends State<LoginPage> {
                       alignment: Alignment.topCenter,
                       child: Text(
                         "${getLang(context, "Login")}",
-                        style: TextStyle(fontSize: 25, color: Colors.black54),
+                        style: TextStyle(fontSize: 25, color: Colors.black87),
                       ),
                     ),
                     Container(
@@ -217,25 +217,12 @@ class Login_state extends State<LoginPage> {
                           p.trim();
                           if (m != '' && p != '') {
                             pagecheck = "S";
-                            if(m == "admin@gmail.com" && p == "123456"){
-                              member.setEmail = m;
-                              member.setPassword = p;
-                              if(checkbox_check) {
-                                member.writeFileLogIn();
-                              }
-                              checkadmin = true;
-                              email.text = password.text = "";
-                              Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => home_page()),
-                                      (route) => false);
-                            }else {
-                              var secret = Crypt.sha256("mailing_login");
-                              Uri url = Uri(
-                                  host: host,
-                                  path: 'Mailing_API/login.php',
-                                  scheme: scheme);
+                            var secret = Crypt.sha256("mailing_login");
+                            Uri url = Uri(
+                                host: host,
+                                path: 'Mailing_API/login.php',
+                                scheme: scheme);
+                            try {
                               var response = await http.post(url, body: {
                                 'password': p,
                                 'email': m,
@@ -248,19 +235,21 @@ class Login_state extends State<LoginPage> {
                                   {
                                     var membervar = jsonDecode(response.body);
                                     member.setEmail = email.text;
-                                    if (membervar['MemberImage'] != null)
+                                    checkadmin = membervar['MemberAdmin'] == "1"
+                                        ? true
+                                        : false;
+                                    if (Validation.isValidnull(membervar['MemberImage']))
                                       member.setImage =
-                                      membervar['MemberImage'];
+                                          membervar['MemberImage'];
                                     if (checkbox_check) {
                                       member.writeFileLogIn();
                                     }
                                     email.text = password.text = "";
-                                    checkadmin = false;
                                     Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) => home_page()),
-                                            (route) => false);
+                                        (route) => false);
                                     break;
                                   }
                                 case 400:
@@ -271,22 +260,26 @@ class Login_state extends State<LoginPage> {
                                 case 500:
                                   {
                                     errorMsg =
-                                    'Something went wrong! please try again later';
+                                        'Something went wrong! please try again later';
                                     break;
                                   }
                                 default:
                                   {
                                     errorMsg =
-                                    'Please check your internet connection and try again';
+                                        'Please check your internet connection and try again';
                                   }
                               }
 
                               if (errorMsg.isNotEmpty) {
                                 showtoast(errorMsg);
                               }
+                            } catch (ex) {
+                              showtoast(
+                                  getLang(context, "Check_Your_Internet"));
                             }
                           } else {
-                            showtoast("Please enter your email and your password!!");
+                            showtoast(
+                                "Please enter your email and your password!!");
                           }
                         },
                         icon: Icon(
@@ -317,19 +310,37 @@ class Login_state extends State<LoginPage> {
                   child: SignInButton(
                     Buttons.Google,
                     text: "Google",
-                    onPressed: _handleSignInwithgoogle,
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) => MyDialogePolicy(
+                              onPress: _handleSignInwithgoogle));
+                    },
                     elevation: 30,
                   ),
                 ),
                 Container(
                   margin: EdgeInsets.only(bottom: HieghDevice / 10),
                   width: 150,
-                  child: SignInButton(Buttons.Facebook,
-                      text: "Facebook",
-                      onPressed: _handleSignInwithfacebook,
-                      elevation: 30),
+                  child: SignInButton(Buttons.Facebook, text: "Facebook",
+                      onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) => MyDialogePolicy(
+                            onPress: _handleSignInwithfacebook));
+                  }, elevation: 30),
                 )
-              ])
+              ]),
+              Container(
+                  margin: EdgeInsets.only(
+                      left: 20, right: 20, bottom: HieghDevice / 12),
+                  child: Text(
+                    getLang(context, "worning"),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        wordSpacing: 5),
+                  ))
             ])));
   }
 
@@ -353,8 +364,7 @@ class Login_state extends State<LoginPage> {
               pagecheck = "S";
               email.text = _currentUser!.email;
               member.setEmail = _currentUser!.email;
-              if (_currentUser!.photoUrl != null &&
-                  _currentUser!.photoUrl != "") {
+              if (Validation.isValidnull(_currentUser!.photoUrl!)) {
                 member.setImage = _currentUser!.photoUrl!;
               }
               errorMsg = 'Email is an exsist Enter Password';
@@ -365,14 +375,15 @@ class Login_state extends State<LoginPage> {
               pagecheck = "S";
               email.text = _currentUser!.email;
               member.setEmail = _currentUser!.email;
-              if (_currentUser!.photoUrl != null &&
-                  _currentUser!.photoUrl != "") {
+              if (Validation.isValidnull(_currentUser!.photoUrl!)) {
                 member.setImage = _currentUser!.photoUrl!;
               }
               showDialog(
                   barrierDismissible: false,
                   context: context,
-                  builder: (context) => MyDialoge(ins_ubd: "ins_mem",)).then((value) {
+                  builder: (context) => MyDialoge(
+                        ins_ubd: "ins_mem",
+                      )).then((value) {
                 setState(() {
                   print(value);
                 });
@@ -411,7 +422,6 @@ class Login_state extends State<LoginPage> {
       final LoginResult result = await FacebookAuth.i.login();
 
       if (result.status == LoginStatus.success) {
-
         final data = await FacebookAuth.i.getUserData();
         member = Member.fromJson(data);
 
@@ -437,7 +447,9 @@ class Login_state extends State<LoginPage> {
                 showDialog(
                     barrierDismissible: false,
                     context: context,
-                    builder: (context) => MyDialoge(ins_ubd: "ins_mem",)).then((value) {
+                    builder: (context) => MyDialoge(
+                          ins_ubd: "ins_mem",
+                        )).then((value) {
                   setState(() {
                     print(value);
                   });
@@ -474,8 +486,8 @@ class Login_state extends State<LoginPage> {
   }
 }
 
-void _handleSignUp(BuildContext buildContext,String type) async {
-  if(type == "ins_mem") {
+void _handleSignUp(BuildContext buildContext, String type) async {
+  if (type == "ins_mem") {
     String m = member.getEmail;
     String p = password.text;
     String i = member.getImage;
@@ -493,11 +505,12 @@ void _handleSignUp(BuildContext buildContext,String type) async {
             if (checkbox_check) {
               member.writeFileLogIn();
             }
+            password.text = "";
             pagecheck = "S";
             Navigator.pushAndRemoveUntil(
                 buildContext,
                 MaterialPageRoute(builder: (context) => home_page()),
-                    (route) => false);
+                (route) => false);
             break;
           }
         case 400:
@@ -522,30 +535,33 @@ void _handleSignUp(BuildContext buildContext,String type) async {
     } else {
       showtoast("Please enter your password!!");
     }
-  }else if(type == "ubd_mem_pass"){
+  } else if (type == "ubd_mem_pass") {
     var secret = Crypt.sha256("Ubdate_password");
     Uri url = Uri(
         host: host,
         path: 'Mailing_API/Ubdate/Ubdate_password.php',
         scheme: scheme);
     var response = await http.post(url, body: {
-      'email': email.text,
+      'email': email.text.isEmpty ? member.getEmail : email.text.isEmpty,
       'password': password.text,
       'secret': '$secret'
     });
     String msg;
 
-    if (response.statusCode == 200 && response.reasonPhrase == 'Saved Process') {
-      member.writeFileLogIn();
+    if (response.statusCode == 200 &&
+        response.reasonPhrase == 'Saved Process') {
+      if(checkbox_check){
+        member.writeFileLogIn();
+      }
+      password.text = checknumber.text = "";
       Navigator.pop(buildContext, 'Saved Process');
       msg = 'Saved Process';
       Navigator.pushAndRemoveUntil(
           buildContext,
           MaterialPageRoute(builder: (context) => home_page()),
-              (route) => false);
-
+          (route) => false);
     } else {
-      msg=response.reasonPhrase ?? 'Please restart the app!!';
+      msg = response.reasonPhrase ?? 'Please restart the app!!';
     }
     Fluttertoast.showToast(
         msg: msg,
@@ -553,10 +569,9 @@ void _handleSignUp(BuildContext buildContext,String type) async {
         gravity: ToastGravity.CENTER,
         backgroundColor: Colors.red,
         textColor: Colors.cyanAccent,
-        fontSize: 16.0
-    );
+        fontSize: 16.0);
   }
-  }
+}
 
 Widget getelementemail(
     bool checkenable, String hint, BuildContext buildContext) {
@@ -628,49 +643,49 @@ class MyDialogeState extends State<MyDialoge> {
   @override
   Widget build(BuildContext context) {
     bool check_ins_ubd = true;
-    if(widget.ins_ubd=="ins_mem"){
+    if (widget.ins_ubd == "ins_mem") {
       check_ins_ubd = true;
-    }else{
+    } else {
       check_ins_ubd = false;
     }
-      return AlertDialog(
-          scrollable: true,
-          title: const Text('Sign Up'),
-          content: StatefulBuilder(builder: (context, setState) {
-            return Column(
-                // Then, the content of your dialog.
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  getelementemail(false, member.getEmail, context),
-                  getelamentpassword("Password", context),
-                  Container(
-                      margin: EdgeInsets.only(right: 10, left: 10),
-                      child: TextFormField(
-                        obscureText: true,
-                        style: TextStyle(color: Colors.black38),
-                        decoration: InputDecoration(
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black54),
-                          ),
-                          hintStyle: TextStyle(color: Colors.black38),
-                          icon: Icon(
-                            Icons.lock,
-                            color: Colors.black38,
-                          ),
-                          hintText: "Password Confirm",
+    return AlertDialog(
+        scrollable: true,
+        title: const Text('Sign Up'),
+        content: StatefulBuilder(builder: (context, setState) {
+          return Column(
+              // Then, the content of your dialog.
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                getelementemail(false, member.getEmail, context),
+                getelamentpassword("Password", context),
+                Container(
+                    margin: EdgeInsets.only(right: 10, left: 10),
+                    child: TextFormField(
+                      obscureText: true,
+                      style: TextStyle(color: Colors.black38),
+                      decoration: InputDecoration(
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black54),
                         ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) => Validation.isValidnull(value!) ||
-                                Validation.isValidPass(value) ||
-                                Validation.isValidPassConf(password.text, value)
-                            ? null
-                            : '${getLang(context, "ValidPass")}',
-                        onSaved: (val) => password.text = val!,
-                      )),
-                  if (check_ins_ubd) ListTile(
+                        hintStyle: TextStyle(color: Theme.of(context).textTheme.headline2!.color),
+                        icon: Icon(
+                          Icons.lock,
+                        ),
+                        hintText: "Password Confirm",
+                      ),
+                      keyboardType: TextInputType.visiblePassword,
+                      validator: (value) => Validation.isValidnull(value!) ||
+                              Validation.isValidPass(value) ||
+                              Validation.isValidPassConf(password.text, value)
+                          ? null
+                          : '${getLang(context, "ValidPass")}',
+                      onSaved: (val) => password.text = val!,
+                    )),
+                if (check_ins_ubd)
+                  ListTile(
                       title: Text(
                         "${getLang(context, "Save_Information")}",
-                        style: TextStyle(color: Colors.black38),
+                        style: TextStyle(color: Theme.of(context).textTheme.headline2!.color),
                       ),
                       leading: Theme(
                           data: ThemeData(
@@ -682,19 +697,21 @@ class MyDialogeState extends State<MyDialoge> {
                                 setState(() {
                                   checkbox_check = value!;
                                 });
-                              }))) else SizedBox(height: 0) ,
-                  Row(children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, 'Cancel'),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => _handleSignUp(context,widget.ins_ubd),
-                      child: const Text('OK'),
-                    )
-                  ]),
-                ]);
-          }));
+                              })))
+                else
+                  SizedBox(height: 0),
+                Row(children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => _handleSignUp(context, widget.ins_ubd),
+                    child: const Text('OK'),
+                  )
+                ]),
+              ]);
+        }));
   }
 }
 
@@ -745,17 +762,19 @@ class MyDialogecheckpassState extends State<MyDialogecheckpass> {
                     onPressed: () {
                       setState(() {
                         if (Validation.isValidnull(checknumber.text)) {
-                          if(verfipass()){
-                          Navigator.pop(context, 'Cancel');
-                          showDialog(
-                              barrierDismissible: false,
-                              context: context,
-                              builder: (context) => MyDialoge(ins_ubd: "ubd_mem_pass",)).then((value) {
-                            setState(() {
-                              print(value);
+                          if (verfipass()) {
+                            Navigator.pop(context, 'Cancel');
+                            showDialog(
+                                barrierDismissible: false,
+                                context: context,
+                                builder: (context) => MyDialoge(
+                                      ins_ubd: "ubd_mem_pass",
+                                    )).then((value) {
+                              setState(() {
+                                print(value);
+                              });
                             });
-                          });
-                          }else{
+                          } else {
                             showtoast("Number not correct!!");
                           }
                         }
@@ -769,37 +788,77 @@ class MyDialogecheckpassState extends State<MyDialogecheckpass> {
   }
 }
 
-SendEmail(BuildContext context)async{
+SendEmail(BuildContext context) async {
   if (Validation.isValidnull(email.text) &&
       Validation.isValidEmail(email.text)) {
-    if(await member.checkemail(email.text)) {
-      var res = await EmailAuth(sessionName: "Ubd_pass").sendOtp(
-          recipientMail: email.text);
+    if (await member.checkemail(email.text)) {
+      var res = await EmailAuth(sessionName: "Ubd_pass")
+          .sendOtp(recipientMail: email.text);
       if (res) {
         showDialog(
             barrierDismissible: false,
             context: context,
             builder: (context) => MyDialogecheckpass());
       }
-    }else{
+    } else {
       showtoast("Email not found in apllication");
     }
-  }else{
+  } else {
     showtoast("Not email empty");
   }
 }
 
-bool verfipass(){
-  var res = EmailAuth(sessionName: "Ubd_pass").validateOtp(recipientMail: email.text, userOtp: checknumber.text);
+bool verfipass() {
+  var res = EmailAuth(sessionName: "Ubd_pass")
+      .validateOtp(recipientMail: email.text, userOtp: checknumber.text);
   return res;
 }
-void showtoast(String ms){
+
+void showtoast(String ms) {
   Fluttertoast.showToast(
       msg: ms,
       toastLength: Toast.LENGTH_LONG,
       gravity: ToastGravity.BOTTOM,
       backgroundColor: Colors.black54,
       textColor: Colors.white70,
-      fontSize: 16.0
-  );
+      fontSize: 16.0);
+}
+
+class MyDialogePolicy extends StatefulWidget {
+  @override
+  MyDialogePolicyState createState() => MyDialogePolicyState();
+
+  MyDialogePolicy({required this.onPress});
+
+  late final Function onPress;
+}
+
+class MyDialogePolicyState extends State<MyDialogePolicy> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        scrollable: true,
+        title: Text(getLang(context, "privecy")),
+        content: StatefulBuilder(builder: (context, setState) {
+          return Column(
+              // Then, the content of your dialog.
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(child: Text(getLang(context, "worning"))),
+                Row(children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, 'OK');
+                      widget.onPress();
+                    },
+                    child: const Text('OK'),
+                  )
+                ]),
+              ]);
+        }));
+  }
 }

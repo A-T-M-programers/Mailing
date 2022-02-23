@@ -1,6 +1,6 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
+import 'package:mailing/Pages_File/Setting_Page.dart';
 import 'package:mailing/main.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
@@ -65,9 +65,10 @@ class Notification_OneSignal_class {
 
   static void callback_before_notifi() {
     OneSignal.shared.setNotificationWillShowInForegroundHandler(
-        (OSNotificationReceivedEvent event) {
+        (OSNotificationReceivedEvent event) async {
       // Display Notification, send null to not display, send notification to display
-          print(event.notification.sound);
+          event.notification.sound = path_ringtone!;
+
       event.complete(event.notification);
     });
   }
