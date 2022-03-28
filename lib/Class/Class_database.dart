@@ -3,19 +3,47 @@ import 'dart:convert';
 import 'package:crypt/crypt.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_auth/http_auth.dart';
 import 'package:mailing/Class/Get_Photo.dart';
 import 'package:mailing/Home_Page.dart';
 import 'package:mailing/main.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Login_Mailing.dart';
 import '../Validate.dart';
 import 'Constant.dart';
 import 'Notification_OneSignal.dart';
 
+class StorageManager {
+  static void saveData(String key, dynamic value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value is int) {
+      prefs.setInt(key, value);
+    } else if (value is String) {
+      prefs.setString(key, value);
+    } else if (value is bool) {
+      prefs.setBool(key, value);
+    } else {
+      print("Invalid Type");
+    }
+  }
+
+  static Future<dynamic> readData(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    dynamic obj = prefs.get(key);
+    return obj;
+  }
+
+  static Future<bool> deleteData(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.remove(key);
+  }
+}
+
 class Notification_Message {
   int? messaging_id;
-  String? member,type,content,title,date;
+  String? member, type, content, title, date;
   bool? Notifi_State;
 
   void set setmessaging(int? messaging_id) {
@@ -33,6 +61,7 @@ class Notification_Message {
   String? get getmember {
     return this.member!;
   }
+
   String? get gettitle {
     return this.title!;
   }
@@ -252,12 +281,6 @@ class Member {
     Directory? directory = Platform.isAndroid
         ? await getExternalStorageDirectory()
         : await getApplicationSupportDirectory();
-
-    // if(!Directory("/storage/emulated/0/Android/data/com.example.mailing/files").existsSync()) {
-    //   Directory("/storage/emulated/0/Android/data/com.example.mailing/files").createSync();
-    // }
-    // Directory directory = Directory("/storage/emulated/0/Android/data/com.example.mailing/files");
-    //
     return directory!.path;
   }
 
@@ -273,7 +296,9 @@ class Member {
     // Write the file
     File file = await _localFile();
 
-    file.openWrite(mode: FileMode.write).write('${this.Email},${this.Image},${checkadmin ? 1 : 0}');
+    file
+        .openWrite(mode: FileMode.write)
+        .write('${this.Email},${this.Image},${checkadmin ? 1 : 0}');
   }
 
   deletefile() async {
@@ -291,7 +316,8 @@ class Member {
         var string = file.readAsStringSync();
         List<String> profile = string.split(",");
         this.Email = profile[0];
-        this.Image = profile[1] == null ||profile[1] == "" ? this.Image : profile[1] ;
+        this.Image =
+            profile[1] == null || profile[1] == "" ? this.Image : profile[1];
         checkadmin = profile[2] == "1" ? true : false;
         return await checkemail(this.Email!);
       } else {
@@ -600,17 +626,17 @@ class Public_DataBase extends DataBase_Access {
 
   @override
   Future<bool> Ubdate(List<String> list) async {
-      var secret = Crypt.sha256("ubdate_public");
-      Uri url = Uri(
-          host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
-      var response = await http.post(url, body: {
-        'title': list.elementAt(0),
-        'content': list.elementAt(1),
-        'id': list.elementAt(2),
-        'type': list.elementAt(3),
-        'secret': '$secret'
-      });
-      return Status(response.statusCode);
+    var secret = Crypt.sha256("ubdate_public");
+    Uri url =
+        Uri(host: host, path: 'Mailing_API/Ubdate/Ubdate.php', scheme: scheme);
+    var response = await http.post(url, body: {
+      'title': list.elementAt(0),
+      'content': list.elementAt(1),
+      'id': list.elementAt(2),
+      'type': list.elementAt(3),
+      'secret': '$secret'
+    });
+    return Status(response.statusCode);
   }
 
   @override
@@ -660,28 +686,31 @@ class Public_DataBase extends DataBase_Access {
 
   @override
   Future<List<Notification_Message>> Select({String? email}) async {
-    List<Notification_Message> list =[];
+    List<Notification_Message> list = [];
     var secret = Crypt.sha256("select_notifi");
     Uri url = Uri(
         host: host, path: 'Mailing_API/Select/get_Message.php', scheme: scheme);
     var response =
-        await http.post(url, body: {'email':email,'secret': '$secret'});
+        await http.post(url, body: {'email': email, 'secret': '$secret'});
     if (await Status(response.statusCode)) {
       List<dynamic> data = json.decode(response.body);
       for (int i = 0; i < data.length; i++) {
         list.add(Notification_Message());
         list[i].messaging_id = int.parse(data.elementAt(i)['MessageID']);
-        list[i].title = data.elementAt(i)['Title_Notifi'] == null ?"Null" : data.elementAt(i)['Title_Notifi'];
-        list[i].content = data.elementAt(i)['Content_Notifi'] == null ? "Null":data.elementAt(i)['Content_Notifi'];
+        list[i].title = data.elementAt(i)['Title_Notifi'] == null
+            ? "Null"
+            : data.elementAt(i)['Title_Notifi'];
+        list[i].content = data.elementAt(i)['Content_Notifi'] == null
+            ? "Null"
+            : data.elementAt(i)['Content_Notifi'];
         list[i].date = data.elementAt(i)['Date_Notifi'];
-        if(checkadmin){
+        if (checkadmin) {
           list[i].Notifi_State = checkadmin;
-        }else {
+        } else {
           list[i].Notifi_State =
-          data.elementAt(i)['notificationStatus'] == "0" ? false : true;
+              data.elementAt(i)['notificationStatus'] == "0" ? false : true;
         }
         list[i].type = data.elementAt(i)['Type_Notifi'];
-
       }
       return list;
     } else {
@@ -724,7 +753,7 @@ class Program_DataBase extends DataBase_Access {
             await Notification_OneSignal_class.handleSendNotification(
                 list.elementAt(2),
                 list.elementAt(0) == "0" ? "Partner Program" : "Our Program");
-          }catch(ex){
+          } catch (ex) {
             showtoast("Valid Local To Send Notification Trying");
           }
         }
@@ -848,6 +877,81 @@ class Program_DataBase extends DataBase_Access {
       return listmessage;
     } else {
       return listmessage;
+    }
+  }
+}
+
+class PayPalServices {
+  String domain = "https://api.sandbox.paypal.com";
+  String clientid = "AQ44w5WyCPGDCOu5PovxLqNhnUZf7lK3W9aA1TChTPtgf75ZhXR0ss9MvQu4R8OG_WLN9vbYWuV6tkOa";
+  String secret = "EImXHY_sXigrSUZgqIW07FDdGescR_3Xi-M673DioOV5-UMfrzW2RDRcszDjvDNZN_F0S3p61avOxkjj";
+
+  Future<String> getAccessToken() async {
+    try {
+      var client = BasicAuthClient(clientid, secret);
+      var responce = await client.post(
+          Uri.parse('$domain/v1/oauth2/token?grant_type=client_credentials'));
+      if (responce.statusCode == 200) {
+        final body = jsonDecode(responce.body);
+        return body["access_token"];
+      }
+      return "0";
+    } catch (ex) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, String>> createPaypalPayment(
+      transactions, accessToken) async {
+    try {
+      var response = await http.post(Uri.parse('$domain/v1/payments/payment'),
+          body: jsonEncode(transactions),
+          headers: {
+            "content-type": "application/json",
+            'Authorization': 'Bearer ' + accessToken
+          });
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 201) {
+        if (body["links"] != null && body["links"].length > 0) {
+          List links = body["links"];
+          String executeUrl = "";
+          String approvalUrl = "";
+          final item = links.firstWhere((o) => o["rel"] == "approval_url",
+              orElse: () => null);
+          if (item != null) {
+            approvalUrl = item["href"];
+          }
+          final item1 = links.firstWhere((o) => o["rel"] == "execute",
+              orElse: () => null);
+          if (item1 != null) {
+            executeUrl = item["href"];
+          }
+          return {"executeUrl": executeUrl, "approvalUrl": approvalUrl};
+        }
+        throw Exception("0");
+      } else {
+        throw Exception(body["message"]);
+      }
+    } catch (ex) {
+      rethrow;
+    }
+  }
+
+  Future<String> executePayment(uri, payerId, accessToken) async {
+    try {
+      var response = await http.post(uri,
+          body: jsonEncode({"payer_id": payerId}),
+          headers: {
+            "content-type": "application/json",
+            "Authorization": "Bearer" + accessToken
+          });
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return body["id"];
+      }
+      return "0";
+    } catch (ex) {
+      rethrow;
     }
   }
 }

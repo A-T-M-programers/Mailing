@@ -1,28 +1,86 @@
 {
   "project_info": {
-    "project_number": "216551021171",
-    "project_id": "shepherd-fx",
-    "storage_bucket": "shepherd-fx.appspot.com"
+    "project_number": "1021725232096",
+    "project_id": "shepherd-signals",
+    "storage_bucket": "shepherd-signals.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:216551021171:android:0f56cd2100fd9a3107e806",
+        "mobilesdk_app_id": "1:1021725232096:android:cc823267177ac5c402f985",
         "android_client_info": {
-          "package_name": "com.example.mailing"
+          "package_name": "com.ShepherdFX.Software"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1021725232096-07mh97p2udsq0nm4anenvpv6vfp91hcg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ShepherdFX.Software",
+            "certificate_hash": "13df52080491f3aaa280f1d1c740182ff6b41662"
+          }
+        },
+        {
+          "client_id": "1021725232096-f8pqqpj5n3p2l5m8ftcbl1dvfo64gr7j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ShepherdFX.Software",
+            "certificate_hash": "fe987c616b0dfa5f0951e177b47c4a970b323222"
+          }
+        },
+        {
+          "client_id": "1021725232096-sad9jd0o7jt5g2a30ildn051kgvepdo5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ShepherdFX.Software",
+            "certificate_hash": "f8b5a62333239609d059b75be79c29ddff84c163"
+          }
+        },
+        {
+          "client_id": "1021725232096-ievvtj4ufqr8rli5e3rs54h9vuibngot.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyBGsOuVVio1nYAfoLL25LuYAX8n-JZ_r_I"
+          "current_key": "AIzaSyBTExMbdNuc4hz2onGWeTuX7KlqwHFRyeo"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "216551021171-6uiqq1ob0m0ir656s34gmh5te8o5gmvh.apps.googleusercontent.com",
+              "client_id": "1021725232096-ievvtj4ufqr8rli5e3rs54h9vuibngot.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021725232096:android:d5e5ee250e200ae002f985",
+        "android_client_info": {
+          "package_name": "com.example.mailing"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1021725232096-ievvtj4ufqr8rli5e3rs54h9vuibngot.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTExMbdNuc4hz2onGWeTuX7KlqwHFRyeo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1021725232096-ievvtj4ufqr8rli5e3rs54h9vuibngot.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

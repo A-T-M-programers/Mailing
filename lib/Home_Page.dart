@@ -7,8 +7,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_share/flutter_share.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:http/http.dart';
 import 'package:mailing/Class/Admob.dart';
+import 'package:mailing/Class/Get_Photo.dart';
+import 'package:mailing/Class/Methods_Pay.dart';
 import 'package:mailing/Login_Mailing.dart';
 import 'package:mailing/Pages_File/Notif_Page.dart';
 import 'package:mailing/Pages_File/Profile_Page.dart';
@@ -20,6 +23,7 @@ import 'package:swipe_to/swipe_to.dart';
 
 import 'Class/Class_database.dart';
 import 'Message_page.dart';
+import 'Pages_File/About.dart';
 import 'l10n/applocal.dart';
 import 'main.dart';
 
@@ -33,12 +37,16 @@ Map<String, String> Message_type = {
 };
 ScrollController _controller = ScrollController();
 
-late bool checkadmin,showsendmessage;
-int lengthList = 5,length_list_program_OP = 5,length_list_program_PP = 5,length_list_notification = 5,count_notification_view = 0;
-var page;
+late bool checkadmin, showsendmessage;
+int lengthList = 5,
+    length_list_program_OP = 5,
+    length_list_program_PP = 5,
+    length_list_notification = 5,
+    count_notification_view = 0;
+late List<Widget> page;
 String pagecheck = "S";
-List<double> he_wi = [50, 50, 70, 50, 50];
-List<double> sizeicon = [30, 30, 50, 30, 30];
+List<double> he_wi = [40, 40, 50, 40, 40, 40];
+List<double> sizeicon = [25, 25, 30, 25, 25, 25];
 List<Messaging> messaging = [];
 List<Notification_Message> notification_message = [];
 List<int> countviewint = [];
@@ -47,8 +55,6 @@ Program_DataBase program_dataBase = Program_DataBase();
 Public_DataBase public_dataBase = Public_DataBase();
 Contentviewinfo_DataBase countview = Contentviewinfo_DataBase();
 Widget _dialogContent = CircularProgressIndicator();
-
-
 
 class home_page extends StatefulWidget {
   const home_page({Key? key}) : super(key: key);
@@ -62,52 +68,60 @@ class home_page_state extends State<home_page> {
   double WidthDevice = 0, HieghDevice = 0;
 
   Future<void> get_select_message() async {
-
-    notification_message = await public_dataBase.Select(email: member.Email);
-
-    if(pagecheck == "S"||pagecheck == "SI") {
+    page = [SizedBox()];
+    try {
+      notification_message = await public_dataBase.Select(email: member.Email);
+      notification_message.removeWhere((element) => element.type !="N");
+      notification_message = notification_message.reversed.toList();
+    } on SocketException catch (_) {
+      showtoast("Check Internet");
+    }
+    if (pagecheck == "S" || pagecheck == "SI") {
       try {
         messaging = await messsage_dataBase.Select();
+        messaging = messaging.reversed.toList();
       } catch (ex) {
         print(ex);
       }
-      try{
+      try {
         count_notification_view = 0;
-        for(int i = 0 ; i <  notification_message.length;i++){
-          if(notification_message[i].getNotifiState){
+        for (int i = 0; i < notification_message.length; i++) {
+          if (notification_message[i].getNotifiState) {
             count_notification_view++;
           }
         }
-      }catch(ex){
+      } catch (ex) {
         print(ex);
       }
-      if (!checkadmin){
-        countviewint = await countview.Select();
+      if (!checkadmin) {
+        try {
+          countviewint = await countview.Select();
+        } on SocketException catch (_) {
+          showtoast("Check Internet");
+        }
       }
 
       setState(() {
-        if (messaging.length > 0)
-          page =
-              List.generate(
-                  lengthList, (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
-        else
+        if (messaging.length > 0) {
+          SortByDateM_N(0,0);
+        } else
           return;
       });
 
       for (int i = 0; i < he_wi.length; i++) {
         if (i == 2) {
-          he_wi[i] = 60;
-          sizeicon[i] = 40;
-        } else {
           he_wi[i] = 50;
           sizeicon[i] = 30;
+        } else {
+          he_wi[i] = 40;
+          sizeicon[i] = 25;
         }
       }
-    }else if(pagecheck == "PR"||pagecheck == "PP"){
+    } else if (pagecheck == "PR" || pagecheck == "PP") {
       try {
-        if(pagecheck == "PR") {
-          list_programOP = await program_dataBase.Select(type:"1");
-        }else{
+        if (pagecheck == "PR") {
+          list_programOP = await program_dataBase.Select(type: "1");
+        } else {
           list_programPP = await program_dataBase.Select(type: "0");
         }
       } catch (ex) {
@@ -115,33 +129,38 @@ class home_page_state extends State<home_page> {
       }
       setState(() {
         if (list_programOP.length > 0 && pagecheck == "PR")
-          page =
-              List.generate(
-                  length_list_program_OP, (index) => List_program(messaging_pr: index >= list_programOP.length ? Messaging_PR() : list_programOP[index]));
-        else if(list_programPP.length > 0 && pagecheck == "PP") page =
-            List.generate(
-                length_list_program_PP, (index) => List_partner(messaging_pp: index >= list_programPP.length ? Messaging_PR() : list_programPP[index]));
+          page = List.generate(
+              length_list_program_OP,
+              (index) => List_program(
+                  messaging_pr: index >= list_programOP.length
+                      ? Messaging_PR()
+                      : list_programOP[index]));
+        else if (list_programPP.length > 0 && pagecheck == "PP")
+          page = List.generate(
+              length_list_program_PP,
+              (index) => List_partner(
+                  messaging_pp: index >= list_programPP.length
+                      ? Messaging_PR()
+                      : list_programPP[index]));
       });
 
       for (int i = 0; i < he_wi.length; i++) {
         if (i == 3) {
-          he_wi[i] = 60;
-          sizeicon[i] = 40;
-        } else {
           he_wi[i] = 50;
           sizeicon[i] = 30;
+        } else {
+          he_wi[i] = 40;
+          sizeicon[i] = 25;
         }
       }
     }
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
   void initState() {
+    loadAdBannerAd();
     super.initState();
-    loadAd();
 
     get_select_message().whenComplete(() => this.setState(() {
           print("Complate");
@@ -155,51 +174,49 @@ class home_page_state extends State<home_page> {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Container(
-                    margin: EdgeInsets.only(right: 35),
-                      child:
-              IconButton(
-                  onPressed: _hundgetdate,
-                  icon: Icon(Icons.settings_backup_restore,
-                      size: 70))),
-                  Icon(Icons.wifi,size: 80,),
+              Container(
+                  margin: EdgeInsets.only(right: 35),
+                  child: IconButton(
+                      onPressed: _hundgetdate,
+                      icon: Icon(Icons.settings_backup_restore, size: 70))),
+              Icon(
+                Icons.wifi,
+                size: 80,
+              ),
               Text('${getLang(context, "Check_Your_Internet")}'),
-
             ]));
         setState(() {
           print("Check Internet");
         });
       });
     });
-    showAd();
   }
 
   _scrollListener() {
     if (_controller.offset >= _controller.position.maxScrollExtent &&
         !_controller.position.outOfRange &&
-        messaging.length > lengthList && pagecheck == "S") {
+        messaging.length + notification_message.length > lengthList &&
+        pagecheck == "S") {
       setStatecalbackmessage();
-    }else if (_controller.offset >= _controller.position.maxScrollExtent &&
+    } else if (_controller.offset >= _controller.position.maxScrollExtent &&
         !_controller.position.outOfRange &&
-        list_programOP.length > length_list_program_OP && pagecheck == "PR") {
+        list_programOP.length > length_list_program_OP &&
+        pagecheck == "PR") {
       setStatecalbackprogram();
-    }else if (_controller.offset >= _controller.position.maxScrollExtent &&
+    } else if (_controller.offset >= _controller.position.maxScrollExtent &&
         !_controller.position.outOfRange &&
-        list_programPP.length > length_list_program_PP && pagecheck == "PP") {
+        list_programPP.length > length_list_program_PP &&
+        pagecheck == "PP") {
       setStatecalbackpartner();
-    }else if (_controller.offset >= _controller.position.maxScrollExtent &&
-        !_controller.position.outOfRange &&
-        notification_message.length > length_list_notification && pagecheck == "N") {
-      setStatecalbacknotification();
     }
   }
 
   void setStatecalbackmessage() {
     if (mounted)
       setState(() {
+        page = [];
         lengthList = lengthList + 5;
-        page =
-            List.generate(lengthList, (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
+        SortByDateM_N(0,0);
       });
   }
 
@@ -207,29 +224,30 @@ class home_page_state extends State<home_page> {
     if (mounted)
       setState(() {
         length_list_program_OP = length_list_program_OP + 5;
-        page =
-            List.generate(length_list_program_OP, (index) => List_program(messaging_pr: index >= list_programOP.length ? Messaging_PR() : list_programOP[index]));
+        page = List.generate(
+            length_list_program_OP,
+            (index) => List_program(
+                messaging_pr: index >= list_programOP.length
+                    ? Messaging_PR()
+                    : list_programOP[index]));
       });
   }
+
   void setStatecalbackpartner() {
     if (mounted)
       setState(() {
         length_list_program_PP = length_list_program_PP + 5;
-        page =
-            List.generate(length_list_program_PP, (index) => List_partner(messaging_pp: index >= list_programPP.length ? Messaging_PR() : list_programPP[index]));
+        page = List.generate(
+            length_list_program_PP,
+            (index) => List_partner(
+                messaging_pp: index >= list_programPP.length
+                    ? Messaging_PR()
+                    : list_programPP[index]));
       });
   }
-  void setStatecalbacknotification() {
-    if (mounted)
-      setState(() {
-        length_list_notification = length_list_notification + 5;
-        page =
-            List.generate(length_list_notification, (index) => List_Notif(index: index));
-      });
-  }
-   @override
-  Widget build(BuildContext context) {
 
+  @override
+  Widget build(BuildContext context) {
     if (pagecheck == "OP") {
       boxShadowPP = boxShadowOnClick;
       boxShadowOP = boxShadowUpClick;
@@ -246,103 +264,127 @@ class home_page_state extends State<home_page> {
         elevation: 0,
         toolbarHeight: HieghDevice / 12,
         backgroundColor: Theme.of(context).primaryColor,
+        title: Text(getLang(context, "Mailing")),
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+            fontSize: HieghDevice / 30,
+            color: Theme.of(context).textTheme.headline1!.color),
         actions: [
           Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              alignment: Alignment.center,
-              margin: EdgeInsets.only(top: 10),
-              child: Text(
-                "${getLang(context, "Mailing")}",
-                style: TextStyle(fontSize: HieghDevice / 30,color: Theme.of(context).textTheme.headline1!.color),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            SizedBox(width: 40,),
-            if (showsendmessage && pagecheck == "S")
-              Container(
-                  margin: EdgeInsets.only(top: 10),
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.only(left: 5),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).shadowColor,width: 0),
-                      boxShadow: [
-                        BoxShadow(color: Theme.of(context).shadowColor,
-                            blurRadius: 10,
-                            spreadRadius: 2),
-                      ],
-                      borderRadius: BorderRadius.circular(10),
-                  color: Theme.of(context).primaryColor),
-                  height: HieghDevice / 18,
-                  width: 100,
-                  child: DropdownButton<String>(
-                    hint: Text('${getLang(context, dropdownValue!)}',style: TextStyle(color: Theme.of(context).textTheme.headline1!.color),),
-                    icon: const Icon(Icons.filter_list_rounded),
-                    elevation: 16,
-                    underline: Container(
-                      height: 0,
-                    ),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        dropdownValue = newValue!;
-                        switch (newValue) {
-                          case "View":
-                            {
-                              SortByView();
-                              page = List.generate(lengthList,
-                                      (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
-                              break;
-                            }
-                          case "Name":
-                            {
-                              SortByName();
-                              page = List.generate(lengthList,
-                                  (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
-                              break;
-                            }
-                          case "Price":
-                            {
-                              SortByPrice();
-                              page = List.generate(lengthList,
-                                  (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
-                              break;
-                            }
-                          default:
-                            {
-                              SortByDate();
-                              page = List.generate(lengthList,
-                                  (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
-                              break;
-                            }
-                        }
-                      });
-                    },
-                    items: <String>["Date", "Name", "Price", "View"]
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          '${getLang(context, value)}',
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 40,
+                ),
+                if (showsendmessage && pagecheck == "S")
+                  Container(
+                      margin: EdgeInsets.only(top: 10),
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.only(left: 5),
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Theme.of(context).shadowColor, width: 0),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Theme.of(context).shadowColor,
+                                blurRadius: 10,
+                                spreadRadius: 2),
+                          ],
+                          borderRadius: BorderRadius.circular(10),
+                          color: Theme.of(context).primaryColor),
+                      height: HieghDevice / 18,
+                      width: 100,
+                      child: DropdownButton<String>(
+                        hint: Text(
+                          '${getLang(context, dropdownValue!)}',
+                          style: TextStyle(
+                              color:
+                                  Theme.of(context).textTheme.headline1!.color),
                         ),
-                      );
-                    }).toList(),
-                  )),
-            SizedBox(width: 20,)
-          ])
+                        icon: const Icon(Icons.filter_list_rounded),
+                        elevation: 16,
+                        underline: Container(
+                          height: 0,
+                        ),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            dropdownValue = newValue!;
+                            switch (newValue) {
+                              case "View":
+                                {
+                                  SortByView();
+                                  page = List.generate(
+                                      lengthList,
+                                      (index) => List_messaging(
+                                          message: index >= messaging.length
+                                              ? Messaging()
+                                              : messaging[index]));
+                                  break;
+                                }
+                              case "Name":
+                                {
+                                  SortByName();
+                                  page = List.generate(
+                                      lengthList,
+                                      (index) => List_messaging(
+                                          message: index >= messaging.length
+                                              ? Messaging()
+                                              : messaging[index]));
+                                  break;
+                                }
+                              case "Price":
+                                {
+                                  SortByPrice();
+                                  page = List.generate(
+                                      lengthList,
+                                      (index) => List_messaging(
+                                          message: index >= messaging.length
+                                              ? Messaging()
+                                              : messaging[index]));
+                                  break;
+                                }
+                              default:
+                                {
+                                  setState(() {
+                                    page = [];
+                                    SortByDateM_N(0,0);
+                                  });
+                                  break;
+                                }
+                            }
+                          });
+                        },
+                        items: <String>["Date", "Name", "Price", "View"]
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              '${getLang(context, value)}',
+                            ),
+                          );
+                        }).toList(),
+                      )),
+                SizedBox(
+                  width: 20,
+                )
+              ])
         ],
       ),
       body: Stack(children: [
         Container(
-          color:Theme.of(context).primaryColor,
-        ),
-        Container(
-          margin: pagecheck == "PR"||pagecheck == "PP" ? EdgeInsets.only(top: (HieghDevice / 17)+10):EdgeInsets.only(top: 10),
+            margin: !checkadmin
+                ? EdgeInsets.only(
+                    top: bannerAd == null
+                        ? 10
+                        : bannerAd!.size.height.toDouble() + 10)
+                : EdgeInsets.only(top: 10),
             decoration: BoxDecoration(
-     color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(50),
-              boxShadow: [BoxShadow(color:Theme.of(context).shadowColor ,blurRadius: 5)]
-            ),
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(50),
+                boxShadow: [
+                  BoxShadow(color: Theme.of(context).shadowColor, blurRadius: 5)
+                ]),
             height: HieghDevice,
             width: WidthDevice,
             child: RefreshIndicator(
@@ -350,17 +392,29 @@ class home_page_state extends State<home_page> {
                 onRefresh: _hundgetdate,
                 child: (page != null)
                     ? ListView(
-                  physics: AlwaysScrollableScrollPhysics(),
+                        physics: AlwaysScrollableScrollPhysics(),
                         controller: _controller,
                         scrollDirection: Axis.vertical,
                         children: page,
-                  padding: EdgeInsetsDirectional.only(bottom: (HieghDevice / 5.5) + 60),
+                        padding: EdgeInsetsDirectional.only(
+                            bottom: (HieghDevice / 5.5) + 60),
                       )
                     : Container(
-                    color: Theme.of(context).cardColor,
+                        color: Theme.of(context).cardColor,
                         margin: EdgeInsets.only(bottom: HieghDevice / 3),
                         alignment: Alignment.center,
                         child: _dialogContent))),
+        !checkadmin && bannerAd != null
+            ? Container(
+                child: AdWidget(
+                  ad: bannerAd!,
+                ),
+                width: WidthDevice,
+                height: bannerAd!.size.height.toDouble(),
+                alignment: Alignment.topCenter,
+                color: Theme.of(context).primaryColor,
+              )
+            : SizedBox(),
         Stack(
           textDirection: TextDirection.ltr,
           children: [
@@ -389,26 +443,98 @@ class home_page_state extends State<home_page> {
             Container(
                 alignment: Alignment.topLeft,
                 margin: EdgeInsets.only(
-                    top:HieghDevice > WidthDevice ? (HieghDevice - HieghDevice / 5.5) -
-                        he_wi[0] : (HieghDevice - HieghDevice / 5.5) -
-                        he_wi[0] - 15,
-                    left: (WidthDevice / 5.3) - he_wi[0]),
+                    top: HieghDevice > WidthDevice
+                        ? (HieghDevice - HieghDevice / 5.5) - he_wi[0] - 5
+                        : (HieghDevice - HieghDevice / 5.5) - he_wi[0] - 10,
+                    left: HieghDevice > WidthDevice
+                        ? (WidthDevice / 5.3) - he_wi[0] - 10
+                        : (WidthDevice / 5.3) - he_wi[0] - 30),
+                child: Column(
+                  children: [
+                    Container(
+                        height: he_wi[5],
+                        width: he_wi[5],
+                        decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            border: Border.all(
+                                color: Theme.of(context).shadowColor,
+                                width: 0.3),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5),
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5)
+                            ]),
+                        child: IconButton(
+                          onPressed: () {
+                            if (!checkadmin) {
+                              loadAdInterstitialAd();
+                              showAdInterstitialAd();
+                            }
+                            setState(() {
+                              showsendmessage = false;
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          about(typepage: pagecheck)));
+                              pagecheck = "abo";
+                              for (int i = 0; i < he_wi.length; i++) {
+                                if (i == 5) {
+                                  he_wi[i] = 50;
+                                  sizeicon[i] = 30;
+                                } else {
+                                  he_wi[i] = 40;
+                                  sizeicon[i] = 25;
+                                }
+                              }
+                            });
+                          },
+                          icon: ImageIcon(
+                            AssetImage("images/about.png"),
+                            size: sizeicon[5],
+                          ),
+                        )),
+                    Text(
+                      '${getLang(context, "about_title")}',
+                    )
+                  ],
+                )),
+            Container(
+                alignment: Alignment.topLeft,
+                margin: EdgeInsets.only(
+                    top: HieghDevice > WidthDevice
+                        ? (HieghDevice - HieghDevice / 5.5) - he_wi[0] - 40
+                        : (HieghDevice - HieghDevice / 5.5) - he_wi[0] - 25,
+                    left: (WidthDevice / 5.3) - he_wi[0] + 40),
                 child: Column(
                   children: [
                     Container(
                         height: he_wi[0],
                         width: he_wi[0],
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                            border:
-                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
+                            color: Theme.of(context).cardColor,
+                            border: Border.all(
+                                color: Theme.of(context).shadowColor,
+                                width: 0.3),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5),
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5)
                             ]),
                         child: IconButton(
                           onPressed: () {
+                            if (!checkadmin) {
+                              loadAdInterstitialAd();
+                              showAdInterstitialAd();
+                            }
                             setState(() {
                               pagecheck = "set";
                               showsendmessage = false;
@@ -416,11 +542,11 @@ class home_page_state extends State<home_page> {
                                   List.generate(1, (index) => setting_page());
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 0) {
-                                  he_wi[i] = 60;
-                                  sizeicon[i] = 40;
-                                } else {
                                   he_wi[i] = 50;
                                   sizeicon[i] = 30;
+                                } else {
+                                  he_wi[i] = 40;
+                                  sizeicon[i] = 25;
                                 }
                               }
                             });
@@ -437,12 +563,18 @@ class home_page_state extends State<home_page> {
                 )),
             Container(
                 margin: EdgeInsets.only(
-                    top: HieghDevice > WidthDevice ? ((HieghDevice - (HieghDevice / 12)) -
-                            ((HieghDevice / 5.5) / 1.16)) -
-                        he_wi[1]-5 :((HieghDevice - (HieghDevice / 12)) -
-                        ((HieghDevice / 5.5) / 1.16)) -
-                        he_wi[1]-15,
-                    left: en_ar == "er" ? (WidthDevice / 2.8) - he_wi[1]-10 : (WidthDevice / 2.8) - he_wi[1]-5),
+                    top: HieghDevice > WidthDevice
+                        ? ((HieghDevice - (HieghDevice / 12)) -
+                                ((HieghDevice / 5.5) / 1.16)) -
+                            he_wi[1] -
+                            20
+                        : ((HieghDevice - (HieghDevice / 12)) -
+                                ((HieghDevice / 5.5) / 1.16)) -
+                            he_wi[1] -
+                            15,
+                    left: en_ar == "en"
+                        ? (WidthDevice / 2.8) - he_wi[1] + 30
+                        : (WidthDevice / 2.8) - he_wi[1] + 15),
                 child: Column(
                   children: [
                     Container(
@@ -450,15 +582,24 @@ class home_page_state extends State<home_page> {
                         height: he_wi[1],
                         decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
-                            border:
-                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
+                            border: Border.all(
+                                color: Theme.of(context).shadowColor,
+                                width: 0.3),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5),
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5)
                             ]),
                         child: IconButton(
                           onPressed: () {
+                            if (!checkadmin) {
+                              loadAdInterstitialAd();
+                              showAdInterstitialAd();
+                            }
                             setState(() {
                               pagecheck = "info";
                               showsendmessage = false;
@@ -468,11 +609,11 @@ class home_page_state extends State<home_page> {
                                       Profile(member: member, type: pagecheck));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 1) {
-                                  he_wi[i] = 60;
-                                  sizeicon[i] = 40;
-                                } else {
                                   he_wi[i] = 50;
                                   sizeicon[i] = 30;
+                                } else {
+                                  he_wi[i] = 40;
+                                  sizeicon[i] = 25;
                                 }
                               }
                             });
@@ -492,8 +633,9 @@ class home_page_state extends State<home_page> {
                 margin: EdgeInsets.only(
                     top: ((HieghDevice - (HieghDevice / 12)) -
                             ((HieghDevice / 5.5))) -
-                        he_wi[2]-5,
-                    left: (WidthDevice / 1.7) - he_wi[2]-18),
+                        he_wi[2] -
+                        5,
+                    left: (WidthDevice / 1.7) - he_wi[2]),
                 child: Column(
                   children: [
                     Container(
@@ -501,33 +643,42 @@ class home_page_state extends State<home_page> {
                         height: he_wi[2],
                         decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
-                            border:
-                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
+                            border: Border.all(
+                                color: Theme.of(context).shadowColor,
+                                width: 0.3),
                             borderRadius: BorderRadius.circular(70),
                             boxShadow: [
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5),
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5)
                             ]),
                         child: IconButton(
                           onPressed: () {
+                            if (!checkadmin) {
+                              loadAdInterstitialAd();
+                              showAdInterstitialAd();
+                            }
+                            page = [];
+                            SortByDateM_N(0,0);
                             setState(() {
                               pagecheck = "S";
                               showsendmessage = true;
-                              page = List.generate(lengthList,
-                                  (index) => List_messaging(message: index >= messaging.length ? Messaging() : messaging[index]));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 2) {
-                                  he_wi[i] = 60;
-                                  sizeicon[i] = 40;
-                                } else {
                                   he_wi[i] = 50;
                                   sizeicon[i] = 30;
+                                } else {
+                                  he_wi[i] = 40;
+                                  sizeicon[i] = 25;
                                 }
                               }
                             });
                           },
-                          icon: Icon(
-                            Icons.home_outlined,
+                          icon: ImageIcon(
+                            AssetImage("images/signals.png"),
                             size: sizeicon[2],
                           ),
                         )),
@@ -540,8 +691,10 @@ class home_page_state extends State<home_page> {
                 margin: EdgeInsets.only(
                     top: ((HieghDevice - (HieghDevice / 12)) -
                             ((HieghDevice / 5.5) / 1.1)) -
-                        he_wi[3]-5,
-                    left: en_ar == "en" ? (WidthDevice / 1.3) - he_wi[3]-10 : (WidthDevice / 1.3) - he_wi[3]),
+                        he_wi[3],
+                    left: en_ar == "en"
+                        ? (WidthDevice / 1.3) - he_wi[3] - 25
+                        : (WidthDevice / 1.3) - he_wi[3]),
                 child: Column(
                   children: [
                     Container(
@@ -549,31 +702,46 @@ class home_page_state extends State<home_page> {
                         height: he_wi[3],
                         decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
-                            border:
-                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
+                            border: Border.all(
+                                color: Theme.of(context).shadowColor,
+                                width: 0.3),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5),
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: ()async {
+                          onPressed: () async {
                             pagecheck = "PR";
-                            if(list_programOP.isEmpty) {
+                            if (list_programOP.isEmpty) {
                               await _hundgetdate();
                             }
-
+                            if (!checkadmin) {
+                              loadAdInterstitialAd();
+                              showAdInterstitialAd();
+                            }
                             setState(() {
                               showsendmessage = checkadmin;
                               page = List.generate(
-                                  list_programOP.length > 5 ? length_list_program_OP : list_programOP.length, (index) =>  List_program(messaging_pr: index >= list_programOP.length ? Messaging_PR() : list_programOP[index]));
+                                  list_programOP.length > 5
+                                      ? length_list_program_OP
+                                      : list_programOP.length,
+                                  (index) => List_program(
+                                      messaging_pr:
+                                          index >= list_programOP.length
+                                              ? Messaging_PR()
+                                              : list_programOP[index]));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 3) {
-                                  he_wi[i] = 60;
-                                  sizeicon[i] = 40;
-                                } else {
                                   he_wi[i] = 50;
                                   sizeicon[i] = 30;
+                                } else {
+                                  he_wi[i] = 40;
+                                  sizeicon[i] = 25;
                                 }
                               }
                             });
@@ -584,16 +752,23 @@ class home_page_state extends State<home_page> {
                           ),
                         )),
                     Text(
-                      '${getLang(context, "Program")}',
+                      '${getLang(context, "Our_Product")}',
                     )
                   ],
                 )),
             Container(
                 margin: EdgeInsets.only(
-                    top: ((HieghDevice - (HieghDevice / 10)) -
-                            ((HieghDevice / 5.5) / 2)) -
-                        he_wi[4],
-                    left: (WidthDevice / 1.10) - he_wi[4]),
+                    top: HieghDevice > WidthDevice
+                        ? ((HieghDevice - (HieghDevice / 10)) -
+                                ((HieghDevice / 5.5) / 2)) -
+                            he_wi[4]
+                        : ((HieghDevice - (HieghDevice / 10)) -
+                                ((HieghDevice / 5.5) / 2)) -
+                            he_wi[4] -
+                            10,
+                    left: HieghDevice > WidthDevice
+                        ? (WidthDevice / 1.10) - he_wi[4]
+                        : (WidthDevice / 1.10) - he_wi[4] - 10),
                 child: Stack(
                   children: [
                     Container(
@@ -601,164 +776,106 @@ class home_page_state extends State<home_page> {
                         width: he_wi[4],
                         decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
-                            border:
-                                Border.all(color: Theme.of(context).shadowColor,width: 0.3),
+                            border: Border.all(
+                                color: Theme.of(context).shadowColor,
+                                width: 0.3),
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5),
-                              BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 5)
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5),
+                              BoxShadow(
+                                  color: Theme.of(context).shadowColor,
+                                  blurRadius: 5)
                             ]),
                         child: IconButton(
-                          onPressed: ()async {
-                            pagecheck = "N";
-                            await _hundgetdate();
+                          onPressed: () async {
+                            pagecheck = "PP";
+                            if (list_programPP.isEmpty) {
+                              await _hundgetdate();
+                            }
+                            if (!checkadmin) {
+                              loadAdInterstitialAd();
+                              showAdInterstitialAd();
+                            }
                             setState(() {
                               showsendmessage = checkadmin;
                               page = List.generate(
-                                  notification_message.length > 5 ? length_list_notification : notification_message.length, (index) =>  List_Notif(index: index));
+                                  list_programPP.length > 5
+                                      ? length_list_program_PP
+                                      : list_programPP.length,
+                                  (index) => List_partner(
+                                      messaging_pp:
+                                          index >= list_programPP.length
+                                              ? Messaging_PR()
+                                              : list_programPP[index]));
                               for (int i = 0; i < he_wi.length; i++) {
                                 if (i == 4) {
-                                  he_wi[i] = 60;
-                                  sizeicon[i] = 40;
-                                } else {
                                   he_wi[i] = 50;
                                   sizeicon[i] = 30;
+                                } else {
+                                  he_wi[i] = 40;
+                                  sizeicon[i] = 25;
                                 }
                               }
                             });
                           },
                           icon: Icon(
-                            Icons.notifications_active_outlined,
+                            Icons.local_fire_department,
                             size: sizeicon[4],
                           ),
                         )),
                     Container(
                         margin: EdgeInsets.only(bottom: 3, top: he_wi[4]),
                         child: Text(
-                          '${getLang(context, "Notificat")}',
+                          '${getLang(context, "Partner_Programs")}',
                         )),
-                    notification_message.length > 0 && notification_message.length != count_notification_view ? Container(
-                      margin: EdgeInsets.only(left: 38),
-                      width: 25,
-                      height: 25,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(30)),
-                      child: Text(notification_message.length > 99 ? "99+": (notification_message.length - count_notification_view).toString(),style: TextStyle(fontSize: 11),),
-                    ):SizedBox(),
                   ],
                 )),
           ],
         ),
         if (checkadmin && showsendmessage)
           Container(
+              height: 40,
+              width: 40,
               margin: EdgeInsets.only(
-                  right: 10,
-                  left: WidthDevice / 1.19,
-                  top: (HieghDevice / 1.55) - (HieghDevice / 12)),
+                  bottom: 20,
+                  top: HieghDevice > WidthDevice
+                      ? HieghDevice * 0.8
+                      : HieghDevice * 0.7,
+                  left: WidthDevice * 0.45),
               decoration: BoxDecoration(
                   color: Colors.lightGreen,
-                  border: Border.all(color: Theme.of(context).shadowColor,width: 0.3),
+                  border: Border.all(
+                      color: Theme.of(context).shadowColor, width: 0.3),
                   borderRadius: BorderRadius.circular(50),
                   boxShadow: [
-                    BoxShadow(color: Theme.of(context).shadowColor,blurRadius: 10, spreadRadius: 10)
+                    BoxShadow(
+                        color: Theme.of(context).shadowColor,
+                        blurRadius: 10,
+                        spreadRadius: 10)
                   ]),
               child: IconButton(
                   onPressed: () {
                     setState(() {
                       checkubdate = false;
-                      if (he_wi[2] == 60) {
+                      if (he_wi[2] == 50) {
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
                           return message_page("SI", new Messaging());
                         }));
-                      } else if (he_wi[3] == 60) {
+                      } else if (he_wi[3] == 50) {
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
                           return message_page("PI", new Messaging_PR());
-                        }));
-                      } else if (he_wi[4] == 60) {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return message_page("NI", new Notification_Message());
                         }));
                       }
                     });
                   },
                   icon: Icon(
                     Icons.message_outlined,
-                    size: 35,
+                    size: 25,
                   ))),
-        if (pagecheck == "PR"||pagecheck == "PP") Container(
-            color: Theme.of(context).cardColor,
-            margin: EdgeInsets.only(),
-            child: Row(
-              children: [
-                Container(
-                  height: HieghDevice / 17,
-                  width: WidthDevice / 2,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      pagecheck = "PR";
-                      if(list_programOP.isEmpty) {
-                        await _hundgetdate();
-                      }
-                      setState(() {
-                        boxShadowOP = boxShadowOnClick;
-                        boxShadowPP = boxShadowUpClick;
-                        showsendmessage = true;
-                        page = List.generate(
-                            list_programOP.length > 5 ? length_list_program_OP : list_programOP.length, (index) =>  List_program(messaging_pr: index >= list_programOP.length ? Messaging_PR() : list_programOP[index]));
-                      });
-                    },
-                    child: Container(
-                        decoration:
-                        BoxDecoration(boxShadow: [boxShadowOP!]),
-                        child:
-                        Text('${getLang(context, "Our_Product")}',style: TextStyle(color:Theme.of(context).textTheme.headline1!.color,),)),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Theme.of(context).primaryColor,),
-                        shape: MaterialStateProperty.all<
-                            RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.all(Radius.zero)))),
-                  ),
-                ),
-                Container(
-                  height: HieghDevice / 17,
-                  width: WidthDevice / 2,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                        pagecheck = "PP";
-                        if(list_programPP.isEmpty) {
-                          await _hundgetdate();
-                        }
-                      setState(() {
-                        boxShadowPP = boxShadowOnClick;
-                        boxShadowOP = boxShadowUpClick;
-                        showsendmessage = true;
-                        page = List.generate(
-                           list_programPP.length > 5 ? length_list_program_PP : list_programPP.length, (index) =>  List_partner(messaging_pp: index >= list_programPP.length ? Messaging_PR() : list_programPP[index]));
-                      });
-                    },
-                    child: Container(
-                        decoration:
-                        BoxDecoration(boxShadow: [boxShadowPP!]),
-                        child: Text(
-                            '${getLang(context, "Partner_Programs")}',style: TextStyle(color:Theme.of(context).textTheme.headline1!.color,),)),
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Theme.of(context).primaryColor,),
-                        shape: MaterialStateProperty.all<
-                            RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.all(Radius.zero)))),
-                  ),
-                )
-              ],
-            )) else SizedBox() ,
       ]),
     ));
   }
@@ -771,10 +888,10 @@ class home_page_state extends State<home_page> {
       } catch (e) {
         print(e);
       }
-    }else if (pagecheck == "PR" || pagecheck == "PI" || pagecheck == "PP") {
-      if(pagecheck == "PR"){
+    } else if (pagecheck == "PR" || pagecheck == "PI" || pagecheck == "PP") {
+      if (pagecheck == "PR") {
         length_list_program_OP = 5;
-      }else if(pagecheck == "PP"){
+      } else if (pagecheck == "PP") {
         length_list_program_PP = 5;
       }
       try {
@@ -782,8 +899,7 @@ class home_page_state extends State<home_page> {
       } catch (e) {
         print(e);
       }
-    }
-    else if (pagecheck == "N" || pagecheck == "NI") {
+    } else if (pagecheck == "N" || pagecheck == "NI") {
       length_list_notification = 5;
       try {
         await get_select_message();
@@ -819,83 +935,78 @@ class _List_messaging extends State<List_messaging> {
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
 
-      pay_or_not = ((widget.message!.MessagePrice) > 0) ? false : true;
+    pay_or_not = ((widget.message!.MessagePrice) > 0) ? false : true;
 
-      if (countviewint.contains(widget.message!.MessageID)) {
-        pay_complate = true;
-      }else{
-        pay_complate = false;
-      }
+    if (countviewint.contains(widget.message!.MessageID)) {
+      pay_complate = true;
+    } else {
+      pay_complate = false;
+    }
 
-      return widget.message!.MessageID != 0
-          ? SwipeTo(
-        offsetDx: 1,
-              animationDuration: Duration(milliseconds: 800),
-              onLeftSwipe: checkadmin
-                  ? () {
-                      //end to start
-                      showDialog(
-                          context: context,
-                          builder: (context) => MyDialogeHome(
-                              type: "D",
-                              onPresed: () async {
-                                if (checkadmin) {
-                                  if (await messsage_dataBase.Delete(
-                                      widget.message!
-                                          .MessageID
-                                          .toString())) {
-                                    messaging.remove(widget.message!);
-                                    setState(() {
-                                      showtoast("Delete Seccessfully");
-                                    });
-                                  } else {
-                                    showtoast("Delete Problem");
-                                  }
+    return widget.message!.MessageID != 0
+        ? SwipeTo(
+            offsetDx: 1,
+            animationDuration: Duration(milliseconds: 800),
+            onLeftSwipe: checkadmin
+                ? () {
+                    //end to start
+                    showDialog(
+                        context: context,
+                        builder: (context) => MyDialogeHome(
+                            type: "D",
+                            onPresed: () async {
+                              if (checkadmin) {
+                                if (await messsage_dataBase.Delete(
+                                    widget.message!.MessageID.toString())) {
+                                  messaging.remove(widget.message!);
+                                  setState(() {
+                                    showtoast("Delete Seccessfully");
+                                  });
+                                } else {
+                                  showtoast("Delete Problem");
                                 }
-                              }));
-                    }
-                  : () async {
-                      if (pay_or_not) {
-                        if (Validation.isValidnull(
-                            widget.message!.MessageLink)) {
-                          await shareFile();
-                        } else {
-                          await share();
-                        }
+                              }
+                            }));
+                  }
+                : () async {
+                    if (pay_or_not) {
+                      if (Validation.isValidnull(widget.message!.MessageLink)) {
+                        await shareFile();
+                      } else {
+                        await share();
                       }
-                    },
-              onRightSwipe: checkadmin
-                  ? () {
-                      //start to end
-                      showDialog(
-                          context: context,
-                          builder: (context) => MyDialogeHome(
-                              type: "U",
-                              onPresed: () {
-                                if (checkadmin) {
-                                  checkubdate = true;
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) {
-                                    return message_page("S",
-                                        widget.message!);
-                                  }));
-                                }
-                              }));
                     }
-                  : () async {
-                      if (pay_or_not) {
-                        if (Validation.isValidnull(
-                            widget.message!.MessageLink)) {
-                          await shareFile();
-                        } else {
-                          await share();
-                        }
+                  },
+            onRightSwipe: checkadmin
+                ? () {
+                    //start to end
+                    showDialog(
+                        context: context,
+                        builder: (context) => MyDialogeHome(
+                            type: "U",
+                            onPresed: () {
+                              if (checkadmin) {
+                                checkubdate = true;
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return message_page("S", widget.message!);
+                                }));
+                              }
+                            }));
+                  }
+                : () async {
+                    if (pay_or_not) {
+                      if (Validation.isValidnull(widget.message!.MessageLink)) {
+                        await shareFile();
+                      } else {
+                        await share();
                       }
-                    },
-              rightSwipeWidget: checkadmin
-                  ? Container(
-                  alignment: Alignment.center,
-                  child: Container(
+                    }
+                  },
+            rightSwipeWidget: checkadmin
+                ? Container(
+                    alignment: Alignment.center,
+                    child: Container(
                       margin: EdgeInsets.only(left: 20, right: 20),
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20)),
@@ -904,256 +1015,346 @@ class _List_messaging extends State<List_messaging> {
                         size: 50,
                       ),
                     ))
-                  : pay_or_not
-                      ? Container(
-                          margin: EdgeInsets.only(left: 20, right: 20),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20)),
-                          child: Icon(
-                            Icons.reply,
-                            size: 50,
-                            textDirection: TextDirection.rtl,
-                          ),
-                        )
-                      : SizedBox(),
-              leftSwipeWidget: checkadmin
-                  ?  Container(
-                      margin: EdgeInsets.only(right: 20, left: 20),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20)),
-                      child: Icon(
-                        Icons.delete,
-                        size: 50,
-                      ))
-                  : pay_or_not
-                      ? Container(
-                          margin: EdgeInsets.only(right: 20, left: 20),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20)),
-                          child: Icon(
-                            Icons.reply,
-                            size: 50,
-                          ))
-                      : SizedBox(),
-              child: Column(children: [
-                Container(
-                    margin: EdgeInsets.only(top: 20),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(40),
-                        color: Theme.of(context).cardColor,
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 5)
-                        ]),
-                    width: WidthDevice - 10,
-                    height: 200,
-                    child: Center(
-                        //form message in list
-                        child: Stack(children: [
-                      //this feild the date
-                      Container(
-                        margin: EdgeInsets.only(left: WidthDevice / 9, top: 5),
-                        alignment: Alignment.topLeft,
-                        child: pay_complate || checkadmin
-                            ? Text(
-                          widget.message!.MessageDate,
+                : pay_or_not
+                    ? Container(
+                        margin: EdgeInsets.only(left: 20, right: 20),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20)),
+                        child: Icon(
+                          Icons.reply,
+                          size: 50,
+                          textDirection: TextDirection.rtl,
+                        ),
+                      )
+                    : SizedBox(),
+            leftSwipeWidget: checkadmin
+                ? Container(
+                    margin: EdgeInsets.only(right: 20, left: 20),
+                    alignment: Alignment.center,
+                    decoration:
+                        BoxDecoration(borderRadius: BorderRadius.circular(20)),
+                    child: Icon(
+                      Icons.delete,
+                      size: 50,
+                    ))
+                : pay_or_not
+                    ? Container(
+                        margin: EdgeInsets.only(right: 20, left: 20),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20)),
+                        child: Icon(
+                          Icons.reply,
+                          size: 50,
+                        ))
+                    : SizedBox(),
+            child: Column(children: [
+              Container(
+                  margin: EdgeInsets.only(top: 20),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      color: Theme.of(context).cardColor,
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 5)
+                      ]),
+                  width: WidthDevice - 10,
+                  height: 200,
+                  child: Center(
+                      //form message in list
+                      child: Stack(children: [
+                        checkadmin ? Container(
+                            alignment: Alignment.topRight,
+                            child: Container(
+                              margin: EdgeInsets.all(10),
+                                height: 30,
+                                width: 30,
+                                child: ElevatedButton.icon(
+                                    label: Text(""),
+                                    style: ButtonStyle(
+                                        padding: MaterialStateProperty.all(
+                                            EdgeInsets.all(2)),
+                                        elevation: MaterialStateProperty.all(5),
+                                        backgroundColor: MaterialStateProperty.all(
+                                            Colors.lightBlueAccent),
+                                        shape: MaterialStateProperty.all<
+                                            RoundedRectangleBorder>(
+                                            RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.only(
+                                                    topLeft: Radius.zero,
+                                                    topRight: Radius.circular(20),
+                                                    bottomRight:
+                                                    Radius.circular(20),
+                                                bottomLeft: Radius.zero),
+                                                side: BorderSide(
+                                                    color: Colors.black38,
+                                                    width: 0.2)))),
+                                    onPressed: () async {
+                                      if (Validation.isValidnull(
+                                          widget.message!.MessageLink)) {
+                                        await shareFile();
+                                      } else {
+                                        await share();
+                                      }
+                                    },
+                                    icon: Icon(
+                                      Icons.share,
+                                      color: Colors.white,
+                                      size: 15,
+                                    )))):SizedBox(),
+                    //this feild the date
+                    Container(
+                      margin: EdgeInsets.only(left: WidthDevice / 9, top: 5),
+                      alignment: Alignment.topLeft,
+                      child: pay_complate || checkadmin
+                          ? Text(
+                              widget.message!.MessageDate,
+                              style: TextStyle(
+                                  fontSize: (HieghDevice / 180) *
+                                      (WidthDevice / 180)),
+                            )
+                          : ImageFiltered(
+                              imageFilter: ImageFilter.blur(
+                                sigmaX: 3,
+                                sigmaY: 3,
+                              ),
+                              child: Text(
+                                widget.message!.MessageDate,
                                 style: TextStyle(
                                     fontSize: (HieghDevice / 180) *
                                         (WidthDevice / 180)),
-                              )
-                            : ImageFiltered(
-                                imageFilter: ImageFilter.blur(
-                                  sigmaX: 3,
-                                  sigmaY: 3,
+                              )),
+                    ),
+                    Container(
+                        alignment: Alignment.topLeft,
+                        child: pay_complate || checkadmin
+                            ? Container(
+                                margin: EdgeInsets.only(
+                                    left: WidthDevice / 18, top: 25),
+                                height: 130,
+                                width: 130,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Theme.of(context).shadowColor,
+                                        blurRadius: 20)
+                                  ],
                                 ),
-                                child: Text(
-                                  widget.message!
-                                      .MessageDate,
-                                  style: TextStyle(
-                                      fontSize: (HieghDevice / 180) *
-                                          (WidthDevice / 180)),
-                                )),
-                      ),
-                      Container(
-                          alignment: Alignment.topLeft,
-                          child: pay_complate || checkadmin
-                              ? Container(
-                                  margin: EdgeInsets.only(
-                                      left: WidthDevice / 18, top: 25),
-                                  height: 130,
-                                  width: 130,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                          color: Theme.of(context).shadowColor, blurRadius: 20)
-                                    ],
-                                  ),
-                                  child: Validation.isValidnull(widget.message!
-                                          .MessageLink)
-                                      ? CachedNetworkImage(
-                                          imageUrl: widget.message!
-                                              .MessageLink,
-                                          imageBuilder:
-                                              (context, imageProvider) =>
-                                                  Container(
+                                child: Validation.isValidnull(
+                                        widget.message!.MessageLink)
+                                    ? GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    show_photo(
+                                                        path: widget.message!.MessageLink,
+                                                        type: "N")));
+                                      });
+                                    },
+                                    child: CachedNetworkImage(
+                                      imageUrl:
+                                      widget.message!.MessageLink,
+                                      imageBuilder: (context, imageProvider) =>
+                                          Container(
                                             decoration: BoxDecoration(
                                               borderRadius:
-                                                  BorderRadius.circular(20),
+                                              BorderRadius.circular(20),
                                               image: DecorationImage(
                                                 image: imageProvider,
                                                 fit: BoxFit.fill,
                                               ),
                                             ),
                                           ),
-                                          placeholder: (context, url) =>
-                                              CircularProgressIndicator(),
-                                          errorWidget: (context, url, error) =>
-                                              Icon(Icons.error),
-                                        )
-                                      : Container(
-                                          decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: AssetImage(
-                                                    "images/Untitled.png"),
-                                                fit: BoxFit.fill),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: null,
-                                        ))
-                              : ImageFiltered(
-                                  imageFilter: ImageFilter.blur(
-                                    sigmaY: 5,
-                                    sigmaX: 5,
-                                  ),
-                                  child: Container(
-                                      margin: EdgeInsets.only(
-                                          left: WidthDevice / 18, top: 25),
-                                      height: 130,
-                                      width: 130,
+                                      placeholder: (context, url) =>
+                                          CircularProgressIndicator(),
+                                      errorWidget: (context, url, error) =>
+                                          Icon(Icons.error),
+                                    ))
+                                    : GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    show_photo(
+                                                        path: "", type: "")));
+                                      });
+                                    },
+                                    child: Container(
                                       decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                            image: AssetImage(
+                                                "images/logo.png"),
+                                            fit: BoxFit.fill),
                                         borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                              color: Theme.of(context).shadowColor,
-                                              blurRadius: 20)
-                                        ],
                                       ),
-                                      child: CachedNetworkImage(
-                                        imageUrl: widget.message!
-                                            .MessageLink,
-                                        imageBuilder:
-                                            (context, imageProvider) =>
-                                                Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            image: DecorationImage(
-                                              image: imageProvider,
-                                              fit: BoxFit.fill,
-                                            ),
+                                      child: null,
+                                    )))
+                            : ImageFiltered(
+                                imageFilter: ImageFilter.blur(
+                                  sigmaY: 5,
+                                  sigmaX: 5,
+                                ),
+                                child: Container(
+                                    margin: EdgeInsets.only(
+                                        left: WidthDevice / 18, top: 25),
+                                    height: 130,
+                                    width: 130,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color:
+                                                Theme.of(context).shadowColor,
+                                            blurRadius: 20)
+                                      ],
+                                    ),
+                                    child:Validation.isValidnull(
+                                        widget.message!.MessageLink)
+                                        ?  CachedNetworkImage(
+                                      imageUrl: widget.message!.MessageLink,
+                                      imageBuilder: (context, imageProvider) =>
+                                          Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          image: DecorationImage(
+                                            image: imageProvider,
+                                            fit: BoxFit.fill,
                                           ),
                                         ),
-                                        placeholder: (context, url) =>
-                                            CircularProgressIndicator(),
-                                        errorWidget: (context, url, error) =>
-                                            Icon(Icons.error),
-                                      )),
-                                )),
-                      Container(
-                        margin:
-                            EdgeInsets.only(left: WidthDevice / 2.6, top: 10),
-                        child: Row(textDirection: TextDirection.ltr, children: [
-                          Container(
-                              margin: EdgeInsets.only(bottom: 2),
-                              child: pay_complate || checkadmin
-                                  ? Text(
+                                      ),
+                                      placeholder: (context, url) =>
+                                          CircularProgressIndicator(),
+                                      errorWidget: (context, url, error) =>
+                                          Icon(Icons.error),
+                                    ):Container(
+                                      decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                            image: AssetImage(
+                                                "images/logo.png"),
+                                            fit: BoxFit.fill),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: null,
+                                    )),
+                              )),
+                    Container(
+                      margin: EdgeInsets.only(left: WidthDevice / 2.6, top: 10),
+                      child: Row(textDirection: TextDirection.ltr, children: [
+                        Container(
+                            margin: EdgeInsets.only(bottom: 2),
+                            child: pay_complate || checkadmin
+                                ? Text(
+                                    Message_type.values.elementAt(
+                                        int.parse(widget.message!.MessageType)),
+                                    style: TextStyle(
+                                        color: (int.parse(widget
+                                                    .message!.MessageType) <
+                                                3)
+                                            ? Colors.blue
+                                            : Colors.redAccent,
+                                        fontSize: (HieghDevice / 180) *
+                                                (WidthDevice / 180) +
+                                            5),
+                                  )
+                                : ImageFiltered(
+                                    imageFilter:
+                                        ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                    child: Text(
                                       Message_type.values.elementAt(int.parse(
-                                          widget.message!
-                                              .MessageType)),
+                                          widget.message!.MessageType)),
                                       style: TextStyle(
-                                          color: (int.parse(widget.message!
-                                                      .MessageType) <
-                                                  3)
-                                              ? Colors.blue
-                                              : Colors.redAccent,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .headline2!
+                                              .color,
                                           fontSize: (HieghDevice / 180) *
                                                   (WidthDevice / 180) +
                                               5),
-                                    )
-                                  : ImageFiltered(
-                                      imageFilter: ImageFilter.blur(
-                                          sigmaX: 5, sigmaY: 5),
-                                      child: Text(
-                                        Message_type.values.elementAt(int.parse(
-                                            widget.message!
-                                                .MessageType)),
-                                        style: TextStyle(
-                                            color: (int.parse(widget.message!
-                                                        .MessageType) <
-                                                    3)
-                                                ? Colors.blue
-                                                : Colors.redAccent,
-                                            fontSize: (HieghDevice / 180) *
-                                                    (WidthDevice / 180) +
-                                                5),
-                                      ),
-                                    )),
-                          Container(
-                              child: Text(
-                            " " +
-                                widget.message!
-                                    .MessageSymbol +
-                                " ",
-                            style: TextStyle(
-                                color: pay_complate
-                                    ? Theme.of(context).textTheme.headline2!.color
-                                    : Theme.of(context).textTheme.headline1!.color,
-                                fontSize:
-                                    (HieghDevice / 180) * (WidthDevice / 180) +
-                                        5,
-                                fontWeight: pay_complate
-                                    ? FontWeight.normal
-                                    : FontWeight.bold),
-                          )),
-                          Container(
-                              child: pay_complate || checkadmin
-                                  ? Text(
-                                      "AT:" +
-                                          widget.message!
-                                              .MessageEntryPoint
+                                    ),
+                                  )),
+                        Container(
+                            child: Text(
+                          " " + widget.message!.MessageSymbol + " ",
+                          style: TextStyle(
+                              color: pay_complate
+                                  ? Theme.of(context).textTheme.headline2!.color
+                                  : Theme.of(context)
+                                      .textTheme
+                                      .headline1!
+                                      .color,
+                              fontSize:
+                                  (HieghDevice / 180) * (WidthDevice / 180) + 5,
+                              fontWeight: pay_complate
+                                  ? FontWeight.normal
+                                  : FontWeight.bold),
+                        )),
+                        Container(
+                            child: pay_complate || checkadmin
+                                ? Text(
+                                    "AT:" +
+                                        widget.message!.MessageEntryPoint
+                                            .toString(),
+                                    style: TextStyle(
+                                        color: Colors.amber,
+                                        fontSize: (HieghDevice / 180) *
+                                                (WidthDevice / 180) +
+                                            5),
+                                  )
+                                : ImageFiltered(
+                                    imageFilter:
+                                        ImageFilter.blur(sigmaY: 3, sigmaX: 3),
+                                    child: Text(
+                                      "AT: " +
+                                          widget.message!.MessageEntryPoint
                                               .toString(),
                                       style: TextStyle(
-                                          color: Colors.amber,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .headline2!
+                                              .color,
                                           fontSize: (HieghDevice / 180) *
                                                   (WidthDevice / 180) +
                                               5),
-                                    )
-                                  : ImageFiltered(
-                                      imageFilter: ImageFilter.blur(
-                                          sigmaY: 3, sigmaX: 3),
-                                      child: Text(
-                                        "AT: " +
-                                            widget.message!
-                                                .MessageEntryPoint
-                                                .toString(),
-                                        style: TextStyle(
-                                            color: Colors.amber,
-                                            fontSize: (HieghDevice / 180) *
-                                                    (WidthDevice / 180) +
-                                                5),
-                                      ),
-                                    ))
-                        ]),
-                      ),
-                      Container(
-                        margin:
-                            EdgeInsets.only(left: WidthDevice - 85, top: 65),
-                        child: pay_complate || checkadmin
-                            ? Row(
+                                    ),
+                                  ))
+                      ]),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(left: WidthDevice - 85, top: 65),
+                      child: pay_complate || checkadmin
+                          ? Row(
+                              textDirection: TextDirection.ltr,
+                              children: [
+                                Icon(
+                                  Icons.visibility_outlined,
+                                ),
+                                SizedBox(
+                                  width: 7,
+                                ),
+                                Text(
+                                  widget.message!.MessageCountView,
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .headline2!
+                                          .color,
+                                      fontSize: (HieghDevice / 180) *
+                                              (WidthDevice / 180) +
+                                          5),
+                                )
+                              ],
+                            )
+                          : ImageFiltered(
+                              imageFilter:
+                                  ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                              child: Row(
                                 textDirection: TextDirection.ltr,
                                 children: [
                                   Icon(
@@ -1163,116 +1364,138 @@ class _List_messaging extends State<List_messaging> {
                                     width: 7,
                                   ),
                                   Text(
-                                    widget.message!
-                                        .MessageCountView,
-                                    style: TextStyle(color: Theme.of(context).textTheme.headline2!.color,fontSize: (HieghDevice / 180) *
-                                        (WidthDevice / 180) +
-                                        5),
+                                    widget.message!.MessageCountView,
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .headline2!
+                                            .color,
+                                        fontSize: (HieghDevice / 180) *
+                                                (WidthDevice / 180) +
+                                            5),
                                   )
                                 ],
+                              ),
+                            ),
+                    ),
+                    Container(
+                      alignment: Alignment.topLeft,
+                      height: 70,
+                      margin: EdgeInsets.only(top: 50, left: WidthDevice / 2.4),
+                      child: pay_complate || checkadmin
+                          ? Container(
+                              height: 70,
+                              width: WidthDevice / 3,
+                              child: Text(
+                                widget.message!.MessageContent,
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .headline2!
+                                        .color,
+                                    fontSize: (HieghDevice / 180) *
+                                            (WidthDevice / 180) +
+                                        5),
+                                maxLines: 4,
+                              ))
+                          : ImageFiltered(
+                              imageFilter:
+                                  ImageFilter.blur(sigmaY: 3, sigmaX: 3),
+                              child: Container(
+                                  height: 70,
+                                  width: WidthDevice / 3,
+                                  child: Text(
+                                    widget.message!.MessageContent,
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .headline2!
+                                            .color,
+                                        fontSize: (HieghDevice / 180) *
+                                                (WidthDevice / 180) +
+                                            5),
+                                    maxLines: 4,
+                                  )),
+                            ),
+                    ),
+                    Container(
+                        width: WidthDevice,
+                        margin:
+                            EdgeInsets.only(left: WidthDevice / 10, top: 170),
+                        child: pay_complate || checkadmin
+                            ? Text(
+                                "SL : " + widget.message!.OrderStopLoss,
+                                style: TextStyle(
+                                    color: Color.fromARGB(500, 200, 10, 10),
+                                    fontSize: (HieghDevice / 180) *
+                                            (WidthDevice / 180) +
+                                        5),
+                                textDirection: TextDirection.ltr,
                               )
                             : ImageFiltered(
                                 imageFilter:
-                                    ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                                child: Row(
-                                  textDirection: TextDirection.ltr,
-                                  children: [
-                                    Icon(
-                                      Icons.visibility_outlined,
-                                    ),
-                                    SizedBox(
-                                      width: 7,
-                                    ),
-                                    Text(
-                                      widget.message!
-                                          .MessageCountView,
-                                      style: TextStyle(color: Theme.of(context).textTheme.headline2!.color,fontSize: (HieghDevice / 180) *
-                                          (WidthDevice / 180) +
-                                          5),
-                                    )
-                                  ],
-                                ),
-                              ),
-                      ),
-                      Container(
-                        alignment: Alignment.topLeft,
-                        height: 70,
-                        margin:
-                            EdgeInsets.only(top: 50, left: WidthDevice / 2.4),
-                        child: pay_complate || checkadmin
-                            ? Container(
-                                height: 70,
-                                width: WidthDevice / 3,
+                                    ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                                 child: Text(
-                                  widget.message!
-                                      .MessageContent,
-                                  style: TextStyle(color: Theme.of(context).textTheme.headline2!.color,fontSize: (HieghDevice / 180) *
-                                      (WidthDevice / 180) +
-                                      5),
-                                  maxLines: 4,
-                                ))
-                            : ImageFiltered(
-                                imageFilter:
-                                    ImageFilter.blur(sigmaY: 3, sigmaX: 3),
-                                child: Container(
-                                    height: 70,
-                                    width: WidthDevice / 3,
-                                    child: Text(
-                                      widget.message!
-                                          .MessageContent,
-                                      style: TextStyle(color: Theme.of(context).textTheme.headline2!.color,fontSize: (HieghDevice / 180) *
-                                          (WidthDevice / 180) +
-                                          5),
-                                      maxLines: 4,
-                                    )),
-                              ),
-                      ),
-                      Container(
-                          width: WidthDevice,
-                          margin:
-                              EdgeInsets.only(left: WidthDevice / 10, top: 170),
-                          child: pay_complate || checkadmin
-                              ? Text(
-                                  "SL : " +
-                                      widget.message!
-                                          .OrderStopLoss,
+                                  "SL : " + widget.message!.OrderStopLoss,
                                   style: TextStyle(
-                                      color: Color.fromARGB(500, 200, 10, 10),
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .headline2!
+                                          .color,
                                       fontSize: (HieghDevice / 180) *
                                               (WidthDevice / 180) +
                                           5),
                                   textDirection: TextDirection.ltr,
-                                )
-                              : ImageFiltered(
-                                  imageFilter:
-                                      ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                                  child: Text(
-                                    "SL : " +
-                                        widget.message!
-                                            .OrderStopLoss,
-                                    style: TextStyle(
-                                        color: Color.fromARGB(500, 200, 10, 10),
-                                        fontSize: (HieghDevice / 180) *
-                                                (WidthDevice / 180) +
-                                            5),
-                                    textDirection: TextDirection.ltr,
-                                  ),
-                                )),
-                      Container(
-                        margin:
-                            EdgeInsets.only(left: WidthDevice / 2.3, top: 135),
-                        child: pay_complate || checkadmin
-                            ? Column(
+                                ),
+                              )),
+                    Container(
+                      margin:
+                          EdgeInsets.only(left: WidthDevice / 2.3, top: 135),
+                      child: pay_complate || checkadmin
+                          ? Column(                              textDirection: TextDirection.ltr,
+                              children: [
+                                Container(
+                                    width: WidthDevice,
+                                    child: Text(
+                                      "TP1 : " + widget.message!.Target1,
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontSize: (HieghDevice / 180) *
+                                                  (WidthDevice / 180) +
+                                              5),
+                                      textDirection: TextDirection.ltr,
+                                    )),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Container(
+                                    width: WidthDevice,
+                                    child: Text(
+                                      "TP2 : " + widget.message!.Target2,
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontSize: (HieghDevice / 180) *
+                                                  (WidthDevice / 180) +
+                                              5),
+                                      textDirection: TextDirection.ltr,
+                                    ))
+                              ],
+                            )
+                          : ImageFiltered(
+                              imageFilter:
+                                  ImageFilter.blur(sigmaY: 4, sigmaX: 4),
+                              child: Column(
                                 textDirection: TextDirection.ltr,
                                 children: [
                                   Container(
                                       width: WidthDevice,
                                       child: Text(
-                                        "TD1 : " +
-                                            widget.message!
-                                                .Target1,
+                                        "TP1 : " + widget.message!.Target1,
                                         style: TextStyle(
-                                            color: Colors.green,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .headline2!
+                                                .color,
                                             fontSize: (HieghDevice / 180) *
                                                     (WidthDevice / 180) +
                                                 5),
@@ -1284,132 +1507,95 @@ class _List_messaging extends State<List_messaging> {
                                   Container(
                                       width: WidthDevice,
                                       child: Text(
-                                        "TD2 : " +
-                                            widget.message!
-                                                .Target2,
+                                        "TP2 : " + widget.message!.Target2,
                                         style: TextStyle(
-                                            color: Colors.green,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .headline2!
+                                                .color,
                                             fontSize: (HieghDevice / 180) *
                                                     (WidthDevice / 180) +
                                                 5),
                                         textDirection: TextDirection.ltr,
                                       ))
                                 ],
-                              )
-                            : ImageFiltered(
-                                imageFilter:
-                                    ImageFilter.blur(sigmaY: 4, sigmaX: 4),
-                                child: Column(
-                                  textDirection: TextDirection.ltr,
-                                  children: [
-                                    Container(
-                                        width: WidthDevice,
-                                        child: Text(
-                                          "TD1 : " +
-                                              widget.message!
-                                                  .Target1,
-                                          style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: (HieghDevice / 180) *
-                                                      (WidthDevice / 180) +
-                                                  5),
-                                          textDirection: TextDirection.ltr,
-                                        )),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Container(
-                                        width: WidthDevice,
-                                        child: Text(
-                                          "TD2 : " +
-                                              widget.message!
-                                                  .Target2,
-                                          style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: (HieghDevice / 180) *
-                                                      (WidthDevice / 180) +
-                                                  5),
-                                          textDirection: TextDirection.ltr,
-                                        ))
-                                  ],
-                                ),
                               ),
-                      ),
-                      Container(
-                        width: 85,
-                        height: 60,
-                        margin:
-                            EdgeInsets.only(top: 140, left: WidthDevice - 95),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if(member.getEmail == "admin@gmail.com"){
-                              showtoast(getLang(context, "Your_Admin" ));
-                              return;
+                            ),
+                    ),
+                    Container(
+                      width: 85,
+                      height: 60,
+                      margin: EdgeInsets.only(top: 140, left: WidthDevice - 95),
+                      child: ElevatedButton(
+                        onPressed: () async{
+                          if (pay_or_not && !pay_complate) {
+                            List<String> list = [];
+                            list.add(member.getEmail);
+                            list.add(widget.message!.MessageID.toString());
+                            list.add("F");
+                            if (await countview.Insert(list)) {
+                              pay_complate = true;
+                              setState(() {
+                                if (!countviewint
+                                    .contains(widget.message!.MessageID)) {
+                                  countviewint.add(widget.message!.MessageID);
+                                }
+                                widget.message!.MessageCountView =
+                                    countview.countview!;
+                              });
                             }
-                            if (pay_or_not && !pay_complate) {
-                              List<String> list = [];
-                              list.add(member.getEmail);
-                              list.add(widget.message!
-                                  .MessageID
-                                  .toString());
-                              list.add("F");
-                              if (await countview.Insert(list)) {
-                                pay_complate = true;
-                                setState(() {
-                                  if(!countviewint.contains(widget.message!.MessageID)){
-                                    countviewint.add(widget.message!.MessageID);
-                                  }
-                                  widget.message!.MessageCountView =
-                                      countview.countview!;
-                                });
-                              }
-                            }
-                          },
-                          child: pay_complate && !checkadmin
-                              ? Icon(
-                                  Icons.check_circle_outlined,
-                                  color: Colors.green,
-                                  size: 40,
-                                )
-                              : Text(
-                                  (widget.message!
-                                              .MessagePrice >
-                                          0.0)
-                                      ? '${getLang(context, "Pay")}' +
-                                          " : ${widget.message!.MessagePrice}" +
-                                          r"$"
-                                      : "Free",
-                                  style: TextStyle(color: Colors.black38),
-                                  textDirection: TextDirection.ltr,
-                                ),
-                          style: ButtonStyle(
-                              enableFeedback: !pay_complate,
-                              padding:
-                                  MaterialStateProperty.all(EdgeInsets.all(5)),
-                              elevation: MaterialStateProperty.all(20),
-                              backgroundColor: MaterialStateProperty.all(
-                                  Colors.lightBlueAccent),
-                              shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(20),
-                                          topRight: Radius.zero,
-                                          bottomRight: Radius.circular(40)),
-                                      side: BorderSide(
-                                          color: Colors.black38, width: 0.2)))),
-                        ),
+                          } else if (!pay_complate) {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (contxt) => methods_pay(
+                                        messaging: widget.message!,
+                                        member: member)));
+                          }
+                        },
+                        child: pay_complate && !checkadmin
+                            ? Icon(
+                                Icons.check_circle_outlined,
+                                color: Colors.green,
+                                size: 40,
+                              )
+                            : Text(
+                                (widget.message!.MessagePrice > 0.0)
+                                    ? '${getLang(context, "Pay")}' +
+                                        " : ${widget.message!.MessagePrice}" +
+                                        r"$"
+                                    : "Free",
+                                style: TextStyle(color: Colors.black38),
+                                textDirection: TextDirection.ltr,
+                              ),
+                        style: ButtonStyle(
+                            enableFeedback: !pay_complate,
+                            padding:
+                                MaterialStateProperty.all(EdgeInsets.all(5)),
+                            elevation: MaterialStateProperty.all(20),
+                            backgroundColor: MaterialStateProperty.all(
+                                Colors.lightBlueAccent),
+                            shape: MaterialStateProperty.all<
+                                    RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(20),
+                                        topRight: Radius.zero,
+                                        bottomRight: Radius.circular(40)),
+                                    side: BorderSide(
+                                        color: Colors.black38, width: 0.2)))),
                       ),
-                    ])))
-              ]))
-          : SizedBox();
+                    ),
+                  ])))
+            ]))
+        : SizedBox();
   }
 
   Future<void> share() async {
     await FlutterShare.share(
         title: widget.message!.MessageSymbol,
-        text: Message_type.values.elementAt(
-                int.parse(widget.message!.MessageType)) +
+        text: Message_type.values
+                .elementAt(int.parse(widget.message!.MessageType)) +
             "   " +
             widget.message!.MessageSymbol +
             "   AT: " +
@@ -1417,10 +1603,10 @@ class _List_messaging extends State<List_messaging> {
             "\n" +
             widget.message!.MessageContent +
             "\n" +
-            "TD1 :" +
+            "TP1 :" +
             widget.message!.Target1 +
             "   " +
-            "TD2 :" +
+            "TP2 :" +
             widget.message!.Target2 +
             "\n" +
             "SL :" +
@@ -1428,7 +1614,7 @@ class _List_messaging extends State<List_messaging> {
             "\n" +
             widget.message!.MessageDate +
             "\n",
-        linkUrl: "https://www.youtube.com/",
+        linkUrl: "https://play.google.com/store/apps/details?id=com.ShepherdFX.Software",
         chooserTitle: 'Example Chooser Title');
   }
 
@@ -1440,18 +1626,18 @@ class _List_messaging extends State<List_messaging> {
     imageFile.writeAsBytesSync(bytes);
 
     await FlutterShare.shareFile(
-      title: Message_type.values.elementAt(
-              int.parse(widget.message!.MessageType)) +
+      title: Message_type.values
+              .elementAt(int.parse(widget.message!.MessageType)) +
           " " +
           widget.message!.MessageSymbol +
           " AT: " +
           widget.message!.MessageEntryPoint.toString(),
       text: widget.message!.MessageContent +
           "\n" +
-          "TD1 :" +
+          "TP1 :" +
           widget.message!.Target1 +
           " " +
-          "TD2 :" +
+          "TP2 :" +
           widget.message!.Target2 +
           "\n" +
           "SL :" +
@@ -1459,29 +1645,48 @@ class _List_messaging extends State<List_messaging> {
           "\n" +
           widget.message!.MessageDate +
           "\n" +
-          "https://www.youtube.com/",
+          "https://play.google.com/store/apps/details?id=com.ShepherdFX.Software",
       filePath: imageFile.path,
     );
   }
 }
-
-void SortByDate() {
-  for (int i = 0; i < messaging.length; i++) {
-    for (int j = i + 1; j < messaging.length; j++) {
-      if (DateTime.parse(messaging[i].MessageDate)
-          .isBefore(DateTime.parse(messaging[j].MessageDate))) {
-        Messaging item = messaging[i];
-        messaging[i] = messaging[j];
-        messaging[j] = item;
+void SortByDateM_N(int i,int j) {
+  if(i < messaging.length && j < notification_message.length) {
+    if (i + j <= lengthList) {
+      if (DateTime.parse(messaging[i].MessageDate).isAfter(
+          DateTime.parse(notification_message[j].date!))) {
+        page.add(List_messaging(message: messaging[i],));
+        SortByDateM_N(i + 1, j);
+      } else {
+        page.add(List_Notif(index: j,));
+        SortByDateM_N(i, j + 1);
       }
     }
+  }
+  else if (i < messaging.length){
+    addmessage(i);
+  }else if(j < notification_message.length){
+    addnotifi(j);
+  }
+}
+void addmessage(int i){
+  if(i < messaging.length && i <= lengthList) {
+    page.add(List_messaging(message: messaging[i],));
+    addmessage(i + 1);
+  }
+}
+void addnotifi(int i){
+  if(i < notification_message.length && i <= lengthList) {
+    page.add(List_Notif(index: i,));
+    addnotifi(i + 1);
   }
 }
 
 void SortByView() {
   for (int i = 0; i < messaging.length; i++) {
     for (int j = i + 1; j < messaging.length; j++) {
-      if (int.parse(messaging[i].MessageCountView) < int.parse(messaging[j].MessageCountView)) {
+      if (int.parse(messaging[i].MessageCountView) <
+          int.parse(messaging[j].MessageCountView)) {
         Messaging item = messaging[i];
         messaging[i] = messaging[j];
         messaging[j] = item;
@@ -1559,4 +1764,24 @@ class MyDialogeHomeState extends State<MyDialogeHome> {
               ]);
         }));
   }
+}
+
+Future<bool> PaymentComplate(
+    String type, String email, String id_message) async {
+  List<String> list = [];
+  list.add(email);
+  list.add(id_message);
+  list.add(type);
+  if (await countview.Insert(list)) {
+    if (!countviewint.contains(int.parse(id_message))) {
+      countviewint.add(int.parse(id_message));
+    }
+    messaging.forEach((element) {
+      if (element.MessageID == int.parse(id_message)) {
+        element.MessageCountView = countview.countview!;
+      }
+    });
+    return true;
+  }
+  return false;
 }

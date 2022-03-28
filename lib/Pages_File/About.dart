@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:mailing/Home_Page.dart';
 import 'package:mailing/l10n/applocal.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,7 +52,30 @@ class about_state extends State<about> {
     WidthDevice = MediaQuery.of(context).size.width;
     HieghDevice = MediaQuery.of(context).size.height;
 
-    return Scaffold(
+    return WillPopScope(
+    onWillPop: ()async{
+      if(widget.typepage == "set"){
+        he_wi[0] = 50;
+        sizeicon[0] = 30;
+      }else if(widget.typepage == "info"){
+        he_wi[1] = 50;
+        sizeicon[1] = 30;
+      }else if(widget.typepage == "S"){
+        he_wi[2] = 50;
+        sizeicon[2] = 30;
+      }else if(widget.typepage == "PR"){
+        he_wi[3] = 50;
+        sizeicon[3] = 30;
+      }else if(widget.typepage == "PP"){
+        he_wi[4] = 50;
+        sizeicon[4] = 30;
+      }
+      he_wi[5] = 40;
+      sizeicon[5] = 25;
+
+      return true;
+    },
+        child: Scaffold(
         appBar: AppBar(
           title: Text(
             getLang(context, "about_title"),
@@ -189,8 +213,6 @@ class about_state extends State<about> {
                               body: Help_Title.text + "\nDate : "+DateTime.now().toString()+" \nWith Email From : "+member.getEmail,
                               subject: getLang(context, dropdownValue),
                               recipients: ['Abd.shepherd@gmail.com'],
-                              cc: ['tofikdaowd@gmail.com'],
-                              bcc: ['Shepherdova@gmail.com'],
                               isHTML: false,
                             );
 
@@ -202,23 +224,25 @@ class about_state extends State<about> {
                     height: 20,
                   ),
                   Container(
-                      width: WidthDevice * 0.8,
+                      width: WidthDevice * 0.9,
                       child: Column(
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(" MQL5: "),
+                              Text(" MQL5:    "),
                               Expanded(
                                   child: FlatButton(
-                                child: Text(
+                                child:Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
                                   "https://www.mql5.com/en/users/abo-hob",
                                   softWrap: false,
                                   style: TextStyle(
                                       color: Colors.blue,
                                       decoration: TextDecoration.underline),
                                   overflow: TextOverflow.ellipsis,
-                                ),
+                                )),
                                 onPressed: () async {
                                   if (await canLaunch(
                                       "https://www.mql5.com/en/users/abo-hob")) {
@@ -231,17 +255,18 @@ class about_state extends State<about> {
                           ),
                           Row(
                             children: [
-                              Text("Telegram: "),
+                              Text("Telegram:"),
                               Expanded(
                                   child: FlatButton(
-                                child: Text(
+                                child:Container(
+                                  alignment: Alignment.centerLeft,child: Text(
                                   "https://t.me/shepherdfx",
                                   softWrap: false,
                                   style: TextStyle(
                                       color: Colors.blue,
                                       decoration: TextDecoration.underline),
                                   overflow: TextOverflow.ellipsis,
-                                ),
+                                )),
                                 onPressed: () async {
                                   if (await canLaunch(
                                       "https://t.me/shepherdfx")) {
@@ -253,7 +278,7 @@ class about_state extends State<about> {
                           ),
                           Row(
                             children: [
-                              Text("Facebook: "),
+                              Text("Facebook:"),
                               Expanded(
                                   child: FlatButton(
                                 child: Text(
@@ -276,7 +301,7 @@ class about_state extends State<about> {
                           ),
                           Row(
                             children: [
-                              Text("twitter: "),
+                              Text("twitter:"),
                               Expanded(
                                   child: FlatButton(
                                 child: Text(
@@ -321,7 +346,7 @@ class about_state extends State<about> {
                           ),
                           Row(
                             children: [
-                              Text("Linked in : "),
+                              Text("Linked in:  "),
                               Expanded(
                                   child: FlatButton(
                                 child: Text(
@@ -369,7 +394,7 @@ class about_state extends State<about> {
                               ),
                               SizedBox(height: 20,),
                               Container(
-                                  child:Text("2022 - "+DateTime.now().year.toString() +"  "+ getLang(context, "Mailing"),style: TextStyle(fontSize: 12,fontWeight: FontWeight.w500),)
+                                  child:Text("2007 - "+DateTime.now().year.toString() +"  "+ "Shepherd Software Corp",style: TextStyle(fontSize: 12,fontWeight: FontWeight.w500),)
                               ),
                               SizedBox(height: 20,),
                               Container(
@@ -391,15 +416,6 @@ class about_state extends State<about> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 20,),
-                          Container(
-                              child:Text("Telegram: @OSuleiman",style: TextStyle(fontSize: 12,fontWeight: FontWeight.w500),)
-                          ),
-                          SizedBox(height: 20,),
-                          Container(
-                              child:Text("Email: affinity.source.sy@gmail.com",style: TextStyle(fontSize: 12,fontWeight: FontWeight.w500),)
-                          ),
-                          SizedBox(height: 20,),
                         ],
                       )),
                   SizedBox(
@@ -409,6 +425,6 @@ class about_state extends State<about> {
               ),
             ),
           ],
-        )));
+        ))));
   }
 }

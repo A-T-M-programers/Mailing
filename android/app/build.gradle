@@ -1,11 +1,16 @@
 buildscript {
     repositories {
+        jcenter()
+        maven {
+            url "https://maven.google.com"
+        }
         // ...
         maven { url 'https://plugins.gradle.org/m2/' } // Gradle Plugin Portal
     }
     dependencies {
         // ...
         // OneSignal-Gradle-Plugin
+        //noinspection GradleDependency
         classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.12.10, 0.99.99]'
     }
 }
@@ -39,6 +44,11 @@ apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 apply plugin: 'com.google.gms.google-services'
 
+    def keystoreProperties = new Properties()
+        def keystorePropertiesFile = rootProject.file('key.properties')
+        if (keystorePropertiesFile.exists()) {
+            keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+        }
 android {
     compileSdkVersion 31
 
@@ -49,15 +59,15 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.mailing"
-        minSdkVersion 21
+        applicationId "com.ShepherdFX.Software"
+        minSdkVersion 19
         targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
     }
-    signingConfigs{
-        debug{
+    signingConfigs {
+        debug {
             keyAlias "androiddebugkey"
             keyPassword '1q2w3e4r5t'
             storeFile file('mykey.jks')
@@ -65,12 +75,21 @@ android {
         }
     }
 
-    buildTypes {
-        debug {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
         }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
 }
 
@@ -79,8 +98,11 @@ flutter {
 }
 
 dependencies {
-    implementation 'com.google.firebase:firebase-messaging:23.0.0'
+    //noinspection GradleDependency
+    implementation 'com.google.firebase:firebase-messaging:23.0.2'
     implementation platform('com.google.firebase:firebase-bom:29.1.0')
-    implementation 'com.google.firebase:firebase-analytics:20.1.0'
+    implementation 'com.google.firebase:firebase-analytics:20.1.1'
+    implementation project(path: ':app_settings')
+    implementation project(path: ':app_settings')
 }
 

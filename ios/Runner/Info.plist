@@ -11,7 +11,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>Shepherd FX</string>
+		<string>Shepherd signals</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -42,33 +42,32 @@
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
 		<key>UIStatusBarHidden</key>
-		<key>CFBundleURLTypes</key>
-        <array>
-            <dict>
-                <key>CFBundleTypeRole</key>
-                <string>Editor</string>
-                <key>CFBundleURLSchemes</key>
-                <array>
-                    <string>**INSERT HERE YOUR RESERVED_CLIENT_ID FROM GoogleService-Info.plist**</string>
-                </array>
-            </dict>
-        </array>
 		<false/>
-
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>**INSERT HERE YOUR RESERVED_CLIENT_ID FROM GoogleService-Info.plist**</string>
+				</array>
+			</dict>
+		</array>
+		<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
-          <string>Upload images for screen background</string>
-          <key>NSCameraUsageDescription</key>
-          <string>Upload image from camera for screen background</string>
-          <key>NSMicrophoneUsageDescription</key>
-          <string>Post videos to profile</string>
-          <key>NSAppleMusicUsageDescription</key>
-          	<string>..Add a reason..</string>
-          <key>NSAppTransportSecurity</key>
-          <dict>
-              <key>NSAllowsArbitraryLoads</key>
-              <true/>
-          </dict>
-          <key>GADApplicationIdentifier</key>
-          <string>ca-app-pub-4118903766826893~8880089653</string>
+		<string>Upload images for screen background</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Upload image from camera for screen background</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Post videos to profile</string>
+		<key>NSAppleMusicUsageDescription</key>
+		<string>..Add a reason..</string>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+		</dict>
+		<key>GADApplicationIdentifier</key>
+		<string>ca-app-pub-2528981580397714~9114348788</string>
 	</dict>
 </plist>

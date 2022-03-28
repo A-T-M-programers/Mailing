@@ -11,6 +11,7 @@ import 'package:rolling_switch/rolling_switch.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:mailing/Home_Page.dart';
 import 'package:http/http.dart' as http;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'Class/Class_database.dart';
 import 'Class/Constant.dart';
@@ -56,9 +57,10 @@ class Login_state extends State<LoginPage> {
             body: ListView(children: [
               Stack(alignment: AlignmentDirectional.topEnd, children: [
                 Container(
+                  height: HieghDevice * 0.5,
                     child: Image.asset(
-                  "images/Untitled.png",
-                  fit: BoxFit.contain,
+                  "images/main.png",
+                  fit: BoxFit.fill,
                   alignment: Alignment.topCenter,
                 )),
                 Container(
@@ -118,7 +120,7 @@ class Login_state extends State<LoginPage> {
                   ),
                   Text(
                     "${getLang(context, "Mailing")}",
-                    style: TextStyle(fontSize: 25),
+                    style: TextStyle(fontSize: 25,color: Colors.white),
                   ),
                   SizedBox(
                     height: 30,
@@ -194,6 +196,7 @@ class Login_state extends State<LoginPage> {
                               ),
                             ]))),
                     Container(
+                      margin: EdgeInsets.only(top: 20),
                       alignment: Alignment.topCenter,
                       child: Text(
                         "${getLang(context, "Login")}",
@@ -306,7 +309,7 @@ class Login_state extends State<LoginPage> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(10))),
-                  width: 150,
+                  width: WidthDevice *0.3,
                   child: SignInButton(
                     Buttons.Google,
                     text: "Google",
@@ -318,10 +321,23 @@ class Login_state extends State<LoginPage> {
                     },
                     elevation: 30,
                   ),
+                ),Container(
+                  margin: EdgeInsets.only(bottom: HieghDevice / 10),
+                  width: WidthDevice *0.3,
+                  child: SignInWithAppleButton(
+                    onPressed: () async {
+                      showDialog(
+                          context: context,
+                          builder: (context) => MyDialogePolicy(
+                              onPress: _handleSignInwithitunes));
+                    },
+                    text: "iTunes",
+                    style: SignInWithAppleButtonStyle.black,
+                  ),
                 ),
                 Container(
                   margin: EdgeInsets.only(bottom: HieghDevice / 10),
-                  width: 150,
+                  width: WidthDevice *0.3,
                   child: SignInButton(Buttons.Facebook, text: "Facebook",
                       onPressed: () {
                     showDialog(
@@ -339,7 +355,8 @@ class Login_state extends State<LoginPage> {
                     style: TextStyle(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
-                        wordSpacing: 5),
+                        wordSpacing: 5,
+                    color: Colors.black),
                   ))
             ])));
   }
@@ -375,7 +392,7 @@ class Login_state extends State<LoginPage> {
               pagecheck = "S";
               email.text = _currentUser!.email;
               member.setEmail = _currentUser!.email;
-              if (Validation.isValidnull(_currentUser!.photoUrl!)) {
+              if (_currentUser!.photoUrl != null) {
                 member.setImage = _currentUser!.photoUrl!;
               }
               showDialog(
@@ -416,9 +433,82 @@ class Login_state extends State<LoginPage> {
       print(error);
     }
   }
+  Future<void> _handleSignInwithitunes() async {
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      print(credential);
+
+      if (Validation.isValidnull(credential.email)) {
+        String m = credential.email!;
+        var secret = Crypt.sha256("mailing_validemail");
+        Uri url =
+        Uri(host: host, path: 'Mailing_API/validemail.php', scheme: scheme);
+        var response =
+        await http.post(url, body: {'email': m, 'secret': '$secret'});
+        int status = response.statusCode;
+        String errorMsg = '';
+        switch (status) {
+          case 200:
+            {
+              pagecheck = "S";
+              email.text = credential.email!;
+              member.setEmail = credential.email!;
+              errorMsg = 'Email is an exsist Enter Password';
+              break;
+            }
+          case 400:
+            {
+              pagecheck = "S";
+              email.text = credential.email!;
+              member.setEmail = credential.email!;
+              showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (context) => MyDialoge(
+                    ins_ubd: "ins_mem",
+                  )).then((value) {
+                setState(() {
+                  print(value);
+                });
+              });
+              break;
+            }
+          case 500:
+            {
+              errorMsg = 'Something went wrong! please try again later';
+              break;
+            }
+          case 401:
+            {
+              errorMsg = response.reasonPhrase!;
+              break;
+            }
+          default:
+            {
+              errorMsg = 'Please check your internet connection and try again';
+            }
+        }
+
+        if (errorMsg.isNotEmpty) {
+          showtoast(errorMsg);
+        }
+      } else {
+        showtoast("Please choose your email!!");
+      }
+    } catch (error) {
+      print(error);
+    }
+  }
 
   Future<void> _handleSignInwithfacebook() async {
     try {
+      await FacebookAuth.i.logOut();
       final LoginResult result = await FacebookAuth.i.login();
 
       if (result.status == LoginStatus.success) {
@@ -501,6 +591,7 @@ void _handleSignUp(BuildContext buildContext, String type) async {
       switch (status) {
         case 200:
           {
+            checkadmin = false;
             errorMsg = response.reasonPhrase!;
             if (checkbox_check) {
               member.writeFileLogIn();

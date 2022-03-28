@@ -417,6 +417,7 @@ class _List_Notif_state extends State<List_Notif> {
                                     (HieghDevice / 130) * (WidthDevice / 130)),
                           ))),
                   Container(
+                    margin: EdgeInsets.all(20),
                       alignment: Alignment.center,
                       width: WidthDevice - 70,
                       child: Text(

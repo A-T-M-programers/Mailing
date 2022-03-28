@@ -2,6 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:mailing/Class/Theme_Dark_and_Light.dart';
 import 'package:mailing/Home_Page.dart';
 import 'package:mailing/Login_Mailing.dart';
@@ -12,6 +13,11 @@ import 'package:mailing/main.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:app_settings/app_settings.dart';
+import 'package:sound_mode/permission_handler.dart';
+import 'package:sound_mode/sound_mode.dart';
+import 'package:sound_mode/utils/ringer_mode_statuses.dart';
+
 
 late bool switch_value_Mute, switch_value_dark, switch_value_translate = false;
 
@@ -70,7 +76,26 @@ class setting_page_state extends State<setting_page> {
                       ),
                       Switch(
                           value: switch_value_Mute,
-                          onChanged: (value) {
+                          onChanged: (value) async {
+                            bool? isGranted = await PermissionHandler.permissionsGranted;
+
+                            if (!isGranted!) {
+                              // Opens the Do Not Disturb Access settings to grant the access
+                              await PermissionHandler.openDoNotDisturbSetting();
+                            }
+                            if(value){
+                              try {
+                                await SoundMode.setSoundMode(RingerModeStatus.silent);
+                              } on PlatformException {
+                                print('Please enable permissions required');
+                              }
+                            }else{
+                              try {
+                                await SoundMode.setSoundMode(RingerModeStatus.normal);
+                              } on PlatformException {
+                                print('Please enable permissions required');
+                              }
+                            }
                             setState(() {
                               switch_value_Mute = value;
                             });
@@ -93,12 +118,7 @@ class setting_page_state extends State<setting_page> {
                             elevation: MaterialStateProperty.all(20),
                           ),
                           onPressed: () {
-                            setState(() {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return audio();
-                              }));
-                            });
+                            AppSettings.openNotificationSettings();
                           },
                           label: Text(
                             "Ringtone",
@@ -168,7 +188,7 @@ class setting_page_state extends State<setting_page> {
                           onPressed: () {
                             setState(() {
                               member.deletefile();
-                              page = null;
+                              page = [];
                               Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
@@ -301,6 +321,7 @@ class _audioState extends State<audio> {
                     if (Validation.isValidnull(path_ringtone!)) {
                       stopLocal();
                       Navigator.pop(context);
+
                     }
                   },
                   child: Text(

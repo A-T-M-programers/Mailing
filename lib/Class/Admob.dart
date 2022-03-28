@@ -3,11 +3,13 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../Home_Page.dart';
 
 InterstitialAd? _interstitialAd;
+BannerAd? bannerAd;
+bool inlineAdLoaded = false;
 
-void loadAd(){
+void loadAdInterstitialAd(){
   if(!checkadmin){
     InterstitialAd.load(
-        adUnitId: Platform.isAndroid ? "ca-app-pub-4118903766826893/6004668397" : "ca-app-pub-4118903766826893/9810027949" ,
+        adUnitId: Platform.isAndroid ? "ca-app-pub-2528981580397714/9236448348" : "ca-app-pub-2528981580397714/1918385045" ,
         request: AdRequest(),
         adLoadCallback: InterstitialAdLoadCallback(
           onAdLoaded: (InterstitialAd ad) {
@@ -21,10 +23,37 @@ void loadAd(){
   }
 }
 
-void showAd(){
+void loadAdBannerAd(){
+  if(!checkadmin){
+    bannerAd = BannerAd(
+      adUnitId: Platform.isAndroid ? "ca-app-pub-2528981580397714/9428020033" : "ca-app-pub-2528981580397714/1932673395" ,
+      size: AdSize.banner,
+      request: AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad){
+          inlineAdLoaded = true;
+        },
+        onAdFailedToLoad: (ad,error){
+          ad.dispose();
+          bannerAd = null;
+          bannerAd!.load();
+          print("ad failed to load ${error.message}");
+        },
+        onAdClosed: (ad){
+          bannerAd = null;
+          bannerAd!.load();
+          print("ad is closed");
+        }
+      ),
+    );
+    bannerAd!.load();
+  }
+}
+
+void showAdInterstitialAd(){
   if(_interstitialAd == null){
     print("trying to show before loading");
-    loadAd();
+    loadAdInterstitialAd();
     return;
   }
   _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
@@ -34,13 +63,13 @@ void showAd(){
       print('$ad onAdDismissedFullScreenContent.');
       ad.dispose();
       _interstitialAd = null;
-      loadAd();
+      loadAdInterstitialAd();
     },
     onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
       print('$ad onAdFailedToShowFullScreenContent: $error');
       ad.dispose();
       _interstitialAd = null;
-      loadAd();
+      loadAdInterstitialAd();
     },
     onAdImpression: (InterstitialAd ad) => print('$ad impression occurred.'),
   );

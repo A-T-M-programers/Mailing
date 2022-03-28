@@ -20,12 +20,13 @@ class Notification_OneSignal_class {
       headers: <String, String>{
         'Content-Type': 'application/json',
         'Authorization':
-            'Basic NDFkMGE0ZjUtYjdjYi00MDExLTg4NDktZTU0Y2FiMWFlZmNl',
+            'Basic YjczZWE0MDEtNGIxZi00Y2U3LTk3MDItOGFjMTg4ZWQ3ZDA0',
       },
       body: jsonEncode(<String, dynamic>{
-        "app_id": "cc6f0e3f-bea7-478c-a743-230d2640c689",
+        "app_id": "a2e05d33-3eed-4ec0-8961-d5df96631789",
         "contents": {en_ar: content},
         "headings": {en_ar: heading},
+        "large_icon": "https://sales-mangment.000webhostapp.com/Mailing_API/Image_File/logo.png",
         "big_picture": imgUrlString,
         "included_segments": ["All"]
       }),
@@ -42,12 +43,13 @@ class Notification_OneSignal_class {
       headers: <String, String>{
         'Content-Type': 'application/json',
         'Authorization':
-        'Basic NDFkMGE0ZjUtYjdjYi00MDExLTg4NDktZTU0Y2FiMWFlZmNl',
+        'Basic YjczZWE0MDEtNGIxZi00Y2U3LTk3MDItOGFjMTg4ZWQ3ZDA0',
       },
       body: jsonEncode(<String, dynamic>{
-        "app_id": "cc6f0e3f-bea7-478c-a743-230d2640c689",
+        "app_id": "a2e05d33-3eed-4ec0-8961-d5df96631789",
         "contents": {en_ar: content},
         "headings": {en_ar: heading},
+        "large_icon": "https://sales-mangment.000webhostapp.com/Mailing_API/Image_File/logo.png",
         "included_segments": ["All"]
       }),
     );
@@ -67,7 +69,6 @@ class Notification_OneSignal_class {
     OneSignal.shared.setNotificationWillShowInForegroundHandler(
         (OSNotificationReceivedEvent event) async {
       // Display Notification, send null to not display, send notification to display
-          event.notification.sound = path_ringtone!;
 
       event.complete(event.notification);
     });

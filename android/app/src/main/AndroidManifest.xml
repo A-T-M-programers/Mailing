@@ -4,14 +4,16 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.intent.category.LAUNCHER"/>
+    <uses-permission android:name="com.android.vending.BILLING"/>
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
 
    <application
         android:requestLegacyExternalStorage="true"
-        android:label="Shepherd FX"
+        android:label="Shepherd signals"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
        tools:targetApi="m">
@@ -58,7 +60,10 @@
        <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
        <meta-data
            android:name="com.google.android.gms.ads.APPLICATION_ID"
-           android:value="ca-app-pub-4118903766826893~2588167569"/>
+           android:value="ca-app-pub-2528981580397714~4447156090"/>
+       <meta-data
+           android:name="com.google.android.gms.wallet.api.enabled"
+           android:value="true" />
 
        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
        <activity
