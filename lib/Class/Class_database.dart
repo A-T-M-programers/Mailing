@@ -382,6 +382,7 @@ class Messsage_DataBase extends DataBase_Access {
         'stoploss': list.elementAt(7),
         'content': list.elementAt(8),
         'entrypoint': list.elementAt(9),
+        'date': list.elementAt(10),
         'secret': '$secret'
       });
       return Status(response.statusCode);
@@ -408,6 +409,7 @@ class Messsage_DataBase extends DataBase_Access {
         'stoploss': list.elementAt(8),
         'content': list.elementAt(9),
         'entrypoint': list.elementAt(10),
+        'date': list.elementAt(11),
         'secret': '$secret'
       });
       return Status(response.statusCode);
@@ -619,6 +621,7 @@ class Public_DataBase extends DataBase_Access {
     var response = await http.post(url, body: {
       'title': list.elementAt(0),
       'content': list.elementAt(1),
+      'date': list.elementAt(2),
       'secret': '$secret'
     });
     return Status(response.statusCode);
@@ -634,6 +637,7 @@ class Public_DataBase extends DataBase_Access {
       'content': list.elementAt(1),
       'id': list.elementAt(2),
       'type': list.elementAt(3),
+      'date': list.elementAt(4),
       'secret': '$secret'
     });
     return Status(response.statusCode);

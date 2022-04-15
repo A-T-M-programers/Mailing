@@ -336,7 +336,8 @@ class _List_progrmam_state extends State<List_program> {
         title: "Our Product",
         text: widget.messaging_pr!.getcontent+
             "\n" +
-            "https://play.google.com/store/apps/details?id=com.ShepherdFX.Software",
+            "Google Play\n"+"https://play.google.com/store/apps/details?id=com.ShepherdFX.Software\n"+
+            "Apple Store\n"+"https://apps.apple.com/us/app/shepherd-signals/id1615307348",
         linkUrl: widget.messaging_pr!.getlink,
         chooserTitle: 'Example Chooser Title');
   }
@@ -354,7 +355,8 @@ class _List_progrmam_state extends State<List_program> {
           "\n " +
           widget.messaging_pr!.getlink+
           "\n" +
-          "https://play.google.com/store/apps/details?id=com.ShepherdFX.Software",
+          "Google Play\n"+"https://play.google.com/store/apps/details?id=com.ShepherdFX.Software\n"+
+          "Apple Store\n"+"https://apps.apple.com/us/app/shepherd-signals/id1615307348",
       filePath: imageFile.path,
     );
   }
@@ -751,7 +753,8 @@ class _List_Partner_state extends State<List_partner> {
         title: "Partner Program",
         text: widget.messaging_pp!.getcontent +
             "\n" +
-            "https://play.google.com/store/apps/details?id=com.ShepherdFX.Software",
+            "Google Play\n"+"https://play.google.com/store/apps/details?id=com.ShepherdFX.Software\n"+
+            "Apple Store\n"+"https://apps.apple.com/us/app/shepherd-signals/id1615307348",
         linkUrl: widget.messaging_pp!.getlink,
         chooserTitle: 'Example Chooser Title');
   }
@@ -769,7 +772,8 @@ class _List_Partner_state extends State<List_partner> {
           "\n " +
           widget.messaging_pp!.getlink +
           "\n" +
-          "https://play.google.com/store/apps/details?id=com.ShepherdFX.Software",
+          "Google Play\n"+"https://play.google.com/store/apps/details?id=com.ShepherdFX.Software\n"+
+          "Apple Store\n"+"https://apps.apple.com/us/app/shepherd-signals/id1615307348",
       filePath: imageFile.path,
     );
   }

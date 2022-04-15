@@ -331,7 +331,7 @@ class Login_state extends State<LoginPage> {
                           builder: (context) => MyDialogePolicy(
                               onPress: _handleSignInwithitunes));
                     },
-                    text: "iTunes",
+                    text: "Apple",
                     style: SignInWithAppleButtonStyle.black,
                   ),
                 ),

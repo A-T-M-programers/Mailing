@@ -68,10 +68,10 @@ class home_page_state extends State<home_page> {
   double WidthDevice = 0, HieghDevice = 0;
 
   Future<void> get_select_message() async {
-    page = [SizedBox()];
+    page = [];
     try {
       notification_message = await public_dataBase.Select(email: member.Email);
-      notification_message.removeWhere((element) => element.type !="N");
+      notification_message.removeWhere((element) => element.type != "N");
       notification_message = notification_message.reversed.toList();
     } on SocketException catch (_) {
       showtoast("Check Internet");
@@ -103,7 +103,7 @@ class home_page_state extends State<home_page> {
 
       setState(() {
         if (messaging.length > 0) {
-          SortByDateM_N(0,0);
+          SortByDateM_N(0, 0);
         } else
           return;
       });
@@ -160,8 +160,6 @@ class home_page_state extends State<home_page> {
   @override
   void initState() {
     loadAdBannerAd();
-    super.initState();
-
     get_select_message().whenComplete(() => this.setState(() {
           print("Complate");
         }));
@@ -169,7 +167,7 @@ class home_page_state extends State<home_page> {
     _controller.addListener(_scrollListener);
     setState(() {
       Future.delayed(Duration(seconds: 10), // Duration to wait
-          () {
+          () async {
         _dialogContent = Container(
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -190,6 +188,7 @@ class home_page_state extends State<home_page> {
         });
       });
     });
+    super.initState();
   }
 
   _scrollListener() {
@@ -216,7 +215,7 @@ class home_page_state extends State<home_page> {
       setState(() {
         page = [];
         lengthList = lengthList + 5;
-        SortByDateM_N(0,0);
+        SortByDateM_N(0, 0);
       });
   }
 
@@ -348,7 +347,7 @@ class home_page_state extends State<home_page> {
                                 {
                                   setState(() {
                                     page = [];
-                                    SortByDateM_N(0,0);
+                                    SortByDateM_N(0, 0);
                                   });
                                   break;
                                 }
@@ -390,20 +389,20 @@ class home_page_state extends State<home_page> {
             child: RefreshIndicator(
                 triggerMode: RefreshIndicatorTriggerMode.anywhere,
                 onRefresh: _hundgetdate,
-                child: (page != null)
-                    ? ListView(
+                child: (page.isEmpty)
+                    ? Container(
+                        color: Theme.of(context).cardColor,
+                        margin: EdgeInsets.only(bottom: HieghDevice / 3),
+                        alignment: Alignment.center,
+                        child: _dialogContent)
+                    : ListView(
                         physics: AlwaysScrollableScrollPhysics(),
                         controller: _controller,
                         scrollDirection: Axis.vertical,
                         children: page,
                         padding: EdgeInsetsDirectional.only(
                             bottom: (HieghDevice / 5.5) + 60),
-                      )
-                    : Container(
-                        color: Theme.of(context).cardColor,
-                        margin: EdgeInsets.only(bottom: HieghDevice / 3),
-                        alignment: Alignment.center,
-                        child: _dialogContent))),
+                      ))),
         !checkadmin && bannerAd != null
             ? Container(
                 child: AdWidget(
@@ -662,7 +661,7 @@ class home_page_state extends State<home_page> {
                               showAdInterstitialAd();
                             }
                             page = [];
-                            SortByDateM_N(0,0);
+                            SortByDateM_N(0, 0);
                             setState(() {
                               pagecheck = "S";
                               showsendmessage = true;
@@ -1063,10 +1062,11 @@ class _List_messaging extends State<List_messaging> {
                   child: Center(
                       //form message in list
                       child: Stack(children: [
-                        checkadmin ? Container(
+                    checkadmin
+                        ? Container(
                             alignment: Alignment.topRight,
                             child: Container(
-                              margin: EdgeInsets.all(10),
+                                margin: EdgeInsets.all(10),
                                 height: 30,
                                 width: 30,
                                 child: ElevatedButton.icon(
@@ -1075,17 +1075,18 @@ class _List_messaging extends State<List_messaging> {
                                         padding: MaterialStateProperty.all(
                                             EdgeInsets.all(2)),
                                         elevation: MaterialStateProperty.all(5),
-                                        backgroundColor: MaterialStateProperty.all(
-                                            Colors.lightBlueAccent),
-                                        shape: MaterialStateProperty.all<
-                                            RoundedRectangleBorder>(
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.lightBlueAccent),
+                                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                                             RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.only(
                                                     topLeft: Radius.zero,
-                                                    topRight: Radius.circular(20),
+                                                    topRight:
+                                                        Radius.circular(20),
                                                     bottomRight:
-                                                    Radius.circular(20),
-                                                bottomLeft: Radius.zero),
+                                                        Radius.circular(20),
+                                                    bottomLeft: Radius.zero),
                                                 side: BorderSide(
                                                     color: Colors.black38,
                                                     width: 0.2)))),
@@ -1101,7 +1102,8 @@ class _List_messaging extends State<List_messaging> {
                                       Icons.share,
                                       color: Colors.white,
                                       size: 15,
-                                    )))):SizedBox(),
+                                    ))))
+                        : SizedBox(),
                     //this feild the date
                     Container(
                       margin: EdgeInsets.only(left: WidthDevice / 9, top: 5),
@@ -1144,57 +1146,61 @@ class _List_messaging extends State<List_messaging> {
                                 child: Validation.isValidnull(
                                         widget.message!.MessageLink)
                                     ? GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    show_photo(
-                                                        path: widget.message!.MessageLink,
-                                                        type: "N")));
-                                      });
-                                    },
-                                    child: CachedNetworkImage(
-                                      imageUrl:
-                                      widget.message!.MessageLink,
-                                      imageBuilder: (context, imageProvider) =>
-                                          Container(
+                                        onTap: () {
+                                          setState(() {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        show_photo(
+                                                            path: widget
+                                                                .message!
+                                                                .MessageLink,
+                                                            type: "N")));
+                                          });
+                                        },
+                                        child: CachedNetworkImage(
+                                          imageUrl: widget.message!.MessageLink,
+                                          imageBuilder:
+                                              (context, imageProvider) =>
+                                                  Container(
                                             decoration: BoxDecoration(
                                               borderRadius:
-                                              BorderRadius.circular(20),
+                                                  BorderRadius.circular(20),
                                               image: DecorationImage(
                                                 image: imageProvider,
                                                 fit: BoxFit.fill,
                                               ),
                                             ),
                                           ),
-                                      placeholder: (context, url) =>
-                                          CircularProgressIndicator(),
-                                      errorWidget: (context, url, error) =>
-                                          Icon(Icons.error),
-                                    ))
+                                          placeholder: (context, url) =>
+                                              CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) =>
+                                              Icon(Icons.error),
+                                        ))
                                     : GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    show_photo(
-                                                        path: "", type: "")));
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                            image: AssetImage(
-                                                "images/logo.png"),
-                                            fit: BoxFit.fill),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: null,
-                                    )))
+                                        onTap: () {
+                                          setState(() {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        show_photo(
+                                                            path: "",
+                                                            type: "")));
+                                          });
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage(
+                                                    "images/logo.png"),
+                                                fit: BoxFit.fill),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          child: null,
+                                        )))
                             : ImageFiltered(
                                 imageFilter: ImageFilter.blur(
                                   sigmaY: 5,
@@ -1214,35 +1220,40 @@ class _List_messaging extends State<List_messaging> {
                                             blurRadius: 20)
                                       ],
                                     ),
-                                    child:Validation.isValidnull(
-                                        widget.message!.MessageLink)
-                                        ?  CachedNetworkImage(
-                                      imageUrl: widget.message!.MessageLink,
-                                      imageBuilder: (context, imageProvider) =>
-                                          Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          image: DecorationImage(
-                                            image: imageProvider,
-                                            fit: BoxFit.fill,
-                                          ),
-                                        ),
-                                      ),
-                                      placeholder: (context, url) =>
-                                          CircularProgressIndicator(),
-                                      errorWidget: (context, url, error) =>
-                                          Icon(Icons.error),
-                                    ):Container(
-                                      decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                            image: AssetImage(
-                                                "images/logo.png"),
-                                            fit: BoxFit.fill),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: null,
-                                    )),
+                                    child: Validation.isValidnull(
+                                            widget.message!.MessageLink)
+                                        ? CachedNetworkImage(
+                                            imageUrl:
+                                                widget.message!.MessageLink,
+                                            imageBuilder:
+                                                (context, imageProvider) =>
+                                                    Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                image: DecorationImage(
+                                                  image: imageProvider,
+                                                  fit: BoxFit.fill,
+                                                ),
+                                              ),
+                                            ),
+                                            placeholder: (context, url) =>
+                                                CircularProgressIndicator(),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    Icon(Icons.error),
+                                          )
+                                        : Container(
+                                            decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                  image: AssetImage(
+                                                      "images/logo.png"),
+                                                  fit: BoxFit.fill),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: null,
+                                          )),
                               )),
                     Container(
                       margin: EdgeInsets.only(left: WidthDevice / 2.6, top: 10),
@@ -1452,7 +1463,8 @@ class _List_messaging extends State<List_messaging> {
                       margin:
                           EdgeInsets.only(left: WidthDevice / 2.3, top: 135),
                       child: pay_complate || checkadmin
-                          ? Column(                              textDirection: TextDirection.ltr,
+                          ? Column(
+                              textDirection: TextDirection.ltr,
                               children: [
                                 Container(
                                     width: WidthDevice,
@@ -1527,7 +1539,7 @@ class _List_messaging extends State<List_messaging> {
                       height: 60,
                       margin: EdgeInsets.only(top: 140, left: WidthDevice - 95),
                       child: ElevatedButton(
-                        onPressed: () async{
+                        onPressed: () async {
                           if (pay_or_not && !pay_complate) {
                             List<String> list = [];
                             list.add(member.getEmail);
@@ -1593,28 +1605,27 @@ class _List_messaging extends State<List_messaging> {
 
   Future<void> share() async {
     await FlutterShare.share(
-        title: widget.message!.MessageSymbol,
+        title: "Symbol",
         text: Message_type.values
-                .elementAt(int.parse(widget.message!.MessageType)) +
-            "   " +
+            .elementAt(int.parse(widget.message!.MessageType)) +
+            " Signal On : " +
             widget.message!.MessageSymbol +
-            "   AT: " +
+            "\nEntry Point : " +
             widget.message!.MessageEntryPoint.toString() +
             "\n" +
-            widget.message!.MessageContent +
-            "\n" +
-            "TP1 :" +
+            "Target 1 : " +
             widget.message!.Target1 +
-            "   " +
-            "TP2 :" +
+            "\n" +
+            "Target 2 : " +
             widget.message!.Target2 +
             "\n" +
-            "SL :" +
+            "Stop Loss : " +
             widget.message!.OrderStopLoss +
-            "\n" +
-            widget.message!.MessageDate +
-            "\n",
-        linkUrl: "https://play.google.com/store/apps/details?id=com.ShepherdFX.Software",
+            "\nMessage content : " +
+            widget.message!.MessageContent ,
+        linkUrl:
+            "Google Play\n"+"https://play.google.com/store/apps/details?id=com.ShepherdFX.Software\n"+
+        "Apple Store\n"+"https://apps.apple.com/us/app/shepherd-signals/id1615307348",
         chooserTitle: 'Example Chooser Title');
   }
 
@@ -1626,58 +1637,69 @@ class _List_messaging extends State<List_messaging> {
     imageFile.writeAsBytesSync(bytes);
 
     await FlutterShare.shareFile(
-      title: Message_type.values
-              .elementAt(int.parse(widget.message!.MessageType)) +
-          " " +
+      title: "Symbol",
+      text: Message_type.values
+          .elementAt(int.parse(widget.message!.MessageType)) +
+          " Signal On : " +
           widget.message!.MessageSymbol +
-          " AT: " +
-          widget.message!.MessageEntryPoint.toString(),
-      text: widget.message!.MessageContent +
+          "\nEntry Point : " +
+          widget.message!.MessageEntryPoint.toString() +
           "\n" +
-          "TP1 :" +
+          "Target 1 : " +
           widget.message!.Target1 +
-          " " +
-          "TP2 :" +
+          "\n" +
+          "Target 2 : " +
           widget.message!.Target2 +
           "\n" +
-          "SL :" +
+          "Stop Loss : " +
           widget.message!.OrderStopLoss +
+          "\nMessage content : " +
+          widget.message!.MessageContent +
           "\n" +
-          widget.message!.MessageDate +
-          "\n" +
-          "https://play.google.com/store/apps/details?id=com.ShepherdFX.Software",
+          "Google Play\n"+"https://play.google.com/store/apps/details?id=com.ShepherdFX.Software\n"+
+          "Apple Store\n"+"https://apps.apple.com/us/app/shepherd-signals/id1615307348",
       filePath: imageFile.path,
     );
   }
 }
-void SortByDateM_N(int i,int j) {
-  if(i < messaging.length && j < notification_message.length) {
+
+void SortByDateM_N(int i, int j) {
+  if (i < messaging.length && j < notification_message.length) {
     if (i + j <= lengthList) {
-      if (DateTime.parse(messaging[i].MessageDate).isAfter(
-          DateTime.parse(notification_message[j].date!))) {
-        page.add(List_messaging(message: messaging[i],));
+      if (DateTime.parse(messaging[i].MessageDate)
+          .isAfter(DateTime.parse(notification_message[j].date!))) {
+        page.add(List_messaging(
+          message: messaging[i],
+        ));
         SortByDateM_N(i + 1, j);
       } else {
-        page.add(List_Notif(index: j,));
+        page.add(List_Notif(
+          index: j,
+        ));
         SortByDateM_N(i, j + 1);
       }
     }
-  }
-  else if (i < messaging.length){
+  } else if (i < messaging.length) {
     addmessage(i);
-  }else if(j < notification_message.length){
+  } else if (j < notification_message.length) {
     addnotifi(j);
   }
 }
-void addmessage(int i){
-  if(i < messaging.length && i <= lengthList) {
-    page.add(List_messaging(message: messaging[i],));
+
+void addmessage(int i) {
+  if (i < messaging.length && i <= lengthList) {
+    page.add(List_messaging(
+      message: messaging[i],
+    ));
     addmessage(i + 1);
   }
 }
-void addnotifi(int i){
-  if(i < notification_message.length && i <= lengthList) {
-    page.add(List_Notif(index: i,));
+
+void addnotifi(int i) {
+  if (i < notification_message.length && i <= lengthList) {
+    page.add(List_Notif(
+      index: i,
+    ));
     addnotifi(i + 1);
   }
 }

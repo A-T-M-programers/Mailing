@@ -390,6 +390,7 @@ class message_page_state extends State<message_page> {
         list.add(Message_Sympole_OSL.text);
         list.add(Message_Sympole_Content.text);
         list.add(Message_Sympole_MEP.text);
+        list.add(DateTime.now().toString());
         Messsage_DataBase message_database = Messsage_DataBase();
 
         if (await message_database.Insert(list)) {
@@ -443,6 +444,7 @@ class message_page_state extends State<message_page> {
         List<String> list = [];
         list.add(Public_Title.text);
         list.add(Public_Content.text);
+        list.add(DateTime.now().toString());
         Public_DataBase public_dataBase = Public_DataBase();
         if (await public_dataBase.Insert(list)) {
           try {
@@ -490,6 +492,7 @@ class message_page_state extends State<message_page> {
         list.add(Message_Sympole_OSL.text);
         list.add(Message_Sympole_Content.text);
         list.add(Message_Sympole_MEP.text);
+        list.add(DateTime.now().toString());
         Messsage_DataBase message_database = Messsage_DataBase();
 
         if (await message_database.Ubdate(list)) {
@@ -542,6 +545,7 @@ class message_page_state extends State<message_page> {
         list.add(Public_Content.text);
         list.add(widget.messaging.messaging_id.toString());
         list.add(widget.messaging.type);
+        list.add(DateTime.now().toString());
         Public_DataBase public_dataBase = Public_DataBase();
         if (await public_dataBase.Ubdate(list)) {
           try {
