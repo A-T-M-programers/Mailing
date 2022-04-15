@@ -844,7 +844,7 @@
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ShepherdFX.Software.OneSignalShepherdSignals;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.mailing.OneSignalShepherdSignals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -910,7 +910,7 @@
 				);
 				MARKETING_VERSION = 1.0.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ShepherdFX.Software.OneSignalShepherdSignals;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.mailing.OneSignalShepherdSignals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
